@@ -1,0 +1,156 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="Source Files">
+      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
+      <Extensions>cpp;c;cc;cxx;c++;cppm;ixx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
+    </Filter>
+    <Filter Include="Header Files">
+      <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
+      <Extensions>h;hh;hpp;hxx;h++;hm;inl;inc;ipp;xsd</Extensions>
+    </Filter>
+    <Filter Include="Resource Files">
+      <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
+      <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
+    </Filter>
+    <Filter Include="Source Files\Math Support">
+      <UniqueIdentifier>{bd74e118-0f62-44a5-b91d-caca165d876a}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Mindows dependent">
+      <UniqueIdentifier>{6401bcee-75c3-4e3a-be5c-0494617c55e2}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Frame dependent">
+      <UniqueIdentifier>{6852470e-81cf-4a3d-9620-f705c24c69c5}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Main render">
+      <UniqueIdentifier>{8d37514e-7c0d-4b8b-8072-321bc581a26d}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Gfx">
+      <UniqueIdentifier>{0a56164b-3acb-438d-8439-ad5d05aee632}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\UI">
+      <UniqueIdentifier>{56911ba1-2a93-44ca-8eda-11097e3f30ad}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\UI\Mappers system">
+      <UniqueIdentifier>{350c53b2-dc26-46d3-9223-2ba39ab99ee8}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\UI 2">
+      <UniqueIdentifier>{aba477c7-c8d8-417e-a045-469f312ffb81}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="src\win\win.cpp">
+      <Filter>Source Files\Mindows dependent</Filter>
+    </ClCompile>
+    <ClCompile Include="src\win\win_msg.cpp">
+      <Filter>Source Files\Mindows dependent</Filter>
+    </ClCompile>
+    <ClCompile Include="src\main.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\gfx\gfx_def.cpp">
+      <Filter>Source Files\Gfx</Filter>
+    </ClCompile>
+    <ClCompile Include="src\ui\ui_support.cpp">
+      <Filter>Source Files\UI</Filter>
+    </ClCompile>
+    <ClCompile Include="src\ui\ui_widget.cpp">
+      <Filter>Source Files\UI</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="src\mth\mth.h">
+      <Filter>Source Files\Math Support</Filter>
+    </ClInclude>
+    <ClInclude Include="src\mth\mth_matr.h">
+      <Filter>Source Files\Math Support</Filter>
+    </ClInclude>
+    <ClInclude Include="src\mth\mth_vec2.h">
+      <Filter>Source Files\Math Support</Filter>
+    </ClInclude>
+    <ClInclude Include="src\mth\mth_vec3.h">
+      <Filter>Source Files\Math Support</Filter>
+    </ClInclude>
+    <ClInclude Include="src\mth\mthdef.h">
+      <Filter>Source Files\Math Support</Filter>
+    </ClInclude>
+    <ClInclude Include="src\def.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\win\win.h">
+      <Filter>Source Files\Mindows dependent</Filter>
+    </ClInclude>
+    <ClInclude Include="src\mth\mth_cam.h">
+      <Filter>Source Files\Math Support</Filter>
+    </ClInclude>
+    <ClInclude Include="src\frame\frame.h">
+      <Filter>Source Files\Frame dependent</Filter>
+    </ClInclude>
+    <ClInclude Include="src\mth\mth_ray.h">
+      <Filter>Source Files\Math Support</Filter>
+    </ClInclude>
+    <ClInclude Include="src\rt\shapes\render.h">
+      <Filter>Source Files\Main render</Filter>
+    </ClInclude>
+    <ClInclude Include="src\mth\mth_noise.h">
+      <Filter>Source Files\Math Support</Filter>
+    </ClInclude>
+    <ClInclude Include="src\gfx\gfx_def.h">
+      <Filter>Source Files\Gfx</Filter>
+    </ClInclude>
+    <ClInclude Include="src\ui\ui_widget.h">
+      <Filter>Source Files\UI</Filter>
+    </ClInclude>
+    <ClInclude Include="src\mth\mth_size.h">
+      <Filter>Source Files\Math Support</Filter>
+    </ClInclude>
+    <ClInclude Include="src\gfx\font_def.h">
+      <Filter>Source Files\Gfx</Filter>
+    </ClInclude>
+    <ClInclude Include="src\ui\ui_editor.h">
+      <Filter>Source Files\UI</Filter>
+    </ClInclude>
+    <ClInclude Include="src\ui\ui_panel.h">
+      <Filter>Source Files\UI</Filter>
+    </ClInclude>
+    <ClInclude Include="src\ui\ui_widget_block.h">
+      <Filter>Source Files\UI</Filter>
+    </ClInclude>
+    <ClInclude Include="src\ui\ui_window.h">
+      <Filter>Source Files\UI</Filter>
+    </ClInclude>
+    <ClInclude Include="src\ui\ui_support.h">
+      <Filter>Source Files\UI</Filter>
+    </ClInclude>
+    <ClInclude Include="src\ui\mapper_system\tmp_ui_mp.h">
+      <Filter>Source Files\UI\Mappers system</Filter>
+    </ClInclude>
+    <ClInclude Include="src\ui\mapper_system\tmp_ui_mp_def.h">
+      <Filter>Source Files\UI\Mappers system</Filter>
+    </ClInclude>
+    <ClInclude Include="src\ui\mapper_system\tmp_ui_mp_manager.h">
+      <Filter>Source Files\UI\Mappers system</Filter>
+    </ClInclude>
+    <ClInclude Include="src\ui\mapper_system\tmp_ui_mp_value.h">
+      <Filter>Source Files\UI\Mappers system</Filter>
+    </ClInclude>
+    <ClInclude Include="src\ui\mapper_system\tmp_ui_mp_variable.h">
+      <Filter>Source Files\UI\Mappers system</Filter>
+    </ClInclude>
+    <ClInclude Include="src\mth\tmp_mth_vec4.h">
+      <Filter>Source Files\Math Support</Filter>
+    </ClInclude>
+    <ClInclude Include="src\ui2\canvas.h">
+      <Filter>Source Files\UI 2</Filter>
+    </ClInclude>
+    <ClInclude Include="src\ui2\controls.h">
+      <Filter>Source Files\UI 2</Filter>
+    </ClInclude>
+    <ClInclude Include="src\ui2\entry.h">
+      <Filter>Source Files\UI 2</Filter>
+    </ClInclude>
+    <ClInclude Include="src\ui2\ui_def.h">
+      <Filter>Source Files\UI 2</Filter>
+    </ClInclude>
+  </ItemGroup>
+</Project>
