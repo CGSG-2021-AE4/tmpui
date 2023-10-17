@@ -24,17 +24,14 @@
 #include <vector>
 #include "..\..\def.h"
 
-//#include "ui/ui_widget_block.h"
-//#include "ui/ui_panel.h"
- #include "ui/ui_editor.h"
-//#include "gfx/gfx_def.h"
-
-#include "ui/mapper_system/tmp_ui_mp.h"
-
-
 #define BACK_GRD_COLOR RGB(204, 120, 77)
 #define BACK_GRD_COLOR_VEC vec3(0.30, 0.47, 0.8)
 #define RT_THESHOLD 0.001
+
+#include "./gfx/gfx_def.h"
+#include "./ui2/canvas.h"
+#include "./ui2/controls.h"
+#include "./ui/ui_editor.h"
 
 namespace tmp
 {
@@ -45,27 +42,22 @@ namespace tmp
 
     gfx Gfx;
 
-    //ui::widget::button Button;
-
-    //ui::widget::slider Slider;
-    tmp::ui::mapper::mp_flt FirstMapper;
-    ui::editor::viewport_3d Viewport;
+    ::ui::canvas *Canvas;
 
     BOOL ButtonValue {1};
 
     /* Default scene construct function */
     scene( const HWND &hWnd, const INT &NewW, const INT &NewH ) :
       Gfx(hWnd, size(NewW, NewH), ui::props::DefTextFormat),
-      FirstMapper("Value3:", 3, 1, 1, 4, 2),
-      Viewport(Gfx, "Viewport", ivec2(0), size(NewW - 1, NewH))
-      //Slider(Gfx, ivec2(10, 50), ivec2(0), SliderMin, SliderMax, SliderValue)
+      Canvas(new ::ui::canvas({0, 0}, {100, 100}, nullptr))
     {
-      Gfx.SetFrame(0xFF000000);
+      Gfx.SetFrame(0xF00FF00F);
     } /* End of 'scene' function */
 
     /* Scene deconstruct function */
     ~scene()
     {
+      delete Canvas;
     } /* End of 'scene' function */
 
     /* Resize function.
@@ -114,20 +106,11 @@ namespace tmp
        */
 
       // Gfx.SetFrame(0xFF000000);
-      // Button.Response(ivec2(CursorPos.x, CursorPos.y) - ivec2(10, 10), MouseState);
-      // Button.Draw();
-      //
-      //NumEditor.Response(ivec2(CursorPos.x, CursorPos.y) - ivec2(10, 10), MouseState);
-      //NumEditor.Draw();
-      //Slider.Draw();
       ivec2 StartPos = ivec2(0);
 
-      if (Viewport.Size.W != Gfx.FrameSize.W || Viewport.Size.H != Gfx.FrameSize.H)
-        Viewport.Resize(Gfx.FrameSize - size(1));
-      
-      Viewport.Response(ivec2(CursorPos.x, CursorPos.y), MouseState);
-      Viewport.Draw(ivec2(0));
       Gfx.PutText("FPS: " + std::to_string(FPS), ivec2(0, 0), size(100, 20));
+
+
       
       /*
        ************* DRAW INTERFACE END *************
@@ -147,7 +130,7 @@ namespace tmp
 
       if (Gfx.FrameSize.W != Fr.W || Gfx.FrameSize.H != Fr.H)
       {
-        INT TempW = min(Gfx.FrameSize.W, Fr.W), TempH = min(Gfx.FrameSize.H, Fr.H);
+        INT TempW = std::min(Gfx.FrameSize.W, Fr.W), TempH = std::min(Gfx.FrameSize.H, Fr.H);
       
         for (INT y = 0; y < TempH; y++)
           // Fr.PutPixel(x, y, Gfx.Frame[y * Gfx.FrameSize.W + x]); //Gfx.

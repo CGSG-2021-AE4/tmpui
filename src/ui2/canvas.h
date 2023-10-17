@@ -1,5 +1,5 @@
-#ifndef __canvas_hpp_
-#define __canvas_hpp_
+#ifndef __canvas_h_
+#define __canvas_h_
 
 #include <cassert>
 #include "ui_def.h"
@@ -16,6 +16,8 @@ namespace ui
     ivec2 Pos;      // Position
     isize2 Size;    // Size
 
+    mask Mask;      // Mask for canvas
+
     // Entries' values
     entry
       *Root        {nullptr}, // Root entry
@@ -29,6 +31,7 @@ namespace ui
       SetRoot(NewRoot);
       Move(NewPos);
       Resize(NewSize);
+      Mask = {Pos, Size};
     } /* End of 'canvas' function */
 
     VOID SetRoot( entry *NewRoot )
@@ -39,14 +42,17 @@ namespace ui
     VOID Resize( const isize2 &NewSize )
     {
       Size = NewSize;
+      Mask = {Pos, Size};
 
-      if (Root != nullptr)
-        Root->OnResize(Pos, Size);
+      //if (Root != nullptr)
+      //Root->OnResize(Pos, Size);
+
     } /* End of 'Resize' function */
 
     VOID Move( const ivec2 &NewPos )
     {
       Pos = NewPos;
+      Mask = {Pos, Size};
     } /* End of 'Move' function */
 
     /* Input events */
@@ -107,7 +113,8 @@ namespace ui
       // On hover/unhover event
       if (NewHoverEntry != HoverEntry)
       {
-        HoverEntry->OnUnhover(GlobalMousePos - HoverEntry->GlobalPos);
+        if (HoverEntry != nullptr)
+          HoverEntry->OnUnhover(GlobalMousePos - HoverEntry->GlobalPos);
         if (NewHoverEntry != nullptr)
           NewHoverEntry->OnHover(GlobalMousePos - NewHoverEntry->GlobalPos);
         HoverEntry = NewHoverEntry;
@@ -130,14 +137,22 @@ namespace ui
     VOID OnMouseUp( const ivec2 &MousePos )
     {
       if (FocusEntry != nullptr)
+      {
         FocusEntry->OnMouseUp(MousePos - HoverEntry->GlobalPos);
-      if (FocusEntry == HoverEntry)
-        FocusEntry->OnClick(MousePos - HoverEntry->GlobalPos);
+        if (FocusEntry == HoverEntry)
+          FocusEntry->OnClick(MousePos - HoverEntry->GlobalPos);
+      }
 
       FocusEntry = nullptr;
     } /* End of 'OnMouseUp' function */
 
+    VOID Draw( renderer &Rnd )
+    {
+      if (Root != nullptr)
+        Root->Draw(Rnd);
+    } /* End of 'Draw' function */
+
   }; /* End of 'canvas' class */
 } /* end of 'ui' namespace */
 
-#endif // __canvas_hpp_
+#endif // __canvas_h_

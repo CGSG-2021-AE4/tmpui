@@ -39,7 +39,4 @@ INT WINAPI WinMain( _In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance,
   tmp::rtwin myw(hInstance);
 
   myw.Run();
-
-  ::ui::canvas* Canvas = new ::ui::canvas({ 0, 0 }, {100, 100}, new ::ui::button({10, 10}));
-  
 } /* End of 'WinMain' function */

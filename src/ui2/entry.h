@@ -1,5 +1,5 @@
-#ifndef __entry_hpp_
-#define __entry_hpp_
+#ifndef __entry_h_
+#define __entry_h_
 
 #include "ui_def.h"
 
@@ -17,12 +17,18 @@ namespace ui
     /* Values */
   private:
 
+    ivec2
+      LocalPos,                    // Position in parent basis
+      GlobalPos;                   // Position in canvas basis
+    isize2 Size;                   // WH
+
+    mask
+      Mask,                        // Source mask
+      DrawMask;                    // Mask that is visible on the screen
+    
     entry *Parent;                 // Parent pointer
     std::vector<entry *> Children; // Children pointers
-    ivec2
-      LocalPos,                 // Position in parent basis
-      GlobalPos;                   // Position in canvas basis
-    isize2 Size;                    // WH
+
     BOOL IsVisible;                // Is entry visible
 
     /* Events */
@@ -42,7 +48,7 @@ namespace ui
         LocalPoint.Y < Size.H;
     } /* End of 'IsOver' function */
 
-    virtual VOID OnDraw( VOID )
+    virtual VOID OnDraw( renderer &Rnd )
     {
     } /* End of 'OnDraw' function */
 
@@ -78,11 +84,19 @@ namespace ui
     {
     } /* End of 'OnChange' function */
 
-    virtual VOID OnResize( const ivec2 &NewPos, const isize2 &NewSize )
+    virtual VOID OnResize( VOID )
     {
     } /* End of 'OnResize' function */
 
-  
+    virtual VOID OnMove( VOID )
+    {
+    } /* End of 'OnResize' function */
+
+    virtual mask GetMask( VOID )
+    {
+      return {GlobalPos, Size};
+    } /* End of 'GetMask' function */
+
     /* Functions */
   protected:
 
@@ -96,6 +110,8 @@ namespace ui
     {
       SetParent(NewParent);
       AddChildren(NewChildren);
+
+      UpdateGlobalPos();
     } /* End of 'entry' function */
 
     ~entry( VOID )
@@ -108,15 +124,66 @@ namespace ui
       Parent->DeleteChild(this);
     } /* End of '~entry' function */
 
-    VOID Draw( VOID )
+    VOID UpdateDrawMask( const mask &ParentMask )
+    {
+      DrawMask = Mask.Intersect(ParentMask); // May be later add check for mask change
+    } /* End of 'UpdateDrawMask' function */
+
+    VOID UpdateGlobalPos( VOID )
+    {
+      // Don't know is it right
+      if (Parent != nullptr)
+        GlobalPos = Parent->GlobalPos + LocalPos;
+      else
+        GlobalPos = LocalPos;
+    } /* End of 'UpdateGlobalPos' function */
+
+    /* Only resize function */
+    VOID Resize( const isize2 &NewSize, const mask &ParentMask )
+    {
+      Size = NewSize;
+
+      UpdateDrawMask(ParentMask);
+
+      OnResize();
+    } /* End of 'Resize' function */
+
+    /* Only move function */
+    VOID Move( const ivec2 &NewLocalPos, const mask &ParentMask )
+    {
+      LocalPos = NewLocalPos;
+
+      UpdateGlobalPos();
+      UpdateDrawMask(ParentMask);
+
+      OnMove();
+    } /* End of 'Resize' function */
+
+    /* Combined move and resize function */
+    VOID Reform( const ivec2 &NewLocalPos, const isize2 &NewSize, const mask &ParentMask )
+    {
+      LocalPos = NewLocalPos;
+      Size = NewSize;
+
+      UpdateGlobalPos();
+      UpdateDrawMask(ParentMask);
+
+      OnMove();
+      OnResize();
+    } /* End of 'Reform' function */
+
+    /* Draw function. */
+    VOID Draw( renderer &Rnd )
     {
       if (!IsVisible)
         return;
 
-      OnDraw();
+      OnDraw(Rnd);
       for (entry *c : Children)
-        c->Draw();
+        c->Draw(Rnd);
     } /* End of 'draw' function */
+
+    /************ Parents/Children functions ************/
 
     VOID SetParent( entry *NewParent )
     {
@@ -133,6 +200,7 @@ namespace ui
     } /* End of 'SetParent' function */
 
     // Later there must be funtions to instert children into specific positions
+
     VOID AddChild( entry *NewChild )
     {
       for (entry *Child : Children)
@@ -167,9 +235,10 @@ namespace ui
       Children.erase(FoundChild);
     } /* End of 'DeleteChild' function */
 
-}; /* End of 'entry' class */
+  }; /* End of 'entry' class */
+
 } /* End of 'ui' namespace */
 
 
 
-#endif // __entry_hpp_
+#endif // __entry_h_

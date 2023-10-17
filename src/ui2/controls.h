@@ -1,5 +1,5 @@
-#ifndef __controls_hpp_
-#define __controls_hpp_
+#ifndef __controls_h_
+#define __controls_h_
 
 #include <iostream>
 #include "entry.h"
@@ -25,4 +25,4 @@ namespace ui
   }; /* End of 'button' class */
 } /* end of 'ui' namespace */
 
-#endif // __controls_hpp_
+#endif // __controls_h_

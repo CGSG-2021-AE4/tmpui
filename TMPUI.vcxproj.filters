@@ -152,5 +152,8 @@
     <ClInclude Include="src\ui2\ui_def.h">
       <Filter>Source Files\UI 2</Filter>
     </ClInclude>
+    <ClInclude Include="src\ui2\2d_renderer.h">
+      <Filter>Source Files\UI 2</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

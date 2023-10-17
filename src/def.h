@@ -20,6 +20,10 @@
 
 #include <windows.h>
 
+#undef max
+#undef min
+
+
 /* Debug memory allocation support */ 
 #ifndef NDEBUG 
 # define _CRTDBG_MAP_ALLOC
