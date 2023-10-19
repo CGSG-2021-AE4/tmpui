@@ -170,7 +170,7 @@
     <ClInclude Include="src\mth\mth_vec3.h" />
     <ClInclude Include="src\mth\tmp_mth_vec4.h" />
     <ClInclude Include="src\rt\shapes\render.h" />
-    <ClInclude Include="src\ui2\2d_renderer.h" />
+    <ClInclude Include="src\ui2\frame_render.h" />
     <ClInclude Include="src\ui2\canvas.h" />
     <ClInclude Include="src\ui2\controls.h" />
     <ClInclude Include="src\ui2\entry.h" />

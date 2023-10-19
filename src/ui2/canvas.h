@@ -4,13 +4,16 @@
 #include <cassert>
 #include "ui_def.h"
 #include "entry.h"
+#include "frame_render.h"
 
 namespace ui
 {
   /* UI canvas class */
   class canvas
   {
-  private:
+  public:
+
+    render_2d &Render2d;
 
     // Cavas values
     ivec2 Pos;      // Position
@@ -26,7 +29,8 @@ namespace ui
 
   public:
 
-    canvas( const ivec2 &NewPos, const isize2 &NewSize, entry *NewRoot )
+    canvas( render_2d &NewRender2d, const ivec2 &NewPos, const isize2 &NewSize, entry *NewRoot ) :
+      Render2d(NewRender2d)
     {  
       SetRoot(NewRoot);
       Move(NewPos);
@@ -36,7 +40,15 @@ namespace ui
 
     VOID SetRoot( entry *NewRoot )
     {
+      if (Root != nullptr)
+        Root->SetCanvas(nullptr);
+
       Root = NewRoot; // ?
+      if (Root != nullptr)
+      {
+        Root->SetCanvas(this);
+        Root->OnAddChild(nullptr);
+      }
     } /* End of 'SetRoot' function */
 
     VOID Resize( const isize2 &NewSize )
@@ -59,6 +71,11 @@ namespace ui
 
     entry * FindHoverEntry( const ivec2 &GlobalMousePos )
     {
+      if (Root == nullptr)
+        return nullptr;
+      if (!Root->IsOver(GlobalMousePos - Root->GlobalPos))
+        return nullptr;
+
       entry *CurEntry = Root;
       ivec2 CurLocalMousePos = GlobalMousePos;
 
@@ -70,8 +87,8 @@ namespace ui
         // Go up
         while (CurEntry != nullptr && !CurEntry->IsOver(CurLocalMousePos))
         {
-          CurEntry = CurEntry->Parent;
           CurLocalMousePos += CurEntry->LocalPos;
+          CurEntry = CurEntry->Parent;
         }      
       }
 
@@ -138,18 +155,18 @@ namespace ui
     {
       if (FocusEntry != nullptr)
       {
-        FocusEntry->OnMouseUp(MousePos - HoverEntry->GlobalPos);
+        FocusEntry->OnMouseUp(MousePos - FocusEntry->GlobalPos);
         if (FocusEntry == HoverEntry)
-          FocusEntry->OnClick(MousePos - HoverEntry->GlobalPos);
+          FocusEntry->OnClick(MousePos - FocusEntry->GlobalPos);
       }
 
       FocusEntry = nullptr;
     } /* End of 'OnMouseUp' function */
 
-    VOID Draw( renderer &Rnd )
+    VOID Draw( VOID )
     {
       if (Root != nullptr)
-        Root->Draw(Rnd);
+        Root->Draw();
     } /* End of 'Draw' function */
 
   }; /* End of 'canvas' class */

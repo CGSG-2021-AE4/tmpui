@@ -2,6 +2,7 @@
 #define __entry_h_
 
 #include "ui_def.h"
+#include "frame_render.h"
 
 // Some real kal
 using namespace tmp;
@@ -15,7 +16,7 @@ namespace ui
   class entry
   {
     /* Values */
-  private:
+  protected:
 
     ivec2
       LocalPos,                    // Position in parent basis
@@ -27,6 +28,7 @@ namespace ui
       DrawMask;                    // Mask that is visible on the screen
     
     entry *Parent;                 // Parent pointer
+    canvas *Canvas;                // Canvas pointer
     std::vector<entry *> Children; // Children pointers
 
     BOOL IsVisible;                // Is entry visible
@@ -48,16 +50,18 @@ namespace ui
         LocalPoint.Y < Size.H;
     } /* End of 'IsOver' function */
 
-    virtual VOID OnDraw( renderer &Rnd )
+    virtual VOID OnDraw( VOID )
     {
     } /* End of 'OnDraw' function */
 
     virtual VOID OnHover( const ivec2 &LocalMousePos )
     {
+      std::cout << "OnHover -- Local mouse pos: [" << LocalMousePos.X << ", " << LocalMousePos.Y << "]" << std::endl;
     } /* End of 'OnHover' function */
 
     virtual VOID OnUnhover( const ivec2 &LocalMousePos )
     {
+      std::cout << "OnUnhover -- Local mouse pos: [" << LocalMousePos.X << ", " << LocalMousePos.Y << "]" << std::endl;
     } /* End of 'OnUnhover' function */
 
     virtual VOID OnClick( const ivec2 &LocalMousePos )
@@ -66,18 +70,22 @@ namespace ui
 
     virtual VOID OnMouseDown( const ivec2 &LocalMousePos )
     {
+      std::cout << "OnMouseDown -- Local mouse pos: [" << LocalMousePos.X << ", " << LocalMousePos.Y << "]" << std::endl;
     } /* End of 'OnMouseDown' function */
 
     virtual VOID OnMouseUp( const ivec2 &LocalMousePos )
     {
+      std::cout << "OnMouseUp -- Local mouse pos: [" << LocalMousePos.X << ", " << LocalMousePos.Y << "]" << std::endl;
     } /* End of 'OnMouseUp' function */
 
     virtual VOID OnMouseMove( const ivec2 &Delta, const ivec2 &LocalMousePos )
     {
+      //std::cout << "OnMouseMove -- Local mouse pos: [" << LocalMousePos.X << ", " << LocalMousePos.Y << "], Delta mouse pos: [" << Delta.X << ", " << Delta.Y << "]" << std::endl;
     } /* End of 'OnMouseMove' function */
 
     virtual VOID OnDrag( const ivec2 &Delta, const ivec2 &LocalMousePos )
     {
+      std::cout << "OnDrag -- Local mouse pos: [" << LocalMousePos.X << ", " << LocalMousePos.Y << "], Delta mouse pos: [" << Delta.X << ", " << Delta.Y << "]" << std::endl;
     } /* End of 'OnDrag' function */
 
     virtual VOID OnChange( VOID )
@@ -109,9 +117,11 @@ namespace ui
       IsVisible(true)
     {
       SetParent(NewParent);
-      AddChildren(NewChildren);
 
       UpdateGlobalPos();
+      UpdateMasks();
+
+      AddChildren(NewChildren);
     } /* End of 'entry' function */
 
     ~entry( VOID )
@@ -124,9 +134,13 @@ namespace ui
       Parent->DeleteChild(this);
     } /* End of '~entry' function */
 
-    VOID UpdateDrawMask( const mask &ParentMask )
+    VOID UpdateMasks( VOID )
     {
-      DrawMask = Mask.Intersect(ParentMask); // May be later add check for mask change
+      Mask = GetMask();
+      if (Parent != nullptr)
+        DrawMask = Mask.Intersect(Parent->DrawMask); // May be later add check for mask change
+      else
+        DrawMask = Mask;
     } /* End of 'UpdateDrawMask' function */
 
     VOID UpdateGlobalPos( VOID )
@@ -136,51 +150,64 @@ namespace ui
         GlobalPos = Parent->GlobalPos + LocalPos;
       else
         GlobalPos = LocalPos;
+      Mask = GetMask();
+    } /* End of 'UpdateGlobalPos' function */
+
+    VOID UpdateGlobalPos( const ivec2 &ParentGlobalPos )
+    {
+      GlobalPos = ParentGlobalPos + LocalPos;
+      UpdateMasks();
     } /* End of 'UpdateGlobalPos' function */
 
     /* Only resize function */
-    VOID Resize( const isize2 &NewSize, const mask &ParentMask )
+    VOID Resize( const isize2 &NewSize )
     {
       Size = NewSize;
 
-      UpdateDrawMask(ParentMask);
+      UpdateMasks();
 
       OnResize();
     } /* End of 'Resize' function */
 
     /* Only move function */
-    VOID Move( const ivec2 &NewLocalPos, const mask &ParentMask )
+    VOID Move( const ivec2 &NewLocalPos )
     {
       LocalPos = NewLocalPos;
 
       UpdateGlobalPos();
-      UpdateDrawMask(ParentMask);
+      UpdateMasks();
 
       OnMove();
     } /* End of 'Resize' function */
 
     /* Combined move and resize function */
-    VOID Reform( const ivec2 &NewLocalPos, const isize2 &NewSize, const mask &ParentMask )
+    VOID Reform( const ivec2 &NewLocalPos, const isize2 &NewSize )
     {
       LocalPos = NewLocalPos;
       Size = NewSize;
 
       UpdateGlobalPos();
-      UpdateDrawMask(ParentMask);
+      UpdateMasks();
 
       OnMove();
       OnResize();
     } /* End of 'Reform' function */
 
-    /* Draw function. */
-    VOID Draw( renderer &Rnd )
+    /* Draw functions */
+
+    VOID DrawChildren( VOID )
+    {
+      for (entry *c : Children)
+        c->Draw();
+    } /* End of 'DrawChildren' function */
+
+    VOID Draw( VOID )
     {
       if (!IsVisible)
         return;
 
-      OnDraw(Rnd);
-      for (entry *c : Children)
-        c->Draw(Rnd);
+      OnDraw();
+      DrawChildren();
     } /* End of 'draw' function */
 
     /************ Parents/Children functions ************/
@@ -190,29 +217,55 @@ namespace ui
       // Rebind to parent
       if (Parent != nullptr)
         Parent->DeleteChild(this); // Delete self from parent's children
-      if (NewParent != nullptr)
-        NewParent->AddChild(this); // Add self to new parent's children
+
       Parent = NewParent;
-    
-      // Recalculate global pos
+
       if (Parent != nullptr)
-        GlobalPos = Parent->GlobalPos + LocalPos;
+        Parent->AddChild(this); // Add self to new parent's children
+      
+    } /* End of 'SetParent' function */
+
+    VOID OnAddChild( entry *NewParent )
+    {
+      // Rebind to parent
+      if (Parent != nullptr)
+        Parent->DeleteChild(this); // Delete self from parent's children
+
+      Parent = NewParent;
+
+      if (Parent != nullptr)
+      {
+        SetCanvas(Parent->Canvas);
+        UpdateGlobalPos();
+        UpdateMasks();
+      }
+    } /* End of 'SetParent' function */
+
+    VOID SetCanvas( canvas *NewCanvas )
+    {
+      Canvas = NewCanvas;
+      for (entry *Child : Children)
+        Child->SetCanvas(Canvas);
     } /* End of 'SetParent' function */
 
     // Later there must be funtions to instert children into specific positions
 
     VOID AddChild( entry *NewChild )
     {
+      if (NewChild == nullptr)
+        return;
+
       for (entry *Child : Children)
         if (NewChild == Child)
           return; // We already have this child
     
       Children.push_back(NewChild);
+      NewChild->OnAddChild(this);
     } /* End of 'AddChild' function */
 
     VOID AddChildren( const std::vector<entry *> &NewChildren )
     {
-      for (entry *Child : Children)
+      for (entry *Child : NewChildren)
         AddChild(Child);
     } /* End of 'AddChildren' function */
 
