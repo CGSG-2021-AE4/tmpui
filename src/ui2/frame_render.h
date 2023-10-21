@@ -1,7 +1,8 @@
+#include "ui_def.h"
+
 #ifndef __2d_renderer_h_
 #define __2d_renderer_h_
 
-#include "ui_def.h"
 
 namespace ui
 {
@@ -39,12 +40,12 @@ namespace ui
     BOOL operator()( const ivec2 &Point ) const
     {
       return
-        Point.X >= Pos0.X && Point.X <= Pos1.X &&
-        Point.Y >= Pos0.Y && Point.Y <= Pos1.Y;
+        Point.X > Pos0.X && Point.X < Pos1.X &&
+        Point.Y > Pos0.Y && Point.Y < Pos1.Y;
     } /* End of 'operator()' function */
 
     /* Intersect line with mask function */
-    BOOL operator()( UINT Y, INT &X0, INT X1 ) const
+    BOOL operator()( UINT Y, INT &X0, INT &X1 ) const
     {
       if (Y < Pos0.Y || Y > Pos1.Y)
         return false;
@@ -179,8 +180,10 @@ namespace ui
 
         if (Mask(y, X0m, X1m))
         {
-          PutPixelUnsafe(y * FrameSize.W + X0m, FrameColor);
-          PutPixelUnsafe(y * FrameSize.W + X1m, FrameColor);
+          if (X0m == Pos0.X)
+            PutPixelUnsafe(y * FrameSize.W + X0m, FrameColor);
+          if (X1m == Pos1.X)
+            PutPixelUnsafe(y * FrameSize.W + X1m, FrameColor);
         }
       }
     } /* End of 'PutBar' function */
@@ -220,8 +223,11 @@ namespace ui
         if (Mask(y, X0m, X1m))
         {
           std::fill(Frame.begin() + y * FrameSize.W + X0m, Frame.begin() + y * FrameSize.W + X1m + 1, SpaceColor);
-          PutPixelUnsafe(y * FrameSize.W + X0m, FrameColor);
-          PutPixelUnsafe(y * FrameSize.W + X1m, FrameColor);
+
+          if (X0m == Pos0.X)
+            PutPixelUnsafe(y * FrameSize.W + X0m, FrameColor);
+          if (X1m == Pos1.X)
+            PutPixelUnsafe(y * FrameSize.W + X1m, FrameColor);
         }
       }
     } /* End of 'PutBar' function */

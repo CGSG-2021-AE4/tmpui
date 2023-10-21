@@ -53,8 +53,13 @@ public:
   VOID Init( VOID )
   {
     //Canvas.SetRoot(new ::ui::button({10, 10}));
-    Canvas.SetRoot(new ::ui::div({0, 0}, Canvas.Size, {
-      new ::ui::button({10, 10})
+    Canvas.SetRoot(new ::ui::div({0, 0}, Canvas.Size, {100, 100, 150}, {
+      new ::ui::div({10, 10}, {100, 100}, {150, 200, 100}, {
+          new ::ui::button({10, 10})
+        }),
+      new ::ui::div({110, 110}, {150, 150}, {150, 150, 150}, {
+          new ::ui::button({10, 10})
+        }),
       }));
 
     Canvas.Draw();

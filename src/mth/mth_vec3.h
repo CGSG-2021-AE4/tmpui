@@ -26,9 +26,9 @@ namespace mth
   template<typename Type>
   class vec3
   {
-    Type X, Y, Z; // X, Y, Z components of vec3 type
-
   public:
+
+    Type X, Y, Z; // X, Y, Z components of vec3 type
 
     /* vec3 default construct function */
     vec3() : X(0), Y(0), Z(0)

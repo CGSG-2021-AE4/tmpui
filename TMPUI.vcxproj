@@ -149,6 +149,7 @@
   <ItemGroup>
     <ClCompile Include="src\gfx\gfx_def.cpp" />
     <ClCompile Include="src\main.cpp" />
+    <ClCompile Include="src\ui2\entry.cpp" />
     <ClCompile Include="src\ui\ui_support.cpp" />
     <ClCompile Include="src\ui\ui_widget.cpp" />
     <ClCompile Include="src\win\win.cpp" />

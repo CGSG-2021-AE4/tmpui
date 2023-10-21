@@ -1,8 +1,9 @@
+#include "ui_def.h"
+
 #ifndef __entry_h_
 #define __entry_h_
 
-#include "ui_def.h"
-#include "frame_render.h"
+//#include "frame_render.h"
 
 // Some real kal
 using namespace tmp;
@@ -11,6 +12,14 @@ namespace ui
 {
   /* Friend classes prototypes */
   class canvas;
+
+  enum struct entry_state
+  {
+    def = 0,
+    hovered = 1,
+    focused = 2,
+    active = 3,
+  }; /* End of 'entry_state' enum struct */
   
   /* UI entry class */
   class entry
@@ -19,19 +28,23 @@ namespace ui
   protected:
 
     ivec2
-      LocalPos,                    // Position in parent basis
-      GlobalPos;                   // Position in canvas basis
-    isize2 Size;                   // WH
+      LocalPos,                           // Position in parent basis
+      GlobalPos;                          // Position in canvas basis
+    isize2 Size;                          // WH
 
     mask
-      Mask,                        // Source mask
-      DrawMask;                    // Mask that is visible on the screen
+      SelfMask,                           // Self mask
+      ContentMask,                        // Content mask
+      SelfDrawMask,                       // Mask that is visible on the screen
+      ContentDrawMask;                    // Mask for content that is visible on the screen
     
-    entry *Parent;                 // Parent pointer
-    canvas *Canvas;                // Canvas pointer
-    std::vector<entry *> Children; // Children pointers
+    entry *Parent {nullptr};              // Parent pointer
+    canvas *Canvas {nullptr};             // Canvas pointer
+    std::vector<entry *> Children;        // Children pointers
 
-    BOOL IsVisible;                // Is entry visible
+    BOOL IsVisible;                       // Is entry visible
+
+    entry_state State {entry_state::def}; // State of entry
 
     /* Events */
   public:
@@ -50,18 +63,17 @@ namespace ui
         LocalPoint.Y < Size.H;
     } /* End of 'IsOver' function */
 
-    virtual VOID OnDraw( VOID )
+    virtual BOOL OnDraw( VOID )
     {
+      return true;
     } /* End of 'OnDraw' function */
 
     virtual VOID OnHover( const ivec2 &LocalMousePos )
     {
-      Log(std::format("OnHover -- Local mouse pos: [{}, {}]", LocalMousePos.X, LocalMousePos.Y));
     } /* End of 'OnHover' function */
 
     virtual VOID OnUnhover( const ivec2 &LocalMousePos )
     {
-      Log(std::format("OnUnhover -- Local mouse pos: [{}, {}]", LocalMousePos.X, LocalMousePos.Y));
     } /* End of 'OnUnhover' function */
 
     virtual VOID OnClick( const ivec2 &LocalMousePos )
@@ -70,12 +82,10 @@ namespace ui
 
     virtual VOID OnMouseDown( const ivec2 &LocalMousePos )
     {
-      Log(std::format("OnMouseDown -- Local mouse pos: [{}, {}]", LocalMousePos.X, LocalMousePos.Y));
     } /* End of 'OnMouseDown' function */
 
     virtual VOID OnMouseUp( const ivec2 &LocalMousePos )
     {
-      Log(std::format("OnMouseUp-- Local mouse pos: [{}, {}]", LocalMousePos.X, LocalMousePos.Y));
     } /* End of 'OnMouseUp' function */
 
     virtual VOID OnMouseMove( const ivec2 &Delta, const ivec2 &LocalMousePos )
@@ -84,7 +94,6 @@ namespace ui
 
     virtual VOID OnDrag( const ivec2 &Delta, const ivec2 &LocalMousePos )
     {
-      Log(std::format("OnDrag -- Local mouse pos: [{}, {}], Delta move: [{}, {}]", LocalMousePos.X, LocalMousePos.Y, Delta.X, Delta.Y));
     } /* End of 'OnDrag' function */
 
     virtual VOID OnChange( VOID )
@@ -99,10 +108,74 @@ namespace ui
     {
     } /* End of 'OnResize' function */
 
-    virtual mask GetMask( VOID )
+    inline VOID OnDrawEvent( VOID )
+    {
+      OnDraw();
+    } /* End of 'OnDrawEvent' function */
+
+    inline VOID OnHoverEvent( const ivec2 &LocalMousePos )
+    {
+      State = entry_state::hovered;
+      OnHover(LocalMousePos);
+    } /* End of 'OnHoverEvent' function */
+
+    inline VOID OnUnhoverEvent( const ivec2 &LocalMousePos )
+    {
+      State = entry_state::def;
+      OnUnhover(LocalMousePos);
+    } /* End of 'OnUnhoverEvent' function */
+
+    inline VOID OnClickEvent( const ivec2 &LocalMousePos )
+    {
+      OnClick(LocalMousePos);
+    } /* End of 'OnClickEvent' function */
+
+    inline VOID OnMouseDownEvent( const ivec2 &LocalMousePos )
+    {
+      State = entry_state::active;
+      OnMouseDown(LocalMousePos);
+    } /* End of 'OnMouseDownEvent' function */
+
+    inline VOID OnMouseUpEvent( const ivec2 &LocalMousePos )
+    {
+      State = entry_state::hovered;
+      OnMouseUp(LocalMousePos);
+    } /* End of 'OnMouseUpEvent' function */
+
+    inline VOID OnMouseMoveEvent( const ivec2 &Delta, const ivec2 &LocalMousePos )
+    {
+      OnMouseMove(Delta, LocalMousePos);
+    } /* End of 'OnMouseMoveEvent' function */
+
+    inline VOID OnDragEvent( const ivec2 &Delta, const ivec2 &LocalMousePos )
+    {
+      OnDrag(Delta, LocalMousePos);
+    } /* End of 'OnDragEvent' function */
+
+    inline VOID OnChangeEvent( VOID )
+    {
+      OnChange();
+    } /* End of 'OnChangeEvent' function */
+
+    inline VOID OnResizeEvent( VOID )
+    {
+      OnResize();
+    } /* End of 'OnResizeEvent' function */
+
+    inline VOID OnMoveEvent( VOID )
+    {
+      OnMove();
+    } /* End of 'OnResizeEvent' function */
+
+    virtual mask GetSelfMask( VOID )
     {
       return {GlobalPos, Size};
-    } /* End of 'GetMask' function */
+    } /* End of 'GetSelfMask' function */
+
+    virtual mask GetContentMask( VOID )
+    {
+      return {GlobalPos, Size};
+    } /* End of 'GetContentMask' function */
 
     /* Functions */
   protected:
@@ -135,31 +208,22 @@ namespace ui
 
     VOID UpdateMasks( VOID )
     {
-      Mask = GetMask();
+      SelfMask = GetSelfMask();
+      ContentMask = GetContentMask();
       if (Parent != nullptr)
-        DrawMask = Mask.Intersect(Parent->DrawMask); // May be later add check for mask change
+      {
+        SelfDrawMask = SelfMask.Intersect(Parent->ContentDrawMask); // May be later add check for mask change
+        ContentDrawMask = ContentMask.Intersect(SelfDrawMask);
+      }
       else
-        DrawMask = Mask;
+      {
+        SelfDrawMask = SelfMask;
+        ContentDrawMask = ContentMask.Intersect(SelfDrawMask);
+      }
     } /* End of 'UpdateDrawMask' function */
 
-    VOID UpdateGlobalPos( VOID )
-    {
-      // Don't know is it right
-      if (Parent != nullptr)
-        GlobalPos = Parent->GlobalPos + LocalPos;
-      //else if (Canvas != nullptr)
-      //  GlobalPos = Canvas->Pos + LocalPos;
-      else
-        GlobalPos = LocalPos;
-
-      Mask = GetMask();
-    } /* End of 'UpdateGlobalPos' function */
-
-    VOID UpdateGlobalPos( const ivec2 &ParentGlobalPos )
-    {
-      GlobalPos = ParentGlobalPos + LocalPos;
-      UpdateMasks();
-    } /* End of 'UpdateGlobalPos' function */
+    /* Update entry global pos function. */
+    VOID UpdateGlobalPos( VOID );
 
     /* Only resize function */
     VOID Resize( const isize2 &NewSize )
@@ -177,7 +241,6 @@ namespace ui
       LocalPos = NewLocalPos;
 
       UpdateGlobalPos();
-      UpdateMasks();
 
       OnMove();
     } /* End of 'Resize' function */
@@ -189,7 +252,6 @@ namespace ui
       Size = NewSize;
 
       UpdateGlobalPos();
-      UpdateMasks();
 
       OnMove();
       OnResize();
@@ -208,8 +270,8 @@ namespace ui
       if (!IsVisible)
         return;
 
-      OnDraw();
-      DrawChildren();
+      if (OnDraw())
+        DrawChildren();
     } /* End of 'draw' function */
 
     /************ Parents/Children functions ************/
@@ -236,12 +298,10 @@ namespace ui
       Parent = NewParent;
 
       if (Parent != nullptr)
-      {
         SetCanvas(Parent->Canvas);
-        UpdateGlobalPos();
-        UpdateMasks();
-      }
-    } /* End of 'SetParent' function */
+
+      UpdateGlobalPos();
+    } /* End of 'OnAddChild' function */
 
     VOID SetCanvas( canvas *NewCanvas )
     {

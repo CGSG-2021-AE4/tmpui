@@ -57,6 +57,9 @@
     <ClCompile Include="src\ui\ui_widget.cpp">
       <Filter>Source Files\UI</Filter>
     </ClCompile>
+    <ClCompile Include="src\ui2\entry.cpp">
+      <Filter>Source Files\UI 2</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\mth\mth.h">

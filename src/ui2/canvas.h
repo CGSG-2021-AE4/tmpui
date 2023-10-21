@@ -1,10 +1,11 @@
-#ifndef __canvas_h_
-#define __canvas_h_
-
 #include <cassert>
 #include "ui_def.h"
 #include "entry.h"
 #include "frame_render.h"
+
+#ifndef __canvas_h_
+#define __canvas_h_
+
 
 namespace ui
 {
@@ -89,7 +90,7 @@ namespace ui
         {
           CurLocalMousePos += CurEntry->LocalPos;
           CurEntry = CurEntry->Parent;
-        }      
+        }
       }
 
       if (CurEntry != nullptr)
@@ -100,7 +101,7 @@ namespace ui
           BOOL IsFound = false;
 
           for (entry *Child : CurEntry->Children)
-            if (Child->IsOver(CurLocalMousePos + Child->LocalPos))
+            if (Child->IsOver(CurLocalMousePos - Child->LocalPos))
             {
               assert(Child != nullptr);
               CurEntry = Child;

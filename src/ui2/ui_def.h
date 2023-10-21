@@ -1,8 +1,9 @@
+#include <format>
+#include "def.h"
+
 #ifndef __ui_def_h_
 #define __ui_def_h_
 
-#include "def.h"
-#include <format>
 
 //#include "../gfx/gfx_def.h"
 
