@@ -11,7 +11,7 @@ namespace ui
 {
   /* Friend classes prototypes */
   class canvas;
-
+  
   /* UI entry class */
   class entry
   {
@@ -56,12 +56,12 @@ namespace ui
 
     virtual VOID OnHover( const ivec2 &LocalMousePos )
     {
-      std::cout << "OnHover -- Local mouse pos: [" << LocalMousePos.X << ", " << LocalMousePos.Y << "]" << std::endl;
+      Log(std::format("OnHover -- Local mouse pos: [{}, {}]", LocalMousePos.X, LocalMousePos.Y));
     } /* End of 'OnHover' function */
 
     virtual VOID OnUnhover( const ivec2 &LocalMousePos )
     {
-      std::cout << "OnUnhover -- Local mouse pos: [" << LocalMousePos.X << ", " << LocalMousePos.Y << "]" << std::endl;
+      Log(std::format("OnUnhover -- Local mouse pos: [{}, {}]", LocalMousePos.X, LocalMousePos.Y));
     } /* End of 'OnUnhover' function */
 
     virtual VOID OnClick( const ivec2 &LocalMousePos )
@@ -70,22 +70,21 @@ namespace ui
 
     virtual VOID OnMouseDown( const ivec2 &LocalMousePos )
     {
-      std::cout << "OnMouseDown -- Local mouse pos: [" << LocalMousePos.X << ", " << LocalMousePos.Y << "]" << std::endl;
+      Log(std::format("OnMouseDown -- Local mouse pos: [{}, {}]", LocalMousePos.X, LocalMousePos.Y));
     } /* End of 'OnMouseDown' function */
 
     virtual VOID OnMouseUp( const ivec2 &LocalMousePos )
     {
-      std::cout << "OnMouseUp -- Local mouse pos: [" << LocalMousePos.X << ", " << LocalMousePos.Y << "]" << std::endl;
+      Log(std::format("OnMouseUp-- Local mouse pos: [{}, {}]", LocalMousePos.X, LocalMousePos.Y));
     } /* End of 'OnMouseUp' function */
 
     virtual VOID OnMouseMove( const ivec2 &Delta, const ivec2 &LocalMousePos )
     {
-      //std::cout << "OnMouseMove -- Local mouse pos: [" << LocalMousePos.X << ", " << LocalMousePos.Y << "], Delta mouse pos: [" << Delta.X << ", " << Delta.Y << "]" << std::endl;
     } /* End of 'OnMouseMove' function */
 
     virtual VOID OnDrag( const ivec2 &Delta, const ivec2 &LocalMousePos )
     {
-      std::cout << "OnDrag -- Local mouse pos: [" << LocalMousePos.X << ", " << LocalMousePos.Y << "], Delta mouse pos: [" << Delta.X << ", " << Delta.Y << "]" << std::endl;
+      Log(std::format("OnDrag -- Local mouse pos: [{}, {}], Delta move: [{}, {}]", LocalMousePos.X, LocalMousePos.Y, Delta.X, Delta.Y));
     } /* End of 'OnDrag' function */
 
     virtual VOID OnChange( VOID )
@@ -148,8 +147,11 @@ namespace ui
       // Don't know is it right
       if (Parent != nullptr)
         GlobalPos = Parent->GlobalPos + LocalPos;
+      //else if (Canvas != nullptr)
+      //  GlobalPos = Canvas->Pos + LocalPos;
       else
         GlobalPos = LocalPos;
+
       Mask = GetMask();
     } /* End of 'UpdateGlobalPos' function */
 

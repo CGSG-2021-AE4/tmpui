@@ -20,24 +20,28 @@ namespace ui
   
     VOID OnClick( const ivec2 &LocalMousePos ) override
     {
-      std::cout << "Button was clicked" << std::endl;
+      Log("My button was clicked");
+      Log(std::format("Button OnClick -- Local mouse pos: [{}, {}]", LocalMousePos.X, LocalMousePos.Y));
     }
 
     VOID OnDraw( VOID ) override
     {
       Canvas->Render2d.PutBar(GlobalPos, Size, RGB(0, 0, 255), RGB(100, 200, 100), DrawMask);
+      Log(std::format("Button OnDraw"));
     }
 
     VOID OnHover( const ivec2 &LocalMousePos ) override
     {
       Canvas->Render2d.PutBar(GlobalPos, Size, RGB(0, 255, 255), RGB(100, 0, 100), DrawMask);
       DrawChildren();
+      Log(std::format("Button OnHover -- Local mouse pos: [{}, {}]", LocalMousePos.X, LocalMousePos.Y));
     }
 
     VOID OnUnhover( const ivec2 &LocalMousePos ) override
     {
       Canvas->Render2d.PutBar(GlobalPos, Size, RGB(0, 0, 255), RGB(100, 200, 100), DrawMask);
       DrawChildren();
+      Log(std::format("Button OnUnhover -- Local mouse pos: [{}, {}]", LocalMousePos.X, LocalMousePos.Y));
     }
 
   }; /* End of 'button' class */
@@ -54,24 +58,27 @@ namespace ui
   
     VOID OnClick( const ivec2 &LocalMousePos ) override
     {
-      std::cout << "Div was clicked" << std::endl;
+      Log("Div was clicked");
     }
 
     VOID OnDraw( VOID ) override
     {
       Canvas->Render2d.PutBar(GlobalPos, Size, RGB(0, 255, 0), RGB(50, 50, 50), DrawMask);
+      Log(std::format("Div OnDraw"));
     }
 
     VOID OnHover( const ivec2 &LocalMousePos ) override
     {
       Canvas->Render2d.PutBar(GlobalPos, Size, RGB(0, 255, 0), RGB(100, 100, 100), DrawMask);
       DrawChildren();
+      Log(std::format("Div OnHover -- Local mouse pos: [{}, {}]", LocalMousePos.X, LocalMousePos.Y));
     }
 
     VOID OnUnhover( const ivec2 &LocalMousePos ) override
     {
       Canvas->Render2d.PutBar(GlobalPos, Size, RGB(0, 255, 0), RGB(50, 50, 50), DrawMask);
       DrawChildren();
+      Log(std::format("Div OnUnover -- Local mouse pos: [{}, {}]", LocalMousePos.X, LocalMousePos.Y));
     }
 
   }; /* End of 'button' class */
