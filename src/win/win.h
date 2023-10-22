@@ -129,6 +129,17 @@ namespace tmp
     rtwin( HINSTANCE hInst = GetModuleHandle(nullptr) ) : win(hInst), StdScene(hWnd, W, H), Camera()
     {
       Fr.Resize(W, H);
+
+      // Setup draw handles
+      hDC = GetDC(hWnd);
+      hMemDC = CreateCompatibleDC(hDC);
+
+      RECT ClientRect;
+        
+      GetClientRect(hWnd, &ClientRect);
+      hBm = CreateCompatibleBitmap(hDC, ClientRect.right - ClientRect.left, ClientRect.bottom - ClientRect.top);
+      SelectObject(hMemDC, hBm);
+
     }
 
     /* WM_SIZE window message handle function.
@@ -144,19 +155,18 @@ namespace tmp
       this->W = W;
       this->H = H;
 
-      if (StdScene.Gfx.hBm != NULL)
-        DeleteObject(StdScene.Gfx.hBm);
+      if (hBm != NULL)
+        DeleteObject(hBm);
       
       hDC = GetDC(hWnd);
       
-      StdScene.Gfx.hBm = CreateCompatibleBitmap(hDC, W, H);
+      hBm = CreateCompatibleBitmap(hDC, W, H);
 
-      //ReleaseDC(hWnd, hDC);
-      SelectObject(StdScene.Gfx.hMemDC, StdScene.Gfx.hBm);
+      SelectObject(hMemDC, hBm);
 
       Fr.Resize(W, H);
       Camera.Resize(W, H);
-      StdScene.Gfx.Resize(size(W, H));
+      StdScene.Render2d.Resize(size(W, H));
       ResizeFlag = 1;
     } /* End of 'win::OnSize' function */
 
@@ -224,16 +234,22 @@ namespace tmp
         Camera.Move(vec3(0, -0.2, 0));
 
       
-      Fr.Display(StdScene.Gfx.hMemDC, StdScene.Gfx.hBm);
+      Fr.Display(hMemDC, hBm);
       
       if (!ResizeFlag)
         StdScene.Render(Camera, Fr);
       ResizeFlag = 0;
 
-         
-      //StdScene.Render(Camera, Fr);
-  
-      StdScene.Gfx.RenderFrame();
+      RECT ClientRect;
+        
+      GetClientRect(hWnd, &ClientRect);
+
+      BitBlt(hDC,
+        0, 0,
+        ClientRect.right - ClientRect.left, ClientRect.bottom - ClientRect.top,
+        hMemDC,
+        0, 0,
+        SRCCOPY);
 
       FrameCounter++;
     } /* End of 'win::OnPaint' function */
@@ -248,40 +264,6 @@ namespace tmp
     {
       switch (Keys)
       {
-        /*
-        //Camera rotation 
-      case VK_UP:
-        Camera.Rotate(vec3(-4, 0, 0));
-        break;
-      case VK_LEFT:
-        Camera.Rotate(vec3(0, -4, 0));
-        break;
-      case VK_DOWN:
-        Camera.Rotate(vec3(4, 0, 0));
-        break;
-      case VK_RIGHT:
-        Camera.Rotate(vec3(0, 4, 0));
-        break;
-        //Camera movement
-      case 'W':
-        Camera.Move(vec3(0, 0, 1));
-        break;
-      case 'A':
-        Camera.Move(vec3(-1, 0, 0));
-        break;
-      case 'S':
-        Camera.Move(vec3(0, 0, -1));
-        break;
-      case 'D':
-        Camera.Move(vec3(1, 0, 0));
-        break;
-      case VK_SPACE:
-        Camera.Move(vec3(0, 1, 0));
-        break;
-      case VK_SHIFT:
-        Camera.Move(vec3(0, -1, 0));
-        break;*/
-
         //Flip full screen
       case 'F':
         FlipFullScreen();

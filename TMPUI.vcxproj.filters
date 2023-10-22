@@ -29,13 +29,10 @@
       <UniqueIdentifier>{0a56164b-3acb-438d-8439-ad5d05aee632}</UniqueIdentifier>
     </Filter>
     <Filter Include="Source Files\UI">
-      <UniqueIdentifier>{56911ba1-2a93-44ca-8eda-11097e3f30ad}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Source Files\UI\Mappers system">
-      <UniqueIdentifier>{350c53b2-dc26-46d3-9223-2ba39ab99ee8}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Source Files\UI 2">
       <UniqueIdentifier>{aba477c7-c8d8-417e-a045-469f312ffb81}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\UI\Controls">
+      <UniqueIdentifier>{b803c82f-ebd3-4094-8670-8cee50ddafad}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -51,14 +48,8 @@
     <ClCompile Include="src\gfx\gfx_def.cpp">
       <Filter>Source Files\Gfx</Filter>
     </ClCompile>
-    <ClCompile Include="src\ui\ui_support.cpp">
-      <Filter>Source Files\UI</Filter>
-    </ClCompile>
-    <ClCompile Include="src\ui\ui_widget.cpp">
-      <Filter>Source Files\UI</Filter>
-    </ClCompile>
     <ClCompile Include="src\ui2\entry.cpp">
-      <Filter>Source Files\UI 2</Filter>
+      <Filter>Source Files\UI</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -101,62 +92,32 @@
     <ClInclude Include="src\gfx\gfx_def.h">
       <Filter>Source Files\Gfx</Filter>
     </ClInclude>
-    <ClInclude Include="src\ui\ui_widget.h">
-      <Filter>Source Files\UI</Filter>
-    </ClInclude>
     <ClInclude Include="src\mth\mth_size.h">
       <Filter>Source Files\Math Support</Filter>
     </ClInclude>
     <ClInclude Include="src\gfx\font_def.h">
       <Filter>Source Files\Gfx</Filter>
     </ClInclude>
-    <ClInclude Include="src\ui\ui_editor.h">
-      <Filter>Source Files\UI</Filter>
-    </ClInclude>
-    <ClInclude Include="src\ui\ui_panel.h">
-      <Filter>Source Files\UI</Filter>
-    </ClInclude>
-    <ClInclude Include="src\ui\ui_widget_block.h">
-      <Filter>Source Files\UI</Filter>
-    </ClInclude>
-    <ClInclude Include="src\ui\ui_window.h">
-      <Filter>Source Files\UI</Filter>
-    </ClInclude>
-    <ClInclude Include="src\ui\ui_support.h">
-      <Filter>Source Files\UI</Filter>
-    </ClInclude>
-    <ClInclude Include="src\ui\mapper_system\tmp_ui_mp.h">
-      <Filter>Source Files\UI\Mappers system</Filter>
-    </ClInclude>
-    <ClInclude Include="src\ui\mapper_system\tmp_ui_mp_def.h">
-      <Filter>Source Files\UI\Mappers system</Filter>
-    </ClInclude>
-    <ClInclude Include="src\ui\mapper_system\tmp_ui_mp_manager.h">
-      <Filter>Source Files\UI\Mappers system</Filter>
-    </ClInclude>
-    <ClInclude Include="src\ui\mapper_system\tmp_ui_mp_value.h">
-      <Filter>Source Files\UI\Mappers system</Filter>
-    </ClInclude>
-    <ClInclude Include="src\ui\mapper_system\tmp_ui_mp_variable.h">
-      <Filter>Source Files\UI\Mappers system</Filter>
-    </ClInclude>
-    <ClInclude Include="src\mth\tmp_mth_vec4.h">
+    <ClInclude Include="src\mth\mth_vec4.h">
       <Filter>Source Files\Math Support</Filter>
     </ClInclude>
     <ClInclude Include="src\ui2\canvas.h">
-      <Filter>Source Files\UI 2</Filter>
+      <Filter>Source Files\UI</Filter>
     </ClInclude>
     <ClInclude Include="src\ui2\controls.h">
-      <Filter>Source Files\UI 2</Filter>
+      <Filter>Source Files\UI</Filter>
     </ClInclude>
     <ClInclude Include="src\ui2\entry.h">
-      <Filter>Source Files\UI 2</Filter>
+      <Filter>Source Files\UI</Filter>
     </ClInclude>
     <ClInclude Include="src\ui2\ui_def.h">
-      <Filter>Source Files\UI 2</Filter>
+      <Filter>Source Files\UI</Filter>
     </ClInclude>
     <ClInclude Include="src\ui2\frame_render.h">
-      <Filter>Source Files\UI 2</Filter>
+      <Filter>Source Files\UI</Filter>
+    </ClInclude>
+    <ClInclude Include="src\ui2\controls\div.h">
+      <Filter>Source Files\UI\Controls</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

@@ -150,8 +150,6 @@
     <ClCompile Include="src\gfx\gfx_def.cpp" />
     <ClCompile Include="src\main.cpp" />
     <ClCompile Include="src\ui2\entry.cpp" />
-    <ClCompile Include="src\ui\ui_support.cpp" />
-    <ClCompile Include="src\ui\ui_widget.cpp" />
     <ClCompile Include="src\win\win.cpp" />
     <ClCompile Include="src\win\win_msg.cpp" />
   </ItemGroup>
@@ -169,24 +167,14 @@
     <ClInclude Include="src\mth\mth_size.h" />
     <ClInclude Include="src\mth\mth_vec2.h" />
     <ClInclude Include="src\mth\mth_vec3.h" />
-    <ClInclude Include="src\mth\tmp_mth_vec4.h" />
+    <ClInclude Include="src\mth\mth_vec4.h" />
     <ClInclude Include="src\rt\shapes\render.h" />
+    <ClInclude Include="src\ui2\controls\div.h" />
     <ClInclude Include="src\ui2\frame_render.h" />
     <ClInclude Include="src\ui2\canvas.h" />
     <ClInclude Include="src\ui2\controls.h" />
     <ClInclude Include="src\ui2\entry.h" />
     <ClInclude Include="src\ui2\ui_def.h" />
-    <ClInclude Include="src\ui\mapper_system\tmp_ui_mp.h" />
-    <ClInclude Include="src\ui\mapper_system\tmp_ui_mp_def.h" />
-    <ClInclude Include="src\ui\mapper_system\tmp_ui_mp_manager.h" />
-    <ClInclude Include="src\ui\mapper_system\tmp_ui_mp_value.h" />
-    <ClInclude Include="src\ui\mapper_system\tmp_ui_mp_variable.h" />
-    <ClInclude Include="src\ui\ui_editor.h" />
-    <ClInclude Include="src\ui\ui_panel.h" />
-    <ClInclude Include="src\ui\ui_support.h" />
-    <ClInclude Include="src\ui\ui_widget.h" />
-    <ClInclude Include="src\ui\ui_widget_block.h" />
-    <ClInclude Include="src\ui\ui_window.h" />
     <ClInclude Include="src\win\win.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

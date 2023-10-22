@@ -13,12 +13,13 @@ namespace ui
   /* Friend classes prototypes */
   class canvas;
 
+  /* Physical entry state */
   enum struct entry_state
   {
-    def = 0,
+    def     = 0,
     hovered = 1,
     focused = 2,
-    active = 3,
+    active  = 3,
   }; /* End of 'entry_state' enum struct */
   
   /* UI entry class */
@@ -49,23 +50,22 @@ namespace ui
     /* Events */
   public:
 
+    /* Set visibility function */
     VOID SetVisibility( BOOL NewValue )
     {
       IsVisible = NewValue;
     } /* End of 'SetVisibility' function */
 
-    BOOL IsOver( const ivec2 &LocalPoint )
+    /* Is point over entry function */
+    BOOL IsOver( const ivec2 &GlobalPoint )
     {
-      return
-        LocalPoint.X > 0 &&
-        LocalPoint.Y > 0 &&
-        LocalPoint.X < Size.W &&
-        LocalPoint.Y < Size.H;
+      return SelfMask(GlobalPoint);
     } /* End of 'IsOver' function */
 
-    virtual BOOL OnDraw( VOID )
+    /******* Virtual event functions for overriding by user *******/
+
+    virtual VOID OnDraw( VOID )
     {
-      return true;
     } /* End of 'OnDraw' function */
 
     virtual VOID OnHover( const ivec2 &LocalMousePos )
@@ -108,10 +108,17 @@ namespace ui
     {
     } /* End of 'OnResize' function */
 
-    inline VOID OnDrawEvent( VOID )
+    virtual mask GetSelfMask( VOID )
     {
-      OnDraw();
-    } /* End of 'OnDrawEvent' function */
+      return {GlobalPos, Size};
+    } /* End of 'GetSelfMask' function */
+
+    virtual mask GetContentMask( VOID )
+    {
+      return {GlobalPos, Size};
+    } /* End of 'GetContentMask' function */
+
+    /******* Inline event functions (interlayer) *******/
 
     inline VOID OnHoverEvent( const ivec2 &LocalMousePos )
     {
@@ -167,21 +174,21 @@ namespace ui
       OnMove();
     } /* End of 'OnResizeEvent' function */
 
-    virtual mask GetSelfMask( VOID )
-    {
-      return {GlobalPos, Size};
-    } /* End of 'GetSelfMask' function */
-
-    virtual mask GetContentMask( VOID )
-    {
-      return {GlobalPos, Size};
-    } /* End of 'GetContentMask' function */
-
-    /* Functions */
   protected:
 
     friend class canvas;
 
+    /* Entry constructor function.
+     * ARGUMENTS:
+     *   - pos:
+     *       const ivec2 &NewPos;
+     *   - size:
+     *       const isize2 &NewSize;
+     *   - children:
+     *       const std::vector<entry *> &NewChildren;
+     *   - parent:
+     *       entry *NewParent;
+     */
     entry( const ivec2 &NewPos, const isize2 &NewSize, const std::vector<entry *> &NewChildren = {}, entry *NewParent = nullptr ) :
       Parent(nullptr),
       LocalPos(NewPos),
@@ -191,11 +198,11 @@ namespace ui
       SetParent(NewParent);
 
       UpdateGlobalPos();
-      UpdateMasks();
 
       AddChildren(NewChildren);
     } /* End of 'entry' function */
 
+    /* Entry desctrictor function */
     ~entry( VOID )
     {
       // Rebind children to parent
@@ -206,6 +213,10 @@ namespace ui
       Parent->DeleteChild(this);
     } /* End of '~entry' function */
 
+    /* Update self and content masks function.
+     * ARGUMENTS: None.
+     * RETURNS: None.
+     */
     VOID UpdateMasks( VOID )
     {
       SelfMask = GetSelfMask();
@@ -222,10 +233,15 @@ namespace ui
       }
     } /* End of 'UpdateDrawMask' function */
 
-    /* Update entry global pos function. */
+    /* Update entry global pos function */
     VOID UpdateGlobalPos( VOID );
 
-    /* Only resize function */
+    /* Resize function.
+     * ARGUMENTS:
+     *   - new size:
+     *       const isize2 &NewSize;
+     * RETURNS: None.
+     */
     VOID Resize( const isize2 &NewSize )
     {
       Size = NewSize;
@@ -235,7 +251,12 @@ namespace ui
       OnResize();
     } /* End of 'Resize' function */
 
-    /* Only move function */
+    /* Move function.
+     * ARGUMENTS:
+     *   - new local pos:
+     *       const ivec2 &NewLocalPos;
+     * RETURNS: None.
+     */
     VOID Move( const ivec2 &NewLocalPos )
     {
       LocalPos = NewLocalPos;
@@ -245,7 +266,14 @@ namespace ui
       OnMove();
     } /* End of 'Resize' function */
 
-    /* Combined move and resize function */
+    /* Combined move and resize function.
+     * ARGUMENTS:
+     *   - new local pos:
+     *       const ivec2 &NewLocalPos;
+     *   - new size:
+     *       const isize2 &NewSize;
+     * RETURNS: None.
+     */
     VOID Reform( const ivec2 &NewLocalPos, const isize2 &NewSize )
     {
       LocalPos = NewLocalPos;
@@ -257,25 +285,31 @@ namespace ui
       OnResize();
     } /* End of 'Reform' function */
 
-    /* Draw functions */
-
+    /* Draw entry's children function */
     VOID DrawChildren( VOID )
     {
       for (entry *c : Children)
         c->Draw();
     } /* End of 'DrawChildren' function */
 
+    /* Draw entry function */
     VOID Draw( VOID )
     {
       if (!IsVisible)
         return;
 
-      if (OnDraw())
-        DrawChildren();
+      OnDraw();
+      DrawChildren();
     } /* End of 'draw' function */
 
-    /************ Parents/Children functions ************/
+    /************ Parents/Children operations functions ************/
 
+    /* Set entry's parent function.
+     * ARGUMENTS:
+     *   - new parent:
+     *       entry *NewParent;
+     * RETURNS: None.
+     */
     VOID SetParent( entry *NewParent )
     {
       // Rebind to parent
@@ -289,6 +323,12 @@ namespace ui
       
     } /* End of 'SetParent' function */
 
+    /* On add entry as a child to one parent function.
+     * ARGUMENTS:
+     *   - new entry's parent:
+     *       entry *NewParent;
+     * RETURNS: None.
+     */
     VOID OnAddChild( entry *NewParent )
     {
       // Rebind to parent
@@ -303,6 +343,12 @@ namespace ui
       UpdateGlobalPos();
     } /* End of 'OnAddChild' function */
 
+    /* Set canvas function.
+     * ARGUMENTS:
+     *   - new canvas:
+     *       canvas *NewCanvas;
+     * RETURNS: None.
+     */
     VOID SetCanvas( canvas *NewCanvas )
     {
       Canvas = NewCanvas;
@@ -312,6 +358,12 @@ namespace ui
 
     // Later there must be funtions to instert children into specific positions
 
+    /* Add child function.
+     * ARGUMENTS:
+     *   - adding child:
+     *       entry *NewChild;
+     * RETURNS: None.
+     */
     VOID AddChild( entry *NewChild )
     {
       if (NewChild == nullptr)
@@ -325,12 +377,25 @@ namespace ui
       NewChild->OnAddChild(this);
     } /* End of 'AddChild' function */
 
+    /* Add children function.
+     * ARGUMENTS:
+     *   - adding children:
+     *       const std::vector<entry *> &NewChildren;
+     * RETURNS: None.
+     */
     VOID AddChildren( const std::vector<entry *> &NewChildren )
     {
       for (entry *Child : NewChildren)
         AddChild(Child);
     } /* End of 'AddChildren' function */
 
+    /* Find a child function.
+     * ARGUMENTS:
+     *   - child's pointer:
+     *       const entry *Child;
+     * RETURNS:
+     *   (std::vector<entry *>::iterator) - iterator to the child or end().
+     */
     std::vector<entry *>::iterator FindChild( const entry *Child )
     {
       for (std::vector<entry *>::iterator c = Children.begin(); c != Children.end(); ++c)
@@ -340,6 +405,12 @@ namespace ui
       return Children.end();
     } /* End of 'FindChild' function */
 
+    /* Delete child function.
+     * ARGUMENTS:
+     *   - child's pointer:
+     *       const entry *Child;
+     * RETURNS: None.
+     */
     VOID DeleteChild( entry *Child )
     {
       const std::vector<entry *>::iterator FoundChild = FindChild(Child);
@@ -353,7 +424,5 @@ namespace ui
   }; /* End of 'entry' class */
 
 } /* End of 'ui' namespace */
-
-
 
 #endif // __entry_h_

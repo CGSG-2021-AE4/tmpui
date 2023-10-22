@@ -207,6 +207,30 @@ namespace mth
 
       return *this;
     } /* End of '*=' operator function */
+
+     /* Is equal operator function.
+     * ARGUMENTS:
+     *   - other vector:
+     *       const vec2<Type> &V;
+     * RETURNS:
+     *   (BOOL) - is equal.
+     */
+    BOOL operator==( const vec2<Type> &V )
+    {
+      return X == V.X && Y == V.Y;
+    } /* End of '==' operator function */
+    
+    /* Is not equal operator function.
+     * ARGUMENTS:
+     *   - other vector:
+     *       const vec2<Type> &V;
+     * RETURNS:
+     *   (BOOL) - is not equal.
+     */
+    BOOL operator!=( const vec2<Type> &V )
+    {
+      return X != V.X || Y != V.Y;
+    } /* End of '!=' operator function */
     
     /* Zero vector function.
      * ARGUMENTS: None.

@@ -3,7 +3,7 @@
  *    Computer Graphics Support Group of 30 Phys-Math Lyceum
  ***************************************************************/
 
-/* FILE NAME   : tmp_mth_vec4.h
+/* FILE NAME   : mth_vec4.h
  * PURPOSE     : Tough Megapolis Planner project.
  *               !!! declaration file.
  * PROGRAMMER  : CGSG'2022.
@@ -17,8 +17,8 @@
 
 #include <iostream>
 
-#ifndef __tmp_mth_vec4_h_
-#define __tmp_mth_vec4_h_
+#ifndef __mth_vec4_h_
+#define __mth_vec4_h_
 
 #include "mthdef.h"
 
@@ -377,6 +377,6 @@ template<typename Type = FLT>
 
 } /* end of 'mth' namespace */
 
-#endif /* __tmp_mth_vec4_h_ */
+#endif /* __mth_vec4_h_ */
 
-/* END OF 'tmp_mth_vec4.h' FILE */
+/* END OF 'mth_vec4.h' FILE */

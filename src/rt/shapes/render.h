@@ -28,11 +28,9 @@
 #define BACK_GRD_COLOR_VEC vec3(0.30, 0.47, 0.8)
 #define RT_THESHOLD 0.001
 
-#include "./gfx/gfx_def.h"
 #include "./ui2/frame_render.h"
 #include "./ui2/canvas.h"
 #include "./ui2/controls.h"
-#include "./ui/ui_editor.h"
 
 /* Test class */
 class test
@@ -69,24 +67,44 @@ public:
 
 namespace tmp
 {
+  enum struct mouse_state
+  {
+    NotPressed = 0,
+    Released   = 1,
+    Clicked    = 2,
+    Pressed    = 3,
+  }; /* End of 'mouse_state' enum struct*/
+
   // scene class
   class scene
   {
   public:
 
-    gfx Gfx;
+    HWND hWnd {nullptr};
+
     ::ui::render_2d Render2d;
     test Test;
 
-    BOOL ButtonValue {1};
+    ivec2 OldMousePos {0, 0};
+    mouse_state OldMouseState {mouse_state::Released};
+
+    ivec2 GetMousePos( VOID )
+    {
+      POINT CursorPos;
+
+      GetCursorPos(&CursorPos);
+
+      ScreenToClient(hWnd, &CursorPos);
+
+      return {CursorPos.x, CursorPos.y};
+    } /* End of 'GetMousePos' function */
 
     /* Default scene construct function */
-    scene( const HWND &hWnd, const INT &NewW, const INT &NewH ) :
-      Gfx(hWnd, size(30, 30), ui::props::DefTextFormat),
+    scene( const HWND &NewhWnd, const INT &NewW, const INT &NewH ) :
+      hWnd(NewhWnd),
       Render2d({NewW, NewH}),
       Test(Render2d)
     {
-      Gfx.SetFrame(0xF00FF00F);
       Render2d.SetFrame(0xFF000000);
 
       Test.Init();
@@ -111,58 +129,42 @@ namespace tmp
      */
     void Render( mth::cam<DBL> &Camera, frame &Fr )
     {
-      //if (Fr.W != Gfx.FrameSize.W || Fr.H != Gfx.FrameSize.H)
-      //  Fr.Resize(Gfx.FrameSize.W, Gfx.FrameSize.H);
-
-
-      POINT CursorPos;
-      static POINT OldCursorPos = {0, 0};
-      static ui::CLICK_STATE OldMouseState = ui::CS_RELEASED;
-      static ui::CLICK_STATE MouseState = ui::CS_RELEASED;
+      mouse_state MouseState = mouse_state::NotPressed;
       
       if (GetKeyState(VK_LBUTTON) & 0x8000)
       {
-        if (MouseState == ui::CS_CLICKED)
-          MouseState = ui::CS_PRESSED;
-        else if (MouseState != ui::CS_PRESSED)
-          MouseState = ui::CS_CLICKED;
+        if (OldMouseState == mouse_state::Clicked)
+          MouseState = mouse_state::Pressed;
+        else if (OldMouseState != mouse_state::Pressed)
+          MouseState = mouse_state::Clicked;
       }
-      else
-        MouseState = ui::CS_RELEASED;
-          
-
-      GetCursorPos(&CursorPos);
-
-      ScreenToClient(Gfx.hWnd, &CursorPos);
+      else if (OldMouseState > mouse_state::Released)
+        MouseState = mouse_state::Released;
 
       static INT OldFrameTime;
       static DBL FPS = 0;
 
       OldFrameTime = std::clock();
 
+      ivec2 MousePos = GetMousePos();
+      ivec2 DeltaMousePos = MousePos - OldMousePos;
       /*
        ************* DRAW INTERFACE BEGINNING *************
        */
 
-      // Gfx.SetFrame(0xFF000000);
-      ivec2 StartPos = ivec2(0);
+      if (DeltaMousePos != ivec2(0, 0))
+        Test.Canvas.OnMouseMove(DeltaMousePos, MousePos);
+      if (MouseState == mouse_state::Clicked)
+        Test.Canvas.OnMouseDown(MousePos);
+      if (MouseState == mouse_state::Released)
+        Test.Canvas.OnMouseUp(MousePos);
 
-      Gfx.PutText("FPS: " + std::to_string(FPS), ivec2(0, 0), size(100, 20));
-
-      Render2d.PutPixel({100, 100}, RGB(100, 200, 100));
-
-      if (OldCursorPos.x != CursorPos.x || OldCursorPos.y != CursorPos.y)
-        Test.Canvas.OnMouseMove({CursorPos.x - OldCursorPos.x, CursorPos.y - OldCursorPos.y}, {CursorPos.x, CursorPos.y});
-      if (MouseState == ui::CS_CLICKED)
-        Test.Canvas.OnMouseDown({CursorPos.x, CursorPos.y});
-      if (MouseState == ui::CS_RELEASED && OldMouseState == ui::CS_PRESSED)
-        Test.Canvas.OnMouseUp({CursorPos.x, CursorPos.y});
-
-      OldCursorPos = CursorPos;
-      OldMouseState = MouseState;
       /*
        ************* DRAW INTERFACE END *************
        */
+
+      OldMousePos = MousePos;
+      OldMouseState = MouseState;
 
       INT NewFrameDelta = std::clock();
 
@@ -189,18 +191,6 @@ namespace tmp
       {
         memcpy(Fr.Image, Render2d.Frame.data(), Fr.W * Fr.H * sizeof(DWORD));
       }
-
-      //if (Gfx.FrameSize.W != Fr.W || Gfx.FrameSize.H != Fr.H)
-      //{
-      //  INT TempW = std::min(Gfx.FrameSize.W, Fr.W), TempH = std::min(Gfx.FrameSize.H, Fr.H);
-      //
-      //  for (INT y = 0; y < TempH; y++)
-      //    memcpy(&Fr.Image[Fr.W * y], &Gfx.Frame[y * Gfx.FrameSize.W], TempW * sizeof(DWORD));
-      //}
-      //else
-      //{
-      //  memcpy(Fr.Image, Gfx.Frame, Fr.W * Fr.H * sizeof(DWORD));
-      //}
     } /* End of 'Render function'*/
   };
 }

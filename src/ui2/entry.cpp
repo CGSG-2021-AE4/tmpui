@@ -14,8 +14,5 @@ VOID ::ui::entry::UpdateGlobalPos( VOID )
   UpdateMasks();
 
   for (entry *Child : Children)
-  {
     Child->UpdateGlobalPos();
-    Child->UpdateMasks();
-  }
 } /* End of 'UpdateGlobalPos' function */

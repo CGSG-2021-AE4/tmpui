@@ -21,7 +21,7 @@
 #include "mthdef.h"
 #include "mth_vec2.h"
 #include "mth_vec3.h"
-#include "tmp_mth_vec4.h"
+#include "mth_vec4.h"
 #include "mth_size.h"
 #include "mth_matr.h"
 #include "mth_ray.h"

@@ -23,13 +23,11 @@ namespace ui
     {
     }
 
-    BOOL OnDraw( VOID ) override
+    VOID OnDraw( VOID ) override
     {
       Canvas->Render2d.PutBar(GlobalPos, Size,
         State > entry_state::def ? State == entry_state::active ? RGB(200, 50, 50) : RGB(50, 100, 50) : RGB(50, 200, 50),
         RGB(100, 200, 100), SelfDrawMask);
-
-      return 1;
     }
 
     VOID OnHover( const ivec2 &LocalMousePos ) override
@@ -69,29 +67,32 @@ namespace ui
 
     mask GetContentMask( VOID ) override
     {
-      return {GlobalPos + ivec2(1, 1), Size - isize2(2, 2)};
+      constexpr UINT BorderSize = 3;
+      return {GlobalPos + ivec2(BorderSize, BorderSize), Size - isize2(BorderSize, BorderSize) * 2};
     }
   
     VOID OnClick( const ivec2 &LocalMousePos ) override
     {
     }
 
-    BOOL OnDraw( VOID ) override
+    VOID OnDraw( VOID ) override
     {
+      Log("OnDraw");
       const FLT Coef = State > entry_state::def ? 0.5 : 1;
 
       Canvas->Render2d.PutBar(GlobalPos, Size, RGB(0, 255, 0), RGB(SpaceColor.X * Coef, SpaceColor.Y * Coef, SpaceColor.Z * Coef), SelfDrawMask);
-      return 1;
     }
 
     VOID OnHover( const ivec2 &LocalMousePos ) override
     {
       Draw();
+      Log("OnHover");
     }
 
     VOID OnUnhover( const ivec2 &LocalMousePos ) override
     {
       Draw();
+      Log("OnUnhover");
     }
 
   }; /* End of 'button' class */

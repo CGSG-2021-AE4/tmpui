@@ -32,7 +32,7 @@ namespace ui
 
     canvas( render_2d &NewRender2d, const ivec2 &NewPos, const isize2 &NewSize, entry *NewRoot ) :
       Render2d(NewRender2d)
-    {  
+    {
       SetRoot(NewRoot);
       Move(NewPos);
       Resize(NewSize);
@@ -74,23 +74,18 @@ namespace ui
     {
       if (Root == nullptr)
         return nullptr;
-      if (!Root->IsOver(GlobalMousePos - Root->GlobalPos))
+      if (!Root->IsOver(GlobalMousePos))
         return nullptr;
 
       entry *CurEntry = Root;
-      ivec2 CurLocalMousePos = GlobalMousePos;
 
       if (HoverEntry != nullptr)
       {
-        CurLocalMousePos = GlobalMousePos - HoverEntry->GlobalPos;
         CurEntry = HoverEntry;
 
         // Go up
-        while (CurEntry != nullptr && !CurEntry->IsOver(CurLocalMousePos))
-        {
-          CurLocalMousePos += CurEntry->LocalPos;
+        while (CurEntry != nullptr && !CurEntry->IsOver(GlobalMousePos))
           CurEntry = CurEntry->Parent;
-        }
       }
 
       if (CurEntry != nullptr)
@@ -101,11 +96,10 @@ namespace ui
           BOOL IsFound = false;
 
           for (entry *Child : CurEntry->Children)
-            if (Child->IsOver(CurLocalMousePos - Child->LocalPos))
+            if (Child->IsOver(GlobalMousePos))
             {
               assert(Child != nullptr);
               CurEntry = Child;
-              CurLocalMousePos -= Child->LocalPos;
               IsFound = true;
               break;
             }
@@ -124,30 +118,30 @@ namespace ui
 
       // On mouse move event
       if (HoverEntry != nullptr)
-        HoverEntry->OnMouseMove(Delta, GlobalMousePos - HoverEntry->GlobalPos);
+        HoverEntry->OnMouseMoveEvent(Delta, GlobalMousePos - HoverEntry->GlobalPos);
       if (NewHoverEntry != nullptr)
-        NewHoverEntry->OnMouseMove(Delta, GlobalMousePos - NewHoverEntry->GlobalPos);
+        NewHoverEntry->OnMouseMoveEvent(Delta, GlobalMousePos - NewHoverEntry->GlobalPos);
 
       // On hover/unhover event
       if (NewHoverEntry != HoverEntry)
       {
         if (HoverEntry != nullptr)
-          HoverEntry->OnUnhover(GlobalMousePos - HoverEntry->GlobalPos);
+          HoverEntry->OnUnhoverEvent(GlobalMousePos - HoverEntry->GlobalPos);
         if (NewHoverEntry != nullptr)
-          NewHoverEntry->OnHover(GlobalMousePos - NewHoverEntry->GlobalPos);
+          NewHoverEntry->OnHoverEvent(GlobalMousePos - NewHoverEntry->GlobalPos);
         HoverEntry = NewHoverEntry;
       }
 
       // On drag event
       if (FocusEntry != nullptr)
-        FocusEntry->OnDrag(Delta, GlobalMousePos - FocusEntry->GlobalPos);
+        FocusEntry->OnDragEvent(Delta, GlobalMousePos - FocusEntry->GlobalPos);
     
     } /* End of 'OnMouseMove' function */
 
     VOID OnMouseDown( const ivec2 &MousePos )
     {
       if (HoverEntry != nullptr)
-        HoverEntry->OnMouseDown(MousePos - HoverEntry->GlobalPos);
+        HoverEntry->OnMouseDownEvent(MousePos - HoverEntry->GlobalPos);
 
       FocusEntry = HoverEntry;
     } /* End of 'OnMouseDown' function */
@@ -156,9 +150,9 @@ namespace ui
     {
       if (FocusEntry != nullptr)
       {
-        FocusEntry->OnMouseUp(MousePos - FocusEntry->GlobalPos);
+        FocusEntry->OnMouseUpEvent(MousePos - FocusEntry->GlobalPos);
         if (FocusEntry == HoverEntry)
-          FocusEntry->OnClick(MousePos - FocusEntry->GlobalPos);
+          FocusEntry->OnClickEvent(MousePos - FocusEntry->GlobalPos);
       }
 
       FocusEntry = nullptr;
