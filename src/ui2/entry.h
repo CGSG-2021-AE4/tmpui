@@ -3,7 +3,6 @@
 #ifndef __entry_h_
 #define __entry_h_
 
-//#include "frame_render.h"
 
 // Some real kal
 using namespace tmp;
@@ -27,6 +26,8 @@ namespace ui
   {
     /* Values */
   protected:
+
+    std::string Id {""};                  // Entries id
 
     ivec2
       LocalPos,                           // Position in parent basis
@@ -122,55 +123,65 @@ namespace ui
 
     inline VOID OnHoverEvent( const ivec2 &LocalMousePos )
     {
+      Log(std::format("{} OnHover event.", Id));
       State = entry_state::hovered;
       OnHover(LocalMousePos);
     } /* End of 'OnHoverEvent' function */
 
     inline VOID OnUnhoverEvent( const ivec2 &LocalMousePos )
     {
+      Log(std::format("{} OnUnhover event.", Id));
       State = entry_state::def;
       OnUnhover(LocalMousePos);
     } /* End of 'OnUnhoverEvent' function */
 
     inline VOID OnClickEvent( const ivec2 &LocalMousePos )
     {
+      Log(std::format("{} OnClick event.", Id));
       OnClick(LocalMousePos);
     } /* End of 'OnClickEvent' function */
 
     inline VOID OnMouseDownEvent( const ivec2 &LocalMousePos )
     {
+      Log(std::format("{} OnMouseDown event.", Id));
       State = entry_state::active;
       OnMouseDown(LocalMousePos);
     } /* End of 'OnMouseDownEvent' function */
 
     inline VOID OnMouseUpEvent( const ivec2 &LocalMousePos )
     {
+      Log(std::format("{} OnMouseUp event.", Id));
       State = entry_state::hovered;
       OnMouseUp(LocalMousePos);
     } /* End of 'OnMouseUpEvent' function */
 
     inline VOID OnMouseMoveEvent( const ivec2 &Delta, const ivec2 &LocalMousePos )
     {
+      //Log(std::format("${} OnMouseMove event.", Id));
       OnMouseMove(Delta, LocalMousePos);
     } /* End of 'OnMouseMoveEvent' function */
 
     inline VOID OnDragEvent( const ivec2 &Delta, const ivec2 &LocalMousePos )
     {
+      Log(std::format("{} OnDrag event.", Id));
       OnDrag(Delta, LocalMousePos);
     } /* End of 'OnDragEvent' function */
 
     inline VOID OnChangeEvent( VOID )
     {
+      Log(std::format("{} OnChange event.", Id));
       OnChange();
     } /* End of 'OnChangeEvent' function */
 
     inline VOID OnResizeEvent( VOID )
     {
+      Log(std::format("{} OnResize event.", Id));
       OnResize();
     } /* End of 'OnResizeEvent' function */
 
     inline VOID OnMoveEvent( VOID )
     {
+      Log(std::format("{} OnMove event.", Id));
       OnMove();
     } /* End of 'OnResizeEvent' function */
 
@@ -190,6 +201,33 @@ namespace ui
      *       entry *NewParent;
      */
     entry( const ivec2 &NewPos, const isize2 &NewSize, const std::vector<entry *> &NewChildren = {}, entry *NewParent = nullptr ) :
+      Parent(nullptr),
+      LocalPos(NewPos),
+      Size(NewSize),
+      IsVisible(true)
+    {
+      SetParent(NewParent);
+
+      UpdateGlobalPos();
+
+      AddChildren(NewChildren);
+    } /* End of 'entry' function */
+
+    /* Entry with id mentioned constructor function.
+     * ARGUMENTS:
+     *   - id string:
+     *       const std::string &NewId;
+     *   - pos:
+     *       const ivec2 &NewPos;
+     *   - size:
+     *       const isize2 &NewSize;
+     *   - children:
+     *       const std::vector<entry *> &NewChildren;
+     *   - parent:
+     *       entry *NewParent;
+     */
+    entry( const std::string &NewId, const ivec2 &NewPos, const isize2 &NewSize, const std::vector<entry *> &NewChildren = {}, entry *NewParent = nullptr ) :
+      Id(NewId),
       Parent(nullptr),
       LocalPos(NewPos),
       Size(NewSize),

@@ -3,7 +3,6 @@
 #ifndef __2d_renderer_h_
 #define __2d_renderer_h_
 
-
 namespace ui
 {
   /* Mask class */
@@ -32,7 +31,7 @@ namespace ui
     /* Mask construct function */
     mask( const ivec2 &NewPos0, const isize2 &NewSize ) :
       Pos0(NewPos0),
-      Pos1({Pos0.X + NewSize.W, Pos0.Y + NewSize.H})
+      Pos1({Pos0.X + NewSize.W - 1, Pos0.Y + NewSize.H - 1})
     {
     } /* End of 'mask' function */
 
@@ -73,13 +72,12 @@ namespace ui
   {
   public:
 
-    HWND hWnd;            // Window handle
-    std::vector<DWORD> Frame;      // Frame bits array
     isize2 FrameSize;     // Frame size
     INT FrameSizeMul;     // W mul H (for fast check)
+    std::vector<DWORD> Frame;      // Frame bits array
     mask FrameMask;       // Frame mask
 
-
+    /* Construct function */
     render_2d( const isize2 &NewFrameSize ) :
       FrameSize(NewFrameSize),
       FrameSizeMul(NewFrameSize.W * NewFrameSize.H),
@@ -88,32 +86,33 @@ namespace ui
     {
     } /* End of 'render_2d' function */
 
+    /* Desructor function */
     ~render_2d( VOID )
     {
     } /* End of 'render_2d' function */
 
+    /* Resize function */
     VOID Resize( const isize2 &NewSize )
     {
       Frame.clear();
       FrameSize = NewSize;
       FrameSizeMul = FrameSize.W * FrameSize.H;
-      Frame = std::vector<DWORD>(FrameSize.W * FrameSize.H);
+      Frame = std::vector<DWORD>((size_t)(FrameSize.W * FrameSize.H));
       FrameMask = mask({0, 0}, FrameSize);
 
       ClearFrame();
     } /* End of 'Resize' function */
 
+    /* Fill frame with color function */
     VOID SetFrame( DWORD Color )
     {
       std::fill(Frame.begin(), Frame.end(), Color);
-      //memset(Frame, Color, FrameSize.W * FrameSize.H * sizeof(DWORD));
     } /* End of 'SetFrame' function */
 
+    /* Clear frame function */
     VOID ClearFrame( VOID )
     {
       std::fill(Frame.begin(), Frame.end(), 0);
-
-      //memset(Frame, 0, FrameSize.W * FrameSize.H * sizeof(DWORD));
     } /* End of 'SetFrame' function */
 
     /* Put pixel functions */
@@ -236,29 +235,14 @@ namespace ui
 
     VOID PutBar( const ivec2 &Pos0, const isize2 &Size, DWORD FrameColor, mask Mask )
     {
-      PutBar(Pos0, ivec2(Pos0.X + Size.W, Pos0.Y + Size.H), FrameColor, Mask);
+      PutBar(Pos0, ivec2(Pos0.X + Size.W - 1, Pos0.Y + Size.H - 1), FrameColor, Mask);
     } /* End of 'PutBar' function */
 
     VOID PutBar( const ivec2 &Pos0, const isize2 &Size, DWORD FrameColor, DWORD SpaceColor, mask Mask )
     {
-      PutBar(Pos0, ivec2(Pos0.X + Size.W, Pos0.Y + Size.H), FrameColor, SpaceColor, Mask);
+      PutBar(Pos0, ivec2(Pos0.X + Size.W - 1, Pos0.Y + Size.H - 1), FrameColor, SpaceColor, Mask);
     } /* End of 'PutBar' function */
     
-    
-      
-    // VOID CopyFrame( const HWND &hWnd )
-    // {
-    //   RECT ClientRect;
-    //     
-    //   GetClientRect(hWnd, &ClientRect);
-    // 
-    //   BitBlt(hDC,
-    //     0, 0,
-    //     ClientRect.right - ClientRect.left, ClientRect.bottom - ClientRect.top,
-    //     hMemDC,
-    //     0, 0,
-    //     SRCCOPY);
-    // } /* End of 'CopyFrame' function */
   }; /* End of 'render_2d' class */
    
 } /* end of 'ui' namespace */

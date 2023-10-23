@@ -31,6 +31,9 @@
 #include "./ui2/frame_render.h"
 #include "./ui2/canvas.h"
 #include "./ui2/controls.h"
+#include "./ui2/controls/div.h"
+
+#include <iostream>
 
 /* Test class */
 class test
@@ -41,21 +44,20 @@ public:
   ::ui::canvas Canvas;
 
   /* Contructor function */
-  test( ::ui::render_2d &NewRender2d ) :
+  test( ::ui::render_2d &NewRender2d, const ::ui::isize2 &Size ) :
     Render2d(NewRender2d),
-    Canvas(NewRender2d, {100, 100}, {200, 200}, nullptr)
+    Canvas(NewRender2d, 0, Size, nullptr)
   {
-    
   } /* End of 'test' function */
 
   VOID Init( VOID )
   {
     //Canvas.SetRoot(new ::ui::button({10, 10}));
-    Canvas.SetRoot(new ::ui::div({0, 0}, Canvas.Size, {100, 100, 150}, {
-      new ::ui::div({10, 10}, {100, 100}, {150, 200, 100}, {
+    Canvas.SetRoot(new ::ui::controls::div("Canvas div", {0, 0}, Canvas.Size, {}, {
+      new ::ui::controls::div("Div 1", {10, 10}, {100, 100}, {}, {
           new ::ui::button({10, 10})
         }),
-      new ::ui::div({110, 110}, {150, 150}, {150, 150, 150}, {
+      new ::ui::controls::div("Div 2", {110, 110}, {150, 150}, {}, {
           new ::ui::button({10, 10})
         }),
       }));
@@ -103,7 +105,7 @@ namespace tmp
     scene( const HWND &NewhWnd, const INT &NewW, const INT &NewH ) :
       hWnd(NewhWnd),
       Render2d({NewW, NewH}),
-      Test(Render2d)
+      Test(Render2d, {NewW, NewH})
     {
       Render2d.SetFrame(0xFF000000);
 
@@ -121,6 +123,8 @@ namespace tmp
      */
     VOID Resize( INT NewW, INT NewH )
     {
+      Render2d.Resize({NewW, NewH});
+      Test.Canvas.Resize({NewW, NewH});
     } /* End of 'Resize' function */
 
     /* Ray tracing main render function
@@ -137,6 +141,8 @@ namespace tmp
           MouseState = mouse_state::Pressed;
         else if (OldMouseState != mouse_state::Pressed)
           MouseState = mouse_state::Clicked;
+        else
+          MouseState = mouse_state::Pressed;
       }
       else if (OldMouseState > mouse_state::Released)
         MouseState = mouse_state::Released;

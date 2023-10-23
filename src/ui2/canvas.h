@@ -1,11 +1,11 @@
 #include <cassert>
 #include "ui_def.h"
-#include "entry.h"
-#include "frame_render.h"
 
 #ifndef __canvas_h_
 #define __canvas_h_
 
+#include "entry.h"
+#include "frame_render.h"
 
 namespace ui
 {
