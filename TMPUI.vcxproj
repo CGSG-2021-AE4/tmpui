@@ -147,17 +147,14 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="src\gfx\gfx_def.cpp" />
     <ClCompile Include="src\main.cpp" />
-    <ClCompile Include="src\ui2\entry.cpp" />
+    <ClCompile Include="src\ui\entry.cpp" />
     <ClCompile Include="src\win\win.cpp" />
     <ClCompile Include="src\win\win_msg.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\def.h" />
     <ClInclude Include="src\frame\frame.h" />
-    <ClInclude Include="src\gfx\font_def.h" />
-    <ClInclude Include="src\gfx\gfx_def.h" />
     <ClInclude Include="src\mth\mth.h" />
     <ClInclude Include="src\mth\mthdef.h" />
     <ClInclude Include="src\mth\mth_cam.h" />
@@ -168,13 +165,13 @@
     <ClInclude Include="src\mth\mth_vec2.h" />
     <ClInclude Include="src\mth\mth_vec3.h" />
     <ClInclude Include="src\mth\mth_vec4.h" />
-    <ClInclude Include="src\rt\shapes\render.h" />
-    <ClInclude Include="src\ui2\controls\div.h" />
-    <ClInclude Include="src\ui2\frame_render.h" />
-    <ClInclude Include="src\ui2\canvas.h" />
-    <ClInclude Include="src\ui2\controls.h" />
-    <ClInclude Include="src\ui2\entry.h" />
-    <ClInclude Include="src\ui2\ui_def.h" />
+    <ClInclude Include="src\render.h" />
+    <ClInclude Include="src\ui\canvas.h" />
+    <ClInclude Include="src\ui\controls.h" />
+    <ClInclude Include="src\ui\controls\div.h" />
+    <ClInclude Include="src\ui\entry.h" />
+    <ClInclude Include="src\ui\frame_render.h" />
+    <ClInclude Include="src\ui\ui_def.h" />
     <ClInclude Include="src\win\win.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

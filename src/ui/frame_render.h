@@ -5,68 +5,6 @@
 
 namespace ui
 {
-  /* Mask class */
-  class mask
-  {
-  private:
-
-    ivec2 Pos0, Pos1;
-    
-  public:
-
-    /* Mask construct function */
-    mask( VOID ) :
-      Pos0({0, 0}),
-      Pos1({0, 0})
-    {
-    } /* End of 'mask' function */
-
-    /* Mask construct function */
-    mask( const ivec2 &NewPos0, const ivec2 &NewPos1 ) :
-      Pos0(NewPos0),
-      Pos1(NewPos1)
-    {
-    } /* End of 'mask' function */
-
-    /* Mask construct function */
-    mask( const ivec2 &NewPos0, const isize2 &NewSize ) :
-      Pos0(NewPos0),
-      Pos1({Pos0.X + NewSize.W - 1, Pos0.Y + NewSize.H - 1})
-    {
-    } /* End of 'mask' function */
-
-    /* Intersect point with mask function */
-    BOOL operator()( const ivec2 &Point ) const
-    {
-      return
-        Point.X > Pos0.X && Point.X < Pos1.X &&
-        Point.Y > Pos0.Y && Point.Y < Pos1.Y;
-    } /* End of 'operator()' function */
-
-    /* Intersect line with mask function */
-    BOOL operator()( UINT Y, INT &X0, INT &X1 ) const
-    {
-      if (Y < Pos0.Y || Y > Pos1.Y)
-        return false;
-
-      X0 = std::max(X0, Pos0.X);
-      X1 = std::min(X1, Pos1.X);
-      return X0 <= X1;
-    } /* End of 'operator()' function */
-
-    BOOL IsExist( VOID ) const
-    {
-      return Pos1.Y >= Pos0.Y && Pos1.X >= Pos0.X;
-    } /* End of 'isExist' function */
-
-    mask Intersect( const mask &M ) const
-    {
-      return mask(ivec2(std::max(Pos0.X, M.Pos0.X), std::max(Pos0.Y, M.Pos0.Y)),
-                  ivec2(std::min(Pos1.X, M.Pos1.X), std::min(Pos1.Y, M.Pos1.Y)));
-    } /* End of 'Intersect' function */
-
-  }; /* End of 'mask' class */
-
   /* 2d renderer class */
   class render_2d
   {
@@ -127,7 +65,7 @@ namespace ui
       Frame[Pos.Y * FrameSize.W + Pos.X] = Color;
     } /* End of 'PutPixelUnsafe' function */
 
-    VOID PutPixel( UINT Addr, DWORD Color )
+    VOID PutPixel( INT Addr, DWORD Color )
     {
       if (Addr < FrameSizeMul)
         Frame[Addr] = Color;

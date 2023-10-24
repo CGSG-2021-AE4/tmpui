@@ -65,10 +65,7 @@ namespace tmp
   typedef mth::cam<DBL> cam;
 }
 
-
-#include "./win/win.h"
-#include ".\frame\frame.h"
-//#include "./rt/shapes/render.h"
+#include <vector>
 
 #endif // __def_h_
 

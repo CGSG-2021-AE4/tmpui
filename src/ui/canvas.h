@@ -24,56 +24,56 @@ namespace ui
 
     // Entries' values
     entry
-      *Root        {nullptr}, // Root entry
+      *Root        {nullptr}, // Root entry - root is an entry with canvas size
       *FocusEntry  {nullptr}, // Current focused entry
       *HoverEntry  {nullptr}; // Current hovered entry
-
   public:
 
-    canvas( render_2d &NewRender2d, const ivec2 &NewPos, const isize2 &NewSize, entry *NewRoot ) :
-      Render2d(NewRender2d)
+    canvas( render_2d &NewRender2d, const ivec2 &NewPos, const isize2 &NewSize, const std::vector<entry *> &Entries ) :
+      Render2d(NewRender2d),
+      Pos(NewPos),
+      Size(NewSize),
+      Mask(Pos, Size),
+      Root(new entry("Body", Pos, Size, Entries, nullptr)) // Provides root isn't nullptr
     {
-      SetRoot(NewRoot);
-      Move(NewPos);
-      Resize(NewSize);
-      Mask = {Pos, Size};
+      // Root init
+      Root->SetCanvas(this);
+      Root->OnAddChild(nullptr);
     } /* End of 'canvas' function */
 
-    VOID SetRoot( entry *NewRoot )
+    /* Destructor function */
+    ~canvas( VOID )
     {
-      if (Root != nullptr)
-        Root->SetCanvas(nullptr);
+      delete Root; // Clear root
+    } /* End of '~canvas' function */
 
-      Root = NewRoot; // ?
-      if (Root != nullptr)
-      {
-        Root->SetCanvas(this);
-        Root->OnAddChild(nullptr);
-      }
-    } /* End of 'SetRoot' function */
+    entry * GetRoot( VOID )
+    {
+      return Root;
+    } /* End of 'GetRoot' function */
 
     VOID Resize( const isize2 &NewSize )
     {
       Size = NewSize;
       Mask = {Pos, Size};
 
-      //if (Root != nullptr)
-      //Root->OnResize(Pos, Size);
-
+      Root->Resize(Size);
+      Root->Draw();
     } /* End of 'Resize' function */
 
     VOID Move( const ivec2 &NewPos )
     {
       Pos = NewPos;
       Mask = {Pos, Size};
+
+      Root->Move(Pos);
+      Root->Draw();
     } /* End of 'Move' function */
 
     /* Input events */
 
     entry * FindHoverEntry( const ivec2 &GlobalMousePos )
     {
-      if (Root == nullptr)
-        return nullptr;
       if (!Root->IsOver(GlobalMousePos))
         return nullptr;
 
@@ -160,8 +160,7 @@ namespace ui
 
     VOID Draw( VOID )
     {
-      if (Root != nullptr)
-        Root->Draw();
+      Root->Draw();
     } /* End of 'Draw' function */
 
   }; /* End of 'canvas' class */

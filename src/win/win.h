@@ -21,9 +21,7 @@
 #include <windows.h>
 #include <thread>
 #include "../mth/mth.h"
-#include "..\rt\shapes\render.h"
-//#include "..\rt\shapes\shape.h"
-
+#include "../render.h"
 
 #define WND_CLASS_NAME "AE4 programm"
 
@@ -167,6 +165,7 @@ namespace tmp
       Fr.Resize(W, H);
       Camera.Resize(W, H);
       StdScene.Render2d.Resize(size(W, H));
+      StdScene.Resize(W, H);
       ResizeFlag = 1;
     } /* End of 'win::OnSize' function */
 

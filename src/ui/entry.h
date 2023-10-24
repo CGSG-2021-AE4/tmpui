@@ -3,6 +3,7 @@
 #ifndef __entry_h_
 #define __entry_h_
 
+#define ENABLE_PATH_LOG
 
 // Some real kal
 using namespace tmp;
@@ -123,34 +124,34 @@ namespace ui
 
     inline VOID OnHoverEvent( const ivec2 &LocalMousePos )
     {
-      Log(std::format("{} OnHover event.", Id));
+      Log(std::format("Entry {} OnHover event.", Id));
       State = entry_state::hovered;
       OnHover(LocalMousePos);
     } /* End of 'OnHoverEvent' function */
 
     inline VOID OnUnhoverEvent( const ivec2 &LocalMousePos )
     {
-      Log(std::format("{} OnUnhover event.", Id));
+      Log(std::format("Entry {} OnUnhover event.", Id));
       State = entry_state::def;
       OnUnhover(LocalMousePos);
     } /* End of 'OnUnhoverEvent' function */
 
     inline VOID OnClickEvent( const ivec2 &LocalMousePos )
     {
-      Log(std::format("{} OnClick event.", Id));
+      Log(std::format("Entry {} OnClick event.", Id));
       OnClick(LocalMousePos);
     } /* End of 'OnClickEvent' function */
 
     inline VOID OnMouseDownEvent( const ivec2 &LocalMousePos )
     {
-      Log(std::format("{} OnMouseDown event.", Id));
+      Log(std::format("Entry {} OnMouseDown event.", Id));
       State = entry_state::active;
       OnMouseDown(LocalMousePos);
     } /* End of 'OnMouseDownEvent' function */
 
     inline VOID OnMouseUpEvent( const ivec2 &LocalMousePos )
     {
-      Log(std::format("{} OnMouseUp event.", Id));
+      Log(std::format("Entry {} OnMouseUp event.", Id));
       State = entry_state::hovered;
       OnMouseUp(LocalMousePos);
     } /* End of 'OnMouseUpEvent' function */
@@ -163,25 +164,25 @@ namespace ui
 
     inline VOID OnDragEvent( const ivec2 &Delta, const ivec2 &LocalMousePos )
     {
-      Log(std::format("{} OnDrag event.", Id));
+      Log(std::format("Entry {} OnDrag event.", Id));
       OnDrag(Delta, LocalMousePos);
     } /* End of 'OnDragEvent' function */
 
     inline VOID OnChangeEvent( VOID )
     {
-      Log(std::format("{} OnChange event.", Id));
+      Log(std::format("Entry {} OnChange event.", Id));
       OnChange();
     } /* End of 'OnChangeEvent' function */
 
     inline VOID OnResizeEvent( VOID )
     {
-      Log(std::format("{} OnResize event.", Id));
+      Log(std::format("Entry {} OnResize event.", Id));
       OnResize();
     } /* End of 'OnResizeEvent' function */
 
     inline VOID OnMoveEvent( VOID )
     {
-      Log(std::format("{} OnMove event.", Id));
+      Log(std::format("Entry {} OnMove event.", Id));
       OnMove();
     } /* End of 'OnResizeEvent' function */
 
@@ -206,10 +207,12 @@ namespace ui
       Size(NewSize),
       IsVisible(true)
     {
+#ifdef ENABLE_PATH_LOG
+      Log(std::format("Entry {} constructor.", Id));
+#endif // ENABLE_PATH_LOG
+
       SetParent(NewParent);
-
       UpdateGlobalPos();
-
       AddChildren(NewChildren);
     } /* End of 'entry' function */
 
@@ -233,22 +236,28 @@ namespace ui
       Size(NewSize),
       IsVisible(true)
     {
+#ifdef ENABLE_PATH_LOG
+      Log(std::format("Entry {} constructor.", Id));
+#endif // ENABLE_PATH_LOG
+
       SetParent(NewParent);
-
       UpdateGlobalPos();
-
       AddChildren(NewChildren);
     } /* End of 'entry' function */
 
     /* Entry desctrictor function */
     ~entry( VOID )
     {
+#ifdef ENABLE_PATH_LOG
+      Log(std::format("Entry {} Destructor.", Id));
+#endif // ENABLE_PATH_LOG
+
       // Rebind children to parent
       for (entry *c : Children)
         c->SetParent(Parent);
       // Delete self from parent
       if (Parent != nullptr)
-      Parent->DeleteChild(this);
+        Parent->DeleteChild(this);
     } /* End of '~entry' function */
 
     /* Update self and content masks function.
@@ -257,6 +266,10 @@ namespace ui
      */
     VOID UpdateMasks( VOID )
     {
+#ifdef ENABLE_PATH_LOG
+      Log(std::format("Entry {} update masks.", Id));
+#endif // ENABLE_PATH_LOG
+
       SelfMask = GetSelfMask();
       ContentMask = GetContentMask();
       if (Parent != nullptr)
@@ -282,10 +295,12 @@ namespace ui
      */
     VOID Resize( const isize2 &NewSize )
     {
+#ifdef ENABLE_PATH_LOG
+      Log(std::format("Entry {} Resize.", Id));
+#endif // ENABLE_PATH_LOG
+
       Size = NewSize;
-
       UpdateMasks();
-
       OnResize();
     } /* End of 'Resize' function */
 
@@ -297,6 +312,9 @@ namespace ui
      */
     VOID Move( const ivec2 &NewLocalPos )
     {
+#ifdef ENABLE_PATH_LOG
+      Log(std::format("Entry {} Move.", Id));
+#endif // ENABLE_PATH_LOG
       LocalPos = NewLocalPos;
 
       UpdateGlobalPos();
@@ -314,6 +332,9 @@ namespace ui
      */
     VOID Reform( const ivec2 &NewLocalPos, const isize2 &NewSize )
     {
+#ifdef ENABLE_PATH_LOG
+      Log(std::format("Entry {} Reform.", Id));
+#endif // ENABLE_PATH_LOG
       LocalPos = NewLocalPos;
       Size = NewSize;
 
@@ -333,6 +354,9 @@ namespace ui
     /* Draw entry function */
     VOID Draw( VOID )
     {
+#ifdef ENABLE_PATH_LOG
+      Log(std::format("Entry {} Draw.", Id));
+#endif // ENABLE_PATH_LOG
       if (!IsVisible)
         return;
 
@@ -350,6 +374,9 @@ namespace ui
      */
     VOID SetParent( entry *NewParent )
     {
+#ifdef ENABLE_PATH_LOG
+      Log(std::format("Entry {} SetParent.", Id));
+#endif // ENABLE_PATH_LOG
       // Rebind to parent
       if (Parent != nullptr)
         Parent->DeleteChild(this); // Delete self from parent's children
@@ -369,6 +396,9 @@ namespace ui
      */
     VOID OnAddChild( entry *NewParent )
     {
+#ifdef ENABLE_PATH_LOG
+      Log(std::format("Entry {} OnAddChild.", Id));
+#endif // ENABLE_PATH_LOG
       // Rebind to parent
       if (Parent != nullptr)
         Parent->DeleteChild(this); // Delete self from parent's children

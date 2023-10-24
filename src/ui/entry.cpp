@@ -1,4 +1,5 @@
 #include "entry.h"
+#include "canvas.h"
 
 /* Update entry global pos function. */
 VOID ::ui::entry::UpdateGlobalPos( VOID )

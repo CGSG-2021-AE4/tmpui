@@ -19,19 +19,19 @@
 #define __rt_h_
 
 //#include "csg.h"
-#include "..\..\frame\frame.h"
-#include "..\..\mth\mth.h"
+#include "./frame/frame.h"
+#include "./mth/mth.h"
 #include <vector>
-#include "..\..\def.h"
+#include "def.h"
 
 #define BACK_GRD_COLOR RGB(204, 120, 77)
 #define BACK_GRD_COLOR_VEC vec3(0.30, 0.47, 0.8)
 #define RT_THESHOLD 0.001
 
-#include "./ui2/frame_render.h"
-#include "./ui2/canvas.h"
-#include "./ui2/controls.h"
-#include "./ui2/controls/div.h"
+#include "./ui/frame_render.h"
+#include "./ui/canvas.h"
+#include "./ui/controls.h"
+#include "./ui/controls/div.h"
 
 #include <iostream>
 
@@ -46,22 +46,15 @@ public:
   /* Contructor function */
   test( ::ui::render_2d &NewRender2d, const ::ui::isize2 &Size ) :
     Render2d(NewRender2d),
-    Canvas(NewRender2d, 0, Size, nullptr)
+    Canvas(NewRender2d, 0, Size, {
+      new ::ui::controls::div("Div 1", {10, 10}, {100, 100}, {}, {}),
+      new ::ui::controls::div("Div 2", {110, 110}, {150, 150}, {}, {}),
+      })
   {
   } /* End of 'test' function */
 
   VOID Init( VOID )
   {
-    //Canvas.SetRoot(new ::ui::button({10, 10}));
-    Canvas.SetRoot(new ::ui::controls::div("Canvas div", {0, 0}, Canvas.Size, {}, {
-      new ::ui::controls::div("Div 1", {10, 10}, {100, 100}, {}, {
-          new ::ui::button({10, 10})
-        }),
-      new ::ui::controls::div("Div 2", {110, 110}, {150, 150}, {}, {
-          new ::ui::button({10, 10})
-        }),
-      }));
-
     Canvas.Draw();
   } 
 
