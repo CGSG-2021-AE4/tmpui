@@ -29,12 +29,12 @@ namespace ui
       *HoverEntry  {nullptr}; // Current hovered entry
   public:
 
-    canvas( render_2d &NewRender2d, const ivec2 &NewPos, const isize2 &NewSize, const std::vector<entry *> &Entries ) :
+    canvas( render_2d &NewRender2d, const ivec2 &NewPos, const isize2 &NewSize, const ::ui::layout_props &RootLayoutProps, const std::vector<entry *> &Entries ) :
       Render2d(NewRender2d),
       Pos(NewPos),
       Size(NewSize),
       Mask(Pos, Size),
-      Root(new entry("Body", Pos, Size, Entries, nullptr)) // Provides root isn't nullptr
+      Root(new entry("Body", Pos, Size, RootLayoutProps, Entries, nullptr)) // Provides root isn't nullptr
     {
       // Root init
       Root->SetCanvas(this);

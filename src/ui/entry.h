@@ -1,3 +1,5 @@
+#include <algorithm>
+
 #include "ui_def.h"
 
 #ifndef __entry_h_
@@ -16,38 +18,70 @@ namespace ui
   /* Physical entry state */
   enum struct entry_state
   {
-    def     = 0,
-    hovered = 1,
-    focused = 2,
-    active  = 3,
+    eDef     = 0,
+    eHovered = 1,
+    eFocused = 2,
+    eActive  = 3,
   }; /* End of 'entry_state' enum struct */
-  
+
+  /* Layout type enum struct */
+  enum struct layout_type
+  {
+    eBlock,
+    eFlexRow,
+    eFlexColumn,
+  }; /* End of 'layout_type' enum struct */
+
+  /* Layout props struct */
+  struct layout_props
+  {
+    layout_type Type = layout_type::eBlock; // Type of entry layout
+    FLT Flex         = 0;                   // Flex coef
+    isize2 MinSize   = {0, 0};              // Min size
+    isize2 MaxSize   = {-1, -1};            // Max size
+  }; /* End of 'layout_props' struct */
+
+  /* Box style values struct */
+  struct box_style
+  {
+    vec3
+      SpaceColor = {0.4},  // Color of div space
+      BorderColor = {0.7}; // Color of div border
+    FLT
+      BorderW = 1,                   // Width of border (now only 1)
+      BorderR = 0;                   // Radius of div corners (isn't used now)
+  }; /* End of 'box_style' struct */
+
   /* UI entry class */
   class entry
   {
     /* Values */
   protected:
 
-    std::string Id {""};                  // Entries id
+    std::string Id {""};                   // Entries id
 
     ivec2
-      LocalPos,                           // Position in parent basis
-      GlobalPos;                          // Position in canvas basis
-    isize2 Size;                          // WH
+      LocalPos,                            // Position in parent basis
+      GlobalPos;                           // Position in canvas basis
+    isize2 Size;                           // WH
 
     mask
-      SelfMask,                           // Self mask
-      ContentMask,                        // Content mask
-      SelfDrawMask,                       // Mask that is visible on the screen
-      ContentDrawMask;                    // Mask for content that is visible on the screen
+      SelfMask,                            // Self mask
+      ContentMask,                         // Content mask
+      SelfDrawMask,                        // Mask that is visible on the screen
+      ContentDrawMask;                     // Mask for content that is visible on the screen
     
-    entry *Parent {nullptr};              // Parent pointer
-    canvas *Canvas {nullptr};             // Canvas pointer
-    std::vector<entry *> Children;        // Children pointers
+    entry *Parent {nullptr};               // Parent pointer
+    canvas *Canvas {nullptr};              // Canvas pointer
+    std::vector<entry *> Children;         // Children pointers
 
-    BOOL IsVisible;                       // Is entry visible
+    BOOL IsVisible;                        // Is entry visible
 
-    entry_state State {entry_state::def}; // State of entry
+    entry_state State {entry_state::eDef}; // State of entry
+
+    // Style props
+    layout_props LayoutProps {};           // Props of entry's layout
+    FLT ChildrenFlexSum = 0;               // Sum of children's flex values (is used only with FlexRow/FlexColumn flex type)
 
     /* Events */
   public:
@@ -125,14 +159,14 @@ namespace ui
     inline VOID OnHoverEvent( const ivec2 &LocalMousePos )
     {
       Log(std::format("Entry {} OnHover event.", Id));
-      State = entry_state::hovered;
+      State = entry_state::eHovered;
       OnHover(LocalMousePos);
     } /* End of 'OnHoverEvent' function */
 
     inline VOID OnUnhoverEvent( const ivec2 &LocalMousePos )
     {
       Log(std::format("Entry {} OnUnhover event.", Id));
-      State = entry_state::def;
+      State = entry_state::eDef;
       OnUnhover(LocalMousePos);
     } /* End of 'OnUnhoverEvent' function */
 
@@ -145,14 +179,14 @@ namespace ui
     inline VOID OnMouseDownEvent( const ivec2 &LocalMousePos )
     {
       Log(std::format("Entry {} OnMouseDown event.", Id));
-      State = entry_state::active;
+      State = entry_state::eActive;
       OnMouseDown(LocalMousePos);
     } /* End of 'OnMouseDownEvent' function */
 
     inline VOID OnMouseUpEvent( const ivec2 &LocalMousePos )
     {
       Log(std::format("Entry {} OnMouseUp event.", Id));
-      State = entry_state::hovered;
+      State = entry_state::eHovered;
       OnMouseUp(LocalMousePos);
     } /* End of 'OnMouseUpEvent' function */
 
@@ -187,6 +221,7 @@ namespace ui
     } /* End of 'OnResizeEvent' function */
 
   protected:
+  public: // !!! TMP DEBUG SHIT
 
     friend class canvas;
 
@@ -214,7 +249,49 @@ namespace ui
       SetParent(NewParent);
       UpdateGlobalPos();
       AddChildren(NewChildren);
+      UpdateChildrenLayout();
     } /* End of 'entry' function */
+
+    /* Entry constructor function.
+     * ARGUMENTS:
+     *   - pos:
+     *       const ivec2 &NewPos;
+     *   - size:
+     *       const isize2 &NewSize;
+     *   - props:
+     *       const props_type &Props;
+     *   - children:
+     *       const std::vector<entry *> &NewChildren;
+     *   - parent:
+     *       entry *NewParent;
+     */
+    template<typename props_type>
+      entry( const ivec2 &NewPos, const isize2 &NewSize, const props_type &Props, const std::vector<entry *> &NewChildren = {}, entry *NewParent = nullptr ) :
+        Parent(nullptr),
+        LocalPos(NewPos),
+        Size(NewSize),
+        IsVisible(true)
+      {
+#ifdef ENABLE_PATH_LOG
+        Log(std::format("Entry {} constructor.", Id));
+#endif // ENABLE_PATH_LOG
+
+        UpdateProps(Props);
+        SetParent(NewParent);
+        UpdateGlobalPos();
+        AddChildren(NewChildren);
+        UpdateChildrenLayout();
+      } /* End of 'entry' function */
+
+    /* Update props function */
+    template<typename props_type>
+      VOID UpdateProps( const props_type &Props )
+      {
+        if constexpr (std::is_base_of_v<layout_props, props_type>)
+        {
+          LayoutProps = Props;
+        }
+      } /* End of 'UpdateProps' function */
 
     /* Entry with id mentioned constructor function.
      * ARGUMENTS:
@@ -229,7 +306,7 @@ namespace ui
      *   - parent:
      *       entry *NewParent;
      */
-    entry( const std::string &NewId, const ivec2 &NewPos, const isize2 &NewSize, const std::vector<entry *> &NewChildren = {}, entry *NewParent = nullptr ) :
+    entry( const std::string_view NewId, const ivec2 &NewPos, const isize2 &NewSize, const std::vector<entry *> &NewChildren = {}, entry *NewParent = nullptr ) :
       Id(NewId),
       Parent(nullptr),
       LocalPos(NewPos),
@@ -243,7 +320,42 @@ namespace ui
       SetParent(NewParent);
       UpdateGlobalPos();
       AddChildren(NewChildren);
+      UpdateChildrenLayout();
     } /* End of 'entry' function */
+
+    /* Entry with id mentioned constructor function.
+     * ARGUMENTS:
+     *   - id string:
+     *       const std::string &NewId;
+     *   - pos:
+     *       const ivec2 &NewPos;
+     *   - size:
+     *       const isize2 &NewSize;
+     *   - props:
+     *       const props_type &Props;
+     *   - children:
+     *       const std::vector<entry *> &NewChildren;
+     *   - parent:
+     *       entry *NewParent;
+     */
+    template<typename props_type>
+      entry( const std::string_view NewId, const ivec2 &NewPos, const isize2 &NewSize, const props_type &Props, const std::vector<entry *> &NewChildren = {}, entry *NewParent = nullptr ) :
+        Id(NewId),
+        Parent(nullptr),
+        LocalPos(NewPos),
+        Size(NewSize),
+        IsVisible(true)
+      {
+#ifdef ENABLE_PATH_LOG
+        Log(std::format("Entry {} constructor.", Id));
+#endif // ENABLE_PATH_LOG
+
+        UpdateProps(Props);
+        SetParent(NewParent);
+        UpdateGlobalPos();
+        AddChildren(NewChildren);
+        UpdateChildrenLayout();
+      } /* End of 'entry' function */
 
     /* Entry desctrictor function */
     ~entry( VOID )
@@ -259,6 +371,67 @@ namespace ui
       if (Parent != nullptr)
         Parent->DeleteChild(this);
     } /* End of '~entry' function */
+
+    /* Update children layout function */
+    VOID UpdateChildrenLayout( VOID )
+    {
+      if (LayoutProps.Type == layout_type::eFlexRow)
+      {
+        if (ChildrenFlexSum == 0)
+        {
+          INT Offset = 0;
+          isize2 NewSize;
+
+          for (entry *c : Children)
+          {
+            NewSize = Clamp({c->LayoutProps.MinSize.W, Size.H}, c->LayoutProps.MinSize, c->LayoutProps.MaxSize);
+            c->Reform({Offset, 0}, NewSize);
+            Offset += NewSize.W;
+          }
+        }
+        else
+        {
+          INT Offset = 0;
+          isize2 NewSize;
+
+          for (entry *c : Children)
+          {
+            NewSize = Clamp({(INT)(c->LayoutProps.Flex / ChildrenFlexSum * Size.W), Size.H}, c->LayoutProps.MinSize, c->LayoutProps.MaxSize);
+            c->Reform({Offset, 0}, NewSize);
+            Offset += NewSize.W;
+          }
+        }
+      }
+      else if (LayoutProps.Type == layout_type::eFlexColumn)
+      {
+        if (ChildrenFlexSum == 0)
+        {
+          INT Offset = 0;
+          isize2 NewSize;
+
+          for (entry *c : Children)
+          {
+            NewSize = Clamp({Size.W, c->LayoutProps.MinSize.H}, c->LayoutProps.MinSize, c->LayoutProps.MaxSize);
+            c->Reform({0, Offset}, NewSize);
+            Offset += NewSize.H;
+          }
+        }
+        else
+        {
+          INT Offset = 0;
+          isize2 NewSize;
+
+          for (entry *c : Children)
+          {
+            NewSize = Clamp({Size.W, (INT)(c->LayoutProps.Flex / ChildrenFlexSum * Size.H)}, c->LayoutProps.MinSize, c->LayoutProps.MaxSize);
+            c->Reform({0, Offset}, NewSize);
+            Offset += NewSize.H;
+          }
+        }
+      }
+      // if (LayoutProps.Type == layout_type::eBlock)
+      // return;
+    } /* End of 'UpdateChildrenLayout' function */
 
     /* Update self and content masks function.
      * ARGUMENTS: None.
@@ -301,6 +474,7 @@ namespace ui
 
       Size = NewSize;
       UpdateMasks();
+      UpdateChildrenLayout();
       OnResize();
     } /* End of 'Resize' function */
 
@@ -318,7 +492,7 @@ namespace ui
       LocalPos = NewLocalPos;
 
       UpdateGlobalPos();
-
+      UpdateChildrenLayout();
       OnMove();
     } /* End of 'Resize' function */
 
@@ -339,7 +513,7 @@ namespace ui
       Size = NewSize;
 
       UpdateGlobalPos();
-
+      UpdateChildrenLayout();
       OnMove();
       OnResize();
     } /* End of 'Reform' function */
@@ -443,6 +617,7 @@ namespace ui
     
       Children.push_back(NewChild);
       NewChild->OnAddChild(this);
+      ChildrenFlexSum += NewChild->LayoutProps.Flex;
     } /* End of 'AddChild' function */
 
     /* Add children function.
@@ -486,6 +661,7 @@ namespace ui
       if (FoundChild == Children.end())
         return;
     
+      ChildrenFlexSum -= (*FoundChild)->LayoutProps.Flex;
       Children.erase(FoundChild);
     } /* End of 'DeleteChild' function */
 

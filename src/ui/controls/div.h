@@ -9,39 +9,35 @@ namespace ui
   {
     struct div_props
     {
-      vec3
-        SpaceColor = {0.4},  // Color of div space
-        BorderColor = {0.7}; // Color of div border
-      FLT
-        BorderW = 1,                   // Width of border (now only 1)
-        BorderR = 0;                   // Radius of div corners (isn't used now)
+      layout_props LayoutProps; // Layout props
+      box_style BoxStyle;       // Div box style
     }; /* End of 'div_props' struct */
 
     /* Div class */
     class div : public entry
     {
-      div_props Props;
+      box_style BoxStyle;
 
     public:
   
       /* Contsructor function */
       div( const ivec2 &NewPos, const isize2 &NewSize, const div_props &NewProps, const std::vector<entry *> &NewChildren = {} ) :
-        entry(NewPos, NewSize, NewChildren),
-        Props(NewProps)
+        entry(NewPos, NewSize, NewProps.LayoutProps, NewChildren),
+        BoxStyle(NewProps.BoxStyle)
       {
       } /* End of 'div' function */
-
+      
       /* Contsructor with id function */
-      div( const std::string &NewId, const ivec2 &NewPos, const isize2 &NewSize, const div_props &NewProps, const std::vector<entry *> &NewChildren = {} ) :
-        entry(NewId, NewPos, NewSize, NewChildren),
-        Props(NewProps)
+      div( const std::string_view NewId, const ivec2 &NewPos, const isize2 &NewSize, const div_props &NewProps, const std::vector<entry *> &NewChildren = {} ) :
+        entry(NewId, NewPos, NewSize, NewProps.LayoutProps, NewChildren),
+        BoxStyle(NewProps.BoxStyle)
       {
       } /* End of 'div' function */
 
       /* Overrided get content mask function */
       mask GetContentMask( VOID ) override
       {
-        return {GlobalPos + ivec2(Props.BorderW), Size - isize2(Props.BorderW * 2)};
+        return {GlobalPos + ivec2(BoxStyle.BorderW), Size - isize2(BoxStyle.BorderW * 2)};
       } /* End of 'GetContentMask' function */
   
       /* On click event function */
@@ -52,9 +48,9 @@ namespace ui
       /* On draw event function */
       VOID OnDraw( VOID ) override
       {
-        const FLT Coef = State > entry_state::def ? 0.8 : 1; // Just for debug
+        const FLT Coef = State > entry_state::eDef ? 0.8 : 1; // Just for debug
 
-        Canvas->Render2d.PutBar(GlobalPos, Size, ToRGB(Props.BorderColor), ToRGB(Props.SpaceColor * Coef), SelfDrawMask);
+        Canvas->Render2d.PutBar(GlobalPos, Size, ToRGB(BoxStyle.BorderColor), ToRGB(BoxStyle.SpaceColor * Coef), SelfDrawMask);
       } /* End of 'OnDraw' function */
 
       /* On hover event function */

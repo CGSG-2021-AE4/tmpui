@@ -35,6 +35,8 @@
 
 #include <iostream>
 
+namespace cs = ::ui::controls;
+
 /* Test class */
 class test
 {
@@ -46,10 +48,19 @@ public:
   /* Contructor function */
   test( ::ui::render_2d &NewRender2d, const ::ui::isize2 &Size ) :
     Render2d(NewRender2d),
-    Canvas(NewRender2d, 0, Size, {
-      new ::ui::controls::div("Div 1", {10, 10}, {100, 100}, {}, {}),
-      new ::ui::controls::div("Div 2", {110, 110}, {150, 150}, {}, {}),
-      })
+    Canvas(NewRender2d, 0, Size, { .Type = ::ui::layout_type::eFlexRow }, {
+      new cs::div("Left bar", {0}, {1}, cs::div_props { .LayoutProps = { .Flex = 0, .MinSize = {30, 0} }, .BoxStyle = { .SpaceColor = ::ui::vec3::Rnd0() } }, {}),
+    new ::ui::entry("Div layout", {0}, {1}, ::ui::layout_props { .Type = ::ui::layout_type::eFlexRow, .Flex = 1 }, {
+      new cs::div("Div layout 1", {0}, {1}, cs::div_props { .LayoutProps = { .Flex = 1 }, .BoxStyle = { .SpaceColor = ::ui::vec3::Rnd0() } }, {}),
+      new cs::div("Div layout 2", {0}, {1}, cs::div_props { .LayoutProps = { .Type = ::ui::layout_type::eFlexColumn, .Flex = 2 }, .BoxStyle = { .SpaceColor = ::ui::vec3::Rnd0() } }, {
+        new cs::div("Div layout 2.1", {0}, {1}, cs::div_props { .LayoutProps = { .Type = ::ui::layout_type::eFlexRow, .Flex = 1 }, .BoxStyle = { .SpaceColor = ::ui::vec3::Rnd0() } }, {
+          new cs::div("Div layout 2.1.1", {0}, {1}, cs::div_props { .LayoutProps = { .Flex = 3 }, .BoxStyle = { .SpaceColor = ::ui::vec3::Rnd0() } }, {}),
+          new cs::div("Div layout 2.1.2", {0}, {1}, cs::div_props { .LayoutProps = { .Flex = 1 }, .BoxStyle = { .SpaceColor = ::ui::vec3::Rnd0() } }, {}),
+          }),
+        new cs::div("Div layout 2.2", {0}, {1}, cs::div_props { .LayoutProps = { .Flex = 2 }, .BoxStyle = { .SpaceColor = ::ui::vec3::Rnd0() } }, {}),
+        }),
+      }),
+    })
   {
   } /* End of 'test' function */
 

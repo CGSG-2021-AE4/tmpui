@@ -26,7 +26,7 @@ namespace ui
     VOID OnDraw( VOID ) override
     {
       Canvas->Render2d.PutBar(GlobalPos, Size,
-        State > entry_state::def ? State == entry_state::active ? RGB(200, 50, 50) : RGB(50, 100, 50) : RGB(50, 200, 50),
+        State > entry_state::eDef ? State == entry_state::eActive ? RGB(200, 50, 50) : RGB(50, 100, 50) : RGB(50, 200, 50),
         RGB(100, 200, 100), SelfDrawMask);
     }
 

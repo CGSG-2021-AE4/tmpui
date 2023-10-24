@@ -38,6 +38,20 @@ namespace ui
       return RGB((UINT)(Color.X * 255), (UINT)(Color.Y * 255), (UINT)(Color.Z * 255));
     } /* End of 'ToRGB' function */
 
+  /* Clamp size function */
+  inline isize2 Clamp( isize2 Size, const isize2 &MinSize, const isize2 &MaxSize )
+  {
+    // Clamp bottom
+    Size = {MinSize.W != -1 ? std::max(MinSize.W, Size.W) : Size.W,
+            MinSize.H != -1 ? std::max(MinSize.H, Size.H) : Size.H};
+
+    // Clamp top
+    Size = {MaxSize.W != -1 ? std::min(MaxSize.W, Size.W) : Size.W,
+            MaxSize.H != -1 ? std::min(MaxSize.H, Size.H) : Size.H};
+
+    return Size;
+  } /* End of 'Clamp' function */
+
   /* Mask class */
   class mask
   {

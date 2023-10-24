@@ -265,37 +265,32 @@ namespace mth
     /* Zero vector function.
      * ARGUMENTS: None.
      * RETURNS:
-     *   (vec3 &) - self vector referense.
+     *   (vec3).
      */
-    vec3 & Zero( void )
+    static vec3 Zero( void )
     {
-      X = Y = Z = 0;
-      return *this;
-    } /* End of 'Zero' operator function */
+      return {0, 0, 0};
+    } /* End of 'Zero' function */
 
-    /* Random with maX function.
-     * ARGUMENTS:
-     *   - maX random:
-     *       const INT &RndMaX;
+    /* Random with max function.
+     * ARGUMENTS: None.
      * RETURNS:
-     *   (vec3 &) - self vector referense.
+     *   (vec3) - out vector.
      */
-    vec3 & Rnd0( const INT &RndMaX )
+    static vec3 Rnd0( void )
     {
-      X = rand() % RndMaX, Y = rand() % RndMaX, Z = rand() % RndMaX;
-      return *this;
-    } /* End of 'Rnd' operator function */
+      return {(Type)rand() / RAND_MAX, (Type)rand() / RAND_MAX, (Type)rand() / RAND_MAX};
+    } /* End of 'Rnd0' function */
 
     /* Random from -1 to 1 function.
      * ARGUMENTS: None.
      * RETURNS:
-     *   (vec3 &) - self vector referense.
+     *   (vec3) - out vector.
      */
-    vec3 & Rnd1( void )
+    static vec3 Rnd1( void )
     {
-      X = (2.0 * rand()) / RAND_MAX - 1, Y = (2.0 * rand()) / RAND_MAX - 1, Z = (2.0 * rand()) / RAND_MAX - 1;
-      return *this;
-    } /* End of 'Rnd1' operator function */
+      return {(2.0 * rand()) / RAND_MAX - 1, (2.0 * rand()) / RAND_MAX - 1, (2.0 * rand()) / RAND_MAX - 1};
+    } /* End of 'Rnd1' function */
 
     /* Returns normalise vector function.
      * ARGUMENTS: None.
