@@ -34,7 +34,7 @@ namespace ui
       Pos(NewPos),
       Size(NewSize),
       Mask(Pos, Size),
-      Root(new entry("Body", Pos, Size, RootLayoutProps, Entries, nullptr)) // Provides root isn't nullptr
+      Root(new entry(entry_props { .Id = "Canvas root", .Pos = {0, 0}, .Size = Size, .LayoutProps = RootLayoutProps }, Entries, nullptr)) // Provides root isn't nullptr
     {
       // Root init
       Root->SetCanvas(this);

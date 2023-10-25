@@ -5,7 +5,7 @@
 #ifndef __entry_h_
 #define __entry_h_
 
-#define ENABLE_PATH_LOG
+//#define ENABLE_PATH_LOG
 
 // Some real kal
 using namespace tmp;
@@ -14,15 +14,6 @@ namespace ui
 {
   /* Friend classes prototypes */
   class canvas;
-
-  /* Physical entry state */
-  enum struct entry_state
-  {
-    eDef     = 0,
-    eHovered = 1,
-    eFocused = 2,
-    eActive  = 3,
-  }; /* End of 'entry_state' enum struct */
 
   /* Layout type enum struct */
   enum struct layout_type
@@ -41,16 +32,24 @@ namespace ui
     isize2 MaxSize   = {-1, -1};            // Max size
   }; /* End of 'layout_props' struct */
 
-  /* Box style values struct */
-  struct box_style
+  /* Entry props structure */
+  struct entry_props
   {
-    vec3
-      SpaceColor = {0.4},  // Color of div space
-      BorderColor = {0.7}; // Color of div border
-    FLT
-      BorderW = 1,                   // Width of border (now only 1)
-      BorderR = 0;                   // Radius of div corners (isn't used now)
-  }; /* End of 'box_style' struct */
+    std::string Id {""};
+    ivec2 Pos {0};
+    isize2 Size {0};
+    layout_props LayoutProps {};
+  }; /* End of 'entry_props' struct */
+
+  /* Physical entry state */
+  enum struct entry_state
+  {
+    eDef     = 0,
+    eHovered = 1,
+    eFocused = 2,
+    eActive  = 3,
+  }; /* End of 'entry_state' enum struct */
+
 
   /* UI entry class */
   class entry
@@ -77,7 +76,7 @@ namespace ui
 
     BOOL IsVisible;                        // Is entry visible
 
-    entry_state State {entry_state::eDef}; // State of entry
+    entry_state State { entry_state::eDef }; // State of entry
 
     // Style props
     layout_props LayoutProps {};           // Props of entry's layout
@@ -225,35 +224,10 @@ namespace ui
 
     friend class canvas;
 
-    /* Entry constructor function.
+    /* Entry with id mentioned constructor function.
      * ARGUMENTS:
-     *   - pos:
-     *       const ivec2 &NewPos;
-     *   - size:
-     *       const isize2 &NewSize;
-     *   - children:
-     *       const std::vector<entry *> &NewChildren;
-     *   - parent:
-     *       entry *NewParent;
-     */
-    entry( const ivec2 &NewPos, const isize2 &NewSize, const std::vector<entry *> &NewChildren = {}, entry *NewParent = nullptr ) :
-      Parent(nullptr),
-      LocalPos(NewPos),
-      Size(NewSize),
-      IsVisible(true)
-    {
-#ifdef ENABLE_PATH_LOG
-      Log(std::format("Entry {} constructor.", Id));
-#endif // ENABLE_PATH_LOG
-
-      SetParent(NewParent);
-      UpdateGlobalPos();
-      AddChildren(NewChildren);
-      UpdateChildrenLayout();
-    } /* End of 'entry' function */
-
-    /* Entry constructor function.
-     * ARGUMENTS:
+     *   - id string:
+     *       const std::string &NewId;
      *   - pos:
      *       const ivec2 &NewPos;
      *   - size:
@@ -266,91 +240,22 @@ namespace ui
      *       entry *NewParent;
      */
     template<typename props_type>
-      entry( const ivec2 &NewPos, const isize2 &NewSize, const props_type &Props, const std::vector<entry *> &NewChildren = {}, entry *NewParent = nullptr ) :
-        Parent(nullptr),
-        LocalPos(NewPos),
-        Size(NewSize),
+      entry( const props_type &Props, const std::vector<entry *> &NewChildren = {}, entry *NewParent = nullptr ) :
+        Id(requires { Props.Id; } ? Props.Id : ""),
+        Parent(NewParent),
+        LocalPos(requires { Props.Pos; } ? Props.Pos : ivec2(0)),
+        Size(requires { Props.Size; } ? Props.Size : isize2(0)),
         IsVisible(true)
       {
 #ifdef ENABLE_PATH_LOG
         Log(std::format("Entry {} constructor.", Id));
 #endif // ENABLE_PATH_LOG
 
-        UpdateProps(Props);
-        SetParent(NewParent);
-        UpdateGlobalPos();
-        AddChildren(NewChildren);
-        UpdateChildrenLayout();
-      } /* End of 'entry' function */
-
-    /* Update props function */
-    template<typename props_type>
-      VOID UpdateProps( const props_type &Props )
-      {
-        if constexpr (std::is_base_of_v<layout_props, props_type>)
+        if (requires { Props.LayoutProps; })
         {
-          LayoutProps = Props;
+          LayoutProps = Props.LayoutProps;
         }
-      } /* End of 'UpdateProps' function */
 
-    /* Entry with id mentioned constructor function.
-     * ARGUMENTS:
-     *   - id string:
-     *       const std::string &NewId;
-     *   - pos:
-     *       const ivec2 &NewPos;
-     *   - size:
-     *       const isize2 &NewSize;
-     *   - children:
-     *       const std::vector<entry *> &NewChildren;
-     *   - parent:
-     *       entry *NewParent;
-     */
-    entry( const std::string_view NewId, const ivec2 &NewPos, const isize2 &NewSize, const std::vector<entry *> &NewChildren = {}, entry *NewParent = nullptr ) :
-      Id(NewId),
-      Parent(nullptr),
-      LocalPos(NewPos),
-      Size(NewSize),
-      IsVisible(true)
-    {
-#ifdef ENABLE_PATH_LOG
-      Log(std::format("Entry {} constructor.", Id));
-#endif // ENABLE_PATH_LOG
-
-      SetParent(NewParent);
-      UpdateGlobalPos();
-      AddChildren(NewChildren);
-      UpdateChildrenLayout();
-    } /* End of 'entry' function */
-
-    /* Entry with id mentioned constructor function.
-     * ARGUMENTS:
-     *   - id string:
-     *       const std::string &NewId;
-     *   - pos:
-     *       const ivec2 &NewPos;
-     *   - size:
-     *       const isize2 &NewSize;
-     *   - props:
-     *       const props_type &Props;
-     *   - children:
-     *       const std::vector<entry *> &NewChildren;
-     *   - parent:
-     *       entry *NewParent;
-     */
-    template<typename props_type>
-      entry( const std::string_view NewId, const ivec2 &NewPos, const isize2 &NewSize, const props_type &Props, const std::vector<entry *> &NewChildren = {}, entry *NewParent = nullptr ) :
-        Id(NewId),
-        Parent(nullptr),
-        LocalPos(NewPos),
-        Size(NewSize),
-        IsVisible(true)
-      {
-#ifdef ENABLE_PATH_LOG
-        Log(std::format("Entry {} constructor.", Id));
-#endif // ENABLE_PATH_LOG
-
-        UpdateProps(Props);
         SetParent(NewParent);
         UpdateGlobalPos();
         AddChildren(NewChildren);

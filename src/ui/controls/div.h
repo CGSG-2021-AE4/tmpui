@@ -7,10 +7,25 @@ namespace ui
 {
   namespace controls
   {
+
+    /* Box style values struct */
+    struct box_style
+    {
+      vec3
+        SpaceColor = {0},  // Color of div space
+        BorderColor = {1}; // Color of div border
+      FLT
+        BorderW = 1,       // Width of border (now only 1)
+        BorderR = 0;       // Radius of div corners (isn't used now)
+    }; /* End of 'box_style' struct */
+
     struct div_props
     {
-      layout_props LayoutProps; // Layout props
-      box_style BoxStyle;       // Div box style
+      std::string Id {"Div"};
+      ivec2 Pos {0};
+      isize2 Size {0};
+      layout_props LayoutProps {}; // Layout props
+      box_style BoxStyle {};       // Div box style
     }; /* End of 'div_props' struct */
 
     /* Div class */
@@ -21,19 +36,12 @@ namespace ui
     public:
   
       /* Contsructor function */
-      div( const ivec2 &NewPos, const isize2 &NewSize, const div_props &NewProps, const std::vector<entry *> &NewChildren = {} ) :
-        entry(NewPos, NewSize, NewProps.LayoutProps, NewChildren),
+      div( const div_props &NewProps, const std::vector<entry *> &NewChildren = {} ) :
+        entry(NewProps, NewChildren),
         BoxStyle(NewProps.BoxStyle)
       {
       } /* End of 'div' function */
       
-      /* Contsructor with id function */
-      div( const std::string_view NewId, const ivec2 &NewPos, const isize2 &NewSize, const div_props &NewProps, const std::vector<entry *> &NewChildren = {} ) :
-        entry(NewId, NewPos, NewSize, NewProps.LayoutProps, NewChildren),
-        BoxStyle(NewProps.BoxStyle)
-      {
-      } /* End of 'div' function */
-
       /* Overrided get content mask function */
       mask GetContentMask( VOID ) override
       {
