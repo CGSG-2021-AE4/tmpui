@@ -84,92 +84,102 @@ namespace ui
         PutPixel(Pos, Color);
     } /* End of 'PutPixel' function */
 
-    /* Put only bar function (without inner space) */
-    VOID PutBar( const ivec2 &Pos0, const ivec2 &Pos1, DWORD FrameColor, mask Mask )
-    {
-      Mask = Mask.Intersect(FrameMask);
-
-      if (!Mask.IsExist())
-        return;
-
-      INT X0, X1;
-
-      /* Horisontal lines */
-
-      // Top
-      X0 = Pos0.X;
-      X1 = Pos1.X;
-      if (Mask(Pos0.Y, X0, X1))
-        std::fill(Frame.begin() + Pos0.Y * FrameSize.W + X0, Frame.begin() + Pos0.Y * FrameSize.W + X1 + 1, FrameColor);
-      // Bottom
-      X0 = Pos0.X;
-      X1 = Pos1.X;
-      if (Mask(Pos1.Y, X0, X1))
-        std::fill(Frame.begin() + Pos1.Y * FrameSize.W + X0, Frame.begin() + Pos1.Y * FrameSize.W + X1 + 1, FrameColor);
-
-
-      /* Vertical lines */
-      INT X0m, X1m;
-      for (INT y = Pos0.Y; y < Pos1.Y; y++)
-      {
-        X0m = Pos0.X;
-        X1m = Pos1.X;
-
-        if (Mask(y, X0m, X1m))
-        {
-          if (X0m == Pos0.X)
-            PutPixelUnsafe(y * FrameSize.W + X0m, FrameColor);
-          if (X1m == Pos1.X)
-            PutPixelUnsafe(y * FrameSize.W + X1m, FrameColor);
-        }
-      }
-    } /* End of 'PutBar' function */
-
     /* Put filled bar function */
-    VOID PutBar( const ivec2 &Pos0, const ivec2 &Pos1, DWORD FrameColor, DWORD SpaceColor, mask Mask )
-    {
-      Mask = Mask.Intersect(FrameMask);
-
-      if (!Mask.IsExist())
-        return;
-
-      INT X0, X1;
-
-      /* Horisontal lines */
-
-      // Top
-      X0 = Pos0.X;
-      X1 = Pos1.X;
-      if (Mask(Pos0.Y, X0, X1))
-        std::fill(Frame.begin() + Pos0.Y * FrameSize.W + X0, Frame.begin() + Pos0.Y * FrameSize.W + X1 + 1, FrameColor);
-
-      // Bottom
-      X0 = Pos0.X;
-      X1 = Pos1.X;
-      if (Mask(Pos1.Y, X0, X1))
-        std::fill(Frame.begin() + Pos1.Y * FrameSize.W + X0, Frame.begin() + Pos1.Y * FrameSize.W + X1 + 1, FrameColor);
-
-
-      /* Vertical lines */
-      INT X0m, X1m;
-      for (INT y = Pos0.Y + 1; y < Pos1.Y; y++)
+    template<BOOL IsFilled = 1, BOOL IsBorderW1 = 0>
+      VOID PutBar( const ivec2 &Pos0, const ivec2 &Pos1, DWORD FrameColor, DWORD SpaceColor, INT BorderW,  mask Mask )
       {
-        X0m = Pos0.X;
-        X1m = Pos1.X;
+        Mask = Mask.Intersect(FrameMask);
 
-        if (Mask(y, X0m, X1m))
+        if (!Mask.IsExist())
+          return;
+
+        INT X0, X1;
+
+        /* Horisontal lines */
+
+        // Top
+        if constexpr (IsBorderW1)
         {
-          std::fill(Frame.begin() + y * FrameSize.W + X0m, Frame.begin() + y * FrameSize.W + X1m + 1, SpaceColor);
+          // Top
 
-          if (X0m == Pos0.X)
-            PutPixelUnsafe(y * FrameSize.W + X0m, FrameColor);
-          if (X1m == Pos1.X)
-            PutPixelUnsafe(y * FrameSize.W + X1m, FrameColor);
+          X0 = Pos0.X;
+          X1 = Pos1.X;
+
+          if (Mask(Pos0.Y, X0, X1))
+            std::fill(Frame.begin() + Pos0.Y * FrameSize.W + X0, Frame.begin() + Pos0.Y * FrameSize.W + X1 + 1, FrameColor);
+
+          // Bottom
+
+          X0 = Pos0.X;
+          X1 = Pos1.X;
+
+          if (Mask(Pos1.Y, X0, X1))
+            std::fill(Frame.begin() + Pos1.Y * FrameSize.W + X0, Frame.begin() + Pos1.Y * FrameSize.W + X1 + 1, FrameColor);
         }
-      }
-    } /* End of 'PutBar' function */
+        else
+        {
+          for (INT Offset = 0; Offset < BorderW; Offset++)
+          {
+            X0 = Pos0.X;
+            X1 = Pos1.X;
+
+            if (Mask(Pos0.Y + Offset, X0, X1))
+              std::fill(Frame.begin() + (Pos0.Y + Offset) * FrameSize.W + X0, Frame.begin() + (Pos0.Y + Offset) * FrameSize.W + X1 + 1, FrameColor);
+            
+            X0 = Pos0.X;
+            X1 = Pos1.X;
+
+            if (Mask(Pos1.Y - Offset, X0, X1))
+              std::fill(Frame.begin() + (Pos1.Y - Offset) * FrameSize.W + X0, Frame.begin() + (Pos1.Y - Offset) * FrameSize.W + X1 + 1, FrameColor);
+          }
+        }
+
+        /* Vertical lines */
+        INT X0m, X1m;
+        for (INT y = Pos0.Y + BorderW; y <= Pos1.Y - BorderW; y++)
+        {
+          if constexpr (IsBorderW1)
+          {
+            X0m = Pos0.X;
+            X1m = Pos1.X;
+
+            if (Mask(y, X0m, X1m))
+            {
+              if constexpr (IsFilled)
+                std::fill(Frame.begin() + y * FrameSize.W + X0m, Frame.begin() + y * FrameSize.W + X1m + 1, SpaceColor);
+
+              if (X0m == Pos0.X)
+                PutPixelUnsafe(y * FrameSize.W + X0m, FrameColor);
+              if (X1m == Pos1.X)
+                PutPixelUnsafe(y * FrameSize.W + X1m, FrameColor);
+            }
+          }
+          else
+          {
+            X0m = Pos0.X;
+            X1m = Pos1.X;
+
+            if (Mask(y, X0m, X1m))
+            {
+              if constexpr (IsFilled)
+                std::fill(Frame.begin() + y * FrameSize.W + X0m, Frame.begin() + y * FrameSize.W + X1m + 1, SpaceColor);
+
+              if (X0m <= Pos0.X + BorderW)
+                std::fill(Frame.begin() + y * FrameSize.W + X0m, Frame.begin() + y * FrameSize.W + X0m + BorderW, FrameColor);
+              if (X1m >= Pos1.X - BorderW)
+                std::fill(Frame.begin() + y * FrameSize.W + X1m - BorderW + 1, Frame.begin() + y * FrameSize.W + X1m + 1, FrameColor);
+
+            }
+          }
+        }
+      } /* End of 'PutBar' function */
 
     /* The same functions with size argument */
+
+    VOID PutBar( const ivec2 &Pos0, const ivec2 &Pos1, DWORD FrameColor, mask Mask )
+    {
+      PutBar<0, 1>(Pos0, Pos1, FrameColor, 0, 0, Mask);
+    } /* End of 'PutBar' function */
 
     VOID PutBar( const ivec2 &Pos0, const isize2 &Size, DWORD FrameColor, mask Mask )
     {
@@ -178,7 +188,47 @@ namespace ui
 
     VOID PutBar( const ivec2 &Pos0, const isize2 &Size, DWORD FrameColor, DWORD SpaceColor, mask Mask )
     {
-      PutBar(Pos0, ivec2(Pos0.X + Size.W - 1, Pos0.Y + Size.H - 1), FrameColor, SpaceColor, Mask);
+      PutBar<1, 1>(Pos0, ivec2(Pos0.X + Size.W - 1, Pos0.Y + Size.H - 1), FrameColor, SpaceColor, 0, Mask);
+    } /* End of 'PutBar' function */
+
+    VOID PutBar( const ivec2 &Pos0, const ivec2 &Pos1, DWORD FrameColor, INT BorderW, mask Mask )
+    {
+      PutBar<0, 0>(Pos0, Pos1, FrameColor, 0, BorderW, Mask);
+    } /* End of 'PutBar' function */
+
+    VOID PutBar( const ivec2 &Pos0, const isize2 &Size, DWORD FrameColor, INT BorderW, mask Mask )
+    {
+      PutBar(Pos0, ivec2(Pos0.X + Size.W - 1, Pos0.Y + Size.H - 1), FrameColor, BorderW, Mask);
+    } /* End of 'PutBar' function */
+
+    VOID PutBar( const ivec2 &Pos0, const isize2 &Size, DWORD FrameColor, DWORD SpaceColor, INT BorderW, mask Mask )
+    {
+      PutBar<1, 0>(Pos0, ivec2(Pos0.X + Size.W - 1, Pos0.Y + Size.H - 1), FrameColor, SpaceColor, BorderW, Mask);
+    } /* End of 'PutBar' function */
+
+    /* Fill bar function */
+    VOID FillBar( const ivec2 &Pos0, const ivec2 &Pos1, DWORD SpaceColor, mask Mask )
+    {
+      Mask = Mask.Intersect(FrameMask);
+
+      if (!Mask.IsExist())
+        return;
+
+      /* Vertical lines */
+      INT X0m, X1m;
+      for (INT y = Pos0.Y; y <= Pos1.Y; y++)
+      {
+        X0m = Pos0.X;
+        X1m = Pos1.X;
+
+        if (Mask(y, X0m, X1m))
+          std::fill(Frame.begin() + y * FrameSize.W + X0m, Frame.begin() + y * FrameSize.W + X1m + 1, SpaceColor);
+      }
+    } /* End of 'FillBar' function */
+
+    VOID FillBar( const ivec2 &Pos0, const isize2 &Size, DWORD SpaceColor, mask Mask )
+    {
+      FillBar(Pos0, ivec2(Pos0.X + Size.W - 1, Pos0.Y + Size.H - 1), SpaceColor, Mask);
     } /* End of 'PutBar' function */
     
   }; /* End of 'render_2d' class */

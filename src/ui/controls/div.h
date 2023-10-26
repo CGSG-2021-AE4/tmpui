@@ -7,16 +7,12 @@ namespace ui
 {
   namespace controls
   {
-
     /* Box style values struct */
     struct box_style
     {
       vec3
         SpaceColor = {0},  // Color of div space
         BorderColor = {1}; // Color of div border
-      FLT
-        BorderW = 1,       // Width of border (now only 1)
-        BorderR = 0;       // Radius of div corners (isn't used now)
     }; /* End of 'box_style' struct */
 
     struct div_props
@@ -25,6 +21,7 @@ namespace ui
       ivec2 Pos {0};
       isize2 Size {0};
       layout_props LayoutProps {}; // Layout props
+      box_props BoxProps {};
       box_style BoxStyle {};       // Div box style
     }; /* End of 'div_props' struct */
 
@@ -42,12 +39,6 @@ namespace ui
       {
       } /* End of 'div' function */
       
-      /* Overrided get content mask function */
-      mask GetContentMask( VOID ) override
-      {
-        return {GlobalPos + ivec2(BoxStyle.BorderW), Size - isize2(BoxStyle.BorderW * 2)};
-      } /* End of 'GetContentMask' function */
-  
       /* On click event function */
       VOID OnClick( const ivec2 &LocalMousePos ) override
       {
@@ -58,7 +49,10 @@ namespace ui
       {
         const FLT Coef = State > entry_state::eDef ? 0.8 : 1; // Just for debug
 
-        Canvas->Render2d.PutBar(GlobalPos, Size, ToRGB(BoxStyle.BorderColor), ToRGB(BoxStyle.SpaceColor * Coef), SelfDrawMask);
+        if (BoxProps.BorderW)
+          Canvas->Render2d.PutBar(GlobalPos, Size, ToRGB(BoxStyle.BorderColor), ToRGB(BoxStyle.SpaceColor * Coef), BoxProps.BorderW, SelfDrawMask);
+        else
+          Canvas->Render2d.FillBar(GlobalPos, Size, ToRGB(BoxStyle.SpaceColor * Coef), SelfDrawMask);
       } /* End of 'OnDraw' function */
 
       /* On hover event function */

@@ -37,19 +37,9 @@
 
 namespace cs = ::ui::controls;
 
-/* Test class */
-class test
-{
-public:
-
-  ::ui::render_2d &Render2d;
-  ::ui::canvas Canvas;
-
-  /* Contructor function */
-  test( ::ui::render_2d &NewRender2d, const ::ui::isize2 &Size ) :
-    Render2d(NewRender2d),
-    Canvas(NewRender2d, 0, Size, { .Type = ::ui::layout_type::eFlexRow }, {
-      new cs::div({ .Id = "Left bar", .LayoutProps = { .Flex = 0, .MinSize = {30, 0} }, .BoxStyle = { .SpaceColor = ::ui::vec3::Rnd0() } }, {}),
+/*
+* 
+* new cs::div({ .Id = "Left bar", .LayoutProps = { .Flex = 0, .MinSize = {30, 0} }, .BoxStyle = { .SpaceColor = ::ui::vec3::Rnd0() } }, {}),
     new ::ui::entry( ::ui::entry_props { .Id = "Div layout", .LayoutProps = { .Type = ::ui::layout_type::eFlexRow, .Flex = 1 } }, {
       new cs::div({ .Id = "Div layout 1", .LayoutProps = { .Flex = 1 }, .BoxStyle = { .SpaceColor = ::ui::vec3::Rnd0() } }, {}),
       new cs::div({ .Id = "Div layout 2", .LayoutProps = { .Type = ::ui::layout_type::eFlexColumn, .Flex = 2 }, .BoxStyle = { .SpaceColor = ::ui::vec3::Rnd0() } }, {
@@ -60,6 +50,43 @@ public:
         new cs::div({ .Id = "Div layout 2.2", .LayoutProps = { .Flex = 2 }, .BoxStyle = { .SpaceColor = ::ui::vec3::Rnd0() } }, {}),
         }),
       }),
+
+*/
+
+/* Test class */
+class test
+{
+public:
+  
+  ::ui::box_props StdDivProps { .MarginW = 4, .BorderW = 2, .PaddingW = 2 };
+  cs::box_style StdDivStyle { .SpaceColor = {0.35}, .BorderColor = {0.75} };
+
+  ::ui::render_2d &Render2d;
+  ::ui::canvas Canvas;
+
+
+  /* Contructor function */
+  test( ::ui::render_2d &NewRender2d, const ::ui::isize2 &Size ) :
+    Render2d(NewRender2d),
+    Canvas(NewRender2d, 0, Size, { .Type = ::ui::layout_type::eFlexRow }, {
+      new cs::div({ .Id = "Left bar", .LayoutProps = { .MinSize = {30} }, .BoxProps = { .MarginW = 0, .BorderW = 2, .PaddingW = 2 }, .BoxStyle = StdDivStyle }, {}),
+      new cs::div({ .Id = "Div 1", .LayoutProps = { .Type = ::ui::layout_type::eFlexRow, .Flex = 1 }, .BoxProps = { .MarginW = 0, .BorderW = 0, .PaddingW = 2 }, .BoxStyle = StdDivStyle }, {
+        new cs::div({ .Id = "Div 1.1", .LayoutProps = { .Type = ::ui::layout_type::eFlexRow, .Flex = 1 }, .BoxProps = StdDivProps, .BoxStyle = StdDivStyle }, {
+          new cs::div({ .Id = "Div 1.1.1", .LayoutProps = { .Flex = 1 }, .BoxProps = StdDivProps, .BoxStyle = { .SpaceColor = ::ui::vec3::Rnd0(), .BorderColor = ::ui::vec3::Rnd0() } }, {}),
+          new cs::div({ .Id = "Div 1.1.2", .LayoutProps = { .Flex = 1 }, .BoxProps = StdDivProps, .BoxStyle = { .SpaceColor = ::ui::vec3::Rnd0(), .BorderColor = ::ui::vec3::Rnd0() } }, {}),
+          new cs::div({ .Id = "Div 1.1.3", .LayoutProps = { .Flex = 1 }, .BoxProps = StdDivProps, .BoxStyle = { .SpaceColor = ::ui::vec3::Rnd0(), .BorderColor = ::ui::vec3::Rnd0() } }, {}),
+          new cs::div({ .Id = "Div 1.1.4", .LayoutProps = { .Flex = 1 }, .BoxProps = StdDivProps, .BoxStyle = { .SpaceColor = ::ui::vec3::Rnd0(), .BorderColor = ::ui::vec3::Rnd0() } }, {}),
+          new cs::div({ .Id = "Div 1.1.5", .LayoutProps = { .Flex = 1 }, .BoxProps = StdDivProps, .BoxStyle = { .SpaceColor = ::ui::vec3::Rnd0(), .BorderColor = ::ui::vec3::Rnd0() } }, {}),
+          }),
+        new cs::div({ .Id = "Div 1.2", .LayoutProps = { .Type = ::ui::layout_type::eFlexColumn, .Flex = 1 }, .BoxProps = StdDivProps, .BoxStyle = StdDivStyle }, {
+          new cs::div({ .Id = "Div 1.2.1", .LayoutProps = { .Flex = 0, .MinSize = 100 }, .BoxProps = StdDivProps, .BoxStyle = { .SpaceColor = ::ui::vec3::Rnd0(), .BorderColor = ::ui::vec3::Rnd0() } }, {}),
+          new cs::div({ .Id = "Div 1.2.2", .LayoutProps = { .Flex = 0, .MinSize = 100 }, .BoxProps = StdDivProps, .BoxStyle = { .SpaceColor = ::ui::vec3::Rnd0(), .BorderColor = ::ui::vec3::Rnd0() } }, {}),
+          new cs::div({ .Id = "Div 1.2.3", .LayoutProps = { .Flex = 0, .MinSize = 100 }, .BoxProps = StdDivProps, .BoxStyle = { .SpaceColor = ::ui::vec3::Rnd0(), .BorderColor = ::ui::vec3::Rnd0() } }, {}),
+          new cs::div({ .Id = "Div 1.2.4", .LayoutProps = { .Flex = 0, .MinSize = 100 }, .BoxProps = StdDivProps, .BoxStyle = { .SpaceColor = ::ui::vec3::Rnd0(), .BorderColor = ::ui::vec3::Rnd0() } }, {}),
+          new cs::div({ .Id = "Div 1.2.5", .LayoutProps = { .Flex = 0, .MinSize = 100 }, .BoxProps = StdDivProps, .BoxStyle = { .SpaceColor = ::ui::vec3::Rnd0(), .BorderColor = ::ui::vec3::Rnd0() } }, {}),
+          }),
+        }),
+      new cs::div({ .Id = "Right bar", .LayoutProps = { .MinSize = {30} }, .BoxProps = { .MarginW = 0, .BorderW = 2, .PaddingW = 2 }, .BoxStyle = StdDivStyle }, {}),
     })
   {
   } /* End of 'test' function */

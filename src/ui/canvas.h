@@ -44,7 +44,7 @@ namespace ui
     /* Destructor function */
     ~canvas( VOID )
     {
-      delete Root; // Clear root
+
     } /* End of '~canvas' function */
 
     entry * GetRoot( VOID )

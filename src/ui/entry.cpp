@@ -6,14 +6,11 @@ VOID ::ui::entry::UpdateGlobalPos( VOID )
 {
   // Don't know is it right
   if (Parent != nullptr)
-    GlobalPos = Parent->GlobalPos + LocalPos;
+    GlobalPos = Parent->GlobalContentPos + LocalPos;
   else if (Canvas != nullptr)
     GlobalPos = Canvas->Pos + LocalPos;
   else
     GlobalPos = LocalPos;
 
-  UpdateMasks();
-
-  for (entry *Child : Children)
-    Child->UpdateGlobalPos();
+  GlobalContentPos = GlobalPos + ivec2(BoxProps.BorderW + BoxProps.PaddingW);
 } /* End of 'UpdateGlobalPos' function */

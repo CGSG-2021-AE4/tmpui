@@ -32,6 +32,15 @@ namespace ui
     isize2 MaxSize   = {-1, -1};            // Max size
   }; /* End of 'layout_props' struct */
 
+  /* Box props */
+  struct box_props
+  {
+    INT
+      MarginW = 0,  // Margin width
+      BorderW = 0,  // Border width
+      PaddingW = 0; // Padding width
+  }; /* End of 'box_props' struct */
+
   /* Entry props structure */
   struct entry_props
   {
@@ -50,7 +59,6 @@ namespace ui
     eActive  = 3,
   }; /* End of 'entry_state' enum struct */
 
-
   /* UI entry class */
   class entry
   {
@@ -60,9 +68,15 @@ namespace ui
     std::string Id {""};                   // Entries id
 
     ivec2
-      LocalPos,                            // Position in parent basis
-      GlobalPos;                           // Position in canvas basis
-    isize2 Size;                           // WH
+      LocalPos {0},                        // Position in parent basis
+      GlobalContentPos {0},                // Position in canvas basis
+      GlobalPos {0};                       // Position in canvas basis
+
+    isize2
+      Size {0},                            // Size
+      BorderSize {0},                      // Border size
+      ContentSize {0},                     // Content size
+      MarginSize {0};                      // Margin size
 
     mask
       SelfMask,                            // Self mask
@@ -76,11 +90,14 @@ namespace ui
 
     BOOL IsVisible;                        // Is entry visible
 
-    entry_state State { entry_state::eDef }; // State of entry
+    entry_state
+      State{ entry_state::eDef };          // State of entry
 
     // Style props
     layout_props LayoutProps {};           // Props of entry's layout
+    box_props BoxProps {};                 // Props of entry's box
     FLT ChildrenFlexSum = 0;               // Sum of children's flex values (is used only with FlexRow/FlexColumn flex type)
+    isize2 ChildrenFlex0Size = 0;             // Sum of min sizes of children with flex 0
 
     /* Events */
   public:
@@ -143,14 +160,14 @@ namespace ui
     {
     } /* End of 'OnResize' function */
 
-    virtual mask GetSelfMask( VOID )
+    virtual mask GetSelfMask( const ivec2 &GlobalPos, const isize2 &Size )
     {
       return {GlobalPos, Size};
     } /* End of 'GetSelfMask' function */
 
-    virtual mask GetContentMask( VOID )
+    virtual mask GetContentMask( const ivec2 &GlobalContentPos, const isize2 &ContentSize )
     {
-      return {GlobalPos, Size};
+      return {GlobalContentPos, ContentSize};
     } /* End of 'GetContentMask' function */
 
     /******* Inline event functions (interlayer) *******/
@@ -241,23 +258,28 @@ namespace ui
      */
     template<typename props_type>
       entry( const props_type &Props, const std::vector<entry *> &NewChildren = {}, entry *NewParent = nullptr ) :
-        Id(requires { Props.Id; } ? Props.Id : ""),
         Parent(NewParent),
-        LocalPos(requires { Props.Pos; } ? Props.Pos : ivec2(0)),
-        Size(requires { Props.Size; } ? Props.Size : isize2(0)),
         IsVisible(true)
       {
 #ifdef ENABLE_PATH_LOG
         Log(std::format("Entry {} constructor.", Id));
 #endif // ENABLE_PATH_LOG
 
-        if (requires { Props.LayoutProps; })
-        {
-          LayoutProps = Props.LayoutProps;
-        }
+        // Setup info from props
 
+        if constexpr (requires { Props.Id; })
+          Id = Props.Id;
+        if constexpr (requires { Props.Pos; })
+          SetPos(Props.Pos);
+        if constexpr (requires { Props.Size; })
+          SetSize(Props.Size);
+        if constexpr (requires { Props.LayoutProps; })
+          LayoutProps = Props.LayoutProps;
+        if constexpr (requires { Props.BoxProps; })
+          BoxProps = Props.BoxProps;
+        
         SetParent(NewParent);
-        UpdateGlobalPos();
+        UpdateShape();
         AddChildren(NewChildren);
         UpdateChildrenLayout();
       } /* End of 'entry' function */
@@ -269,19 +291,26 @@ namespace ui
       Log(std::format("Entry {} Destructor.", Id));
 #endif // ENABLE_PATH_LOG
 
+      // SOME REAL SHIT
+      if (Parent == nullptr)
+        for (entry *c : Children)
+          delete c;
+
       // Rebind children to parent
       for (entry *c : Children)
         c->SetParent(Parent);
       // Delete self from parent
-      if (Parent != nullptr)
-        Parent->DeleteChild(this);
+      Parent->DeleteChild(this);
     } /* End of '~entry' function */
+
+  private:
 
     /* Update children layout function */
     VOID UpdateChildrenLayout( VOID )
     {
       if (LayoutProps.Type == layout_type::eFlexRow)
       {
+        INT ContentFlexSizeW = ContentSize.W - ChildrenFlex0Size.W;
         if (ChildrenFlexSum == 0)
         {
           INT Offset = 0;
@@ -289,7 +318,7 @@ namespace ui
 
           for (entry *c : Children)
           {
-            NewSize = Clamp({c->LayoutProps.MinSize.W, Size.H}, c->LayoutProps.MinSize, c->LayoutProps.MaxSize);
+            NewSize = Clamp({c->LayoutProps.MinSize.W, ContentSize.H}, c->LayoutProps.MinSize, c->LayoutProps.MaxSize);
             c->Reform({Offset, 0}, NewSize);
             Offset += NewSize.W;
           }
@@ -301,7 +330,7 @@ namespace ui
 
           for (entry *c : Children)
           {
-            NewSize = Clamp({(INT)(c->LayoutProps.Flex / ChildrenFlexSum * Size.W), Size.H}, c->LayoutProps.MinSize, c->LayoutProps.MaxSize);
+            NewSize = Clamp({(INT)(c->LayoutProps.Flex / ChildrenFlexSum * ContentFlexSizeW), ContentSize.H}, c->LayoutProps.MinSize, c->LayoutProps.MaxSize);
             c->Reform({Offset, 0}, NewSize);
             Offset += NewSize.W;
           }
@@ -309,6 +338,7 @@ namespace ui
       }
       else if (LayoutProps.Type == layout_type::eFlexColumn)
       {
+        INT ContentFlexSizeH = ContentSize.H - ChildrenFlex0Size.H;
         if (ChildrenFlexSum == 0)
         {
           INT Offset = 0;
@@ -316,7 +346,7 @@ namespace ui
 
           for (entry *c : Children)
           {
-            NewSize = Clamp({Size.W, c->LayoutProps.MinSize.H}, c->LayoutProps.MinSize, c->LayoutProps.MaxSize);
+            NewSize = Clamp({ContentSize.W, c->LayoutProps.MinSize.H}, c->LayoutProps.MinSize, c->LayoutProps.MaxSize);
             c->Reform({0, Offset}, NewSize);
             Offset += NewSize.H;
           }
@@ -328,7 +358,7 @@ namespace ui
 
           for (entry *c : Children)
           {
-            NewSize = Clamp({Size.W, (INT)(c->LayoutProps.Flex / ChildrenFlexSum * Size.H)}, c->LayoutProps.MinSize, c->LayoutProps.MaxSize);
+            NewSize = Clamp({ContentSize.W, (INT)(c->LayoutProps.Flex / ChildrenFlexSum * ContentFlexSizeH)}, c->LayoutProps.MinSize, c->LayoutProps.MaxSize);
             c->Reform({0, Offset}, NewSize);
             Offset += NewSize.H;
           }
@@ -348,8 +378,8 @@ namespace ui
       Log(std::format("Entry {} update masks.", Id));
 #endif // ENABLE_PATH_LOG
 
-      SelfMask = GetSelfMask();
-      ContentMask = GetContentMask();
+      SelfMask = GetSelfMask(GlobalPos, Size);
+      ContentMask = GetContentMask(GlobalPos + ivec2(BoxProps.BorderW), BorderSize);
       if (Parent != nullptr)
       {
         SelfDrawMask = SelfMask.Intersect(Parent->ContentDrawMask); // May be later add check for mask change
@@ -365,6 +395,33 @@ namespace ui
     /* Update entry global pos function */
     VOID UpdateGlobalPos( VOID );
 
+    /* Update shape function */
+    VOID UpdateShape( VOID )
+    {
+      UpdateGlobalPos();
+      UpdateMasks();
+
+      for (entry *Child : Children)
+        Child->UpdateGlobalPos();
+    } /* End of 'UpdateShape' function */
+
+    /* Set position function */
+    inline VOID SetPos( const ivec2 &NewLocalPos )
+    {
+      LocalPos = NewLocalPos + ivec2(BoxProps.MarginW);
+    } /* End of 'SetPos' function */
+
+    /* Set size function */
+    inline VOID SetSize( const isize2 &NewMarginSize )
+    {
+      MarginSize = NewMarginSize;
+      Size = MarginSize - isize2(BoxProps.MarginW) * 2;
+      BorderSize = Size - isize2(BoxProps.BorderW) * 2;
+      ContentSize = BorderSize - isize2(BoxProps.PaddingW) * 2;
+    } /* End of 'SetSize' function */
+
+  public:
+
     /* Resize function.
      * ARGUMENTS:
      *   - new size:
@@ -377,7 +434,9 @@ namespace ui
       Log(std::format("Entry {} Resize.", Id));
 #endif // ENABLE_PATH_LOG
 
-      Size = NewSize;
+      // Update sizes
+      SetSize(NewSize);
+      
       UpdateMasks();
       UpdateChildrenLayout();
       OnResize();
@@ -394,9 +453,10 @@ namespace ui
 #ifdef ENABLE_PATH_LOG
       Log(std::format("Entry {} Move.", Id));
 #endif // ENABLE_PATH_LOG
-      LocalPos = NewLocalPos;
+      SetPos(NewLocalPos);
 
-      UpdateGlobalPos();
+
+      UpdateShape();
       UpdateChildrenLayout();
       OnMove();
     } /* End of 'Resize' function */
@@ -414,10 +474,10 @@ namespace ui
 #ifdef ENABLE_PATH_LOG
       Log(std::format("Entry {} Reform.", Id));
 #endif // ENABLE_PATH_LOG
-      LocalPos = NewLocalPos;
-      Size = NewSize;
+      SetPos(NewLocalPos);
+      SetSize(NewSize);
 
-      UpdateGlobalPos();
+      UpdateShape();
       UpdateChildrenLayout();
       OnMove();
       OnResize();
@@ -487,7 +547,7 @@ namespace ui
       if (Parent != nullptr)
         SetCanvas(Parent->Canvas);
 
-      UpdateGlobalPos();
+      UpdateShape();
     } /* End of 'OnAddChild' function */
 
     /* Set canvas function.
@@ -523,6 +583,8 @@ namespace ui
       Children.push_back(NewChild);
       NewChild->OnAddChild(this);
       ChildrenFlexSum += NewChild->LayoutProps.Flex;
+      if (NewChild->LayoutProps.Flex == 0)
+        ChildrenFlex0Size += NewChild->LayoutProps.MinSize;
     } /* End of 'AddChild' function */
 
     /* Add children function.
@@ -567,6 +629,8 @@ namespace ui
         return;
     
       ChildrenFlexSum -= (*FoundChild)->LayoutProps.Flex;
+      if ((*FoundChild)->LayoutProps.Flex == 0)
+        ChildrenFlex0Size -= (*FoundChild)->LayoutProps.MinSize;
       Children.erase(FoundChild);
     } /* End of 'DeleteChild' function */
 
