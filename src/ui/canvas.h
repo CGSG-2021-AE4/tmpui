@@ -1,10 +1,12 @@
 #include <cassert>
+#include <stack>
+
 #include "ui_def.h"
 
 #ifndef __canvas_h_
 #define __canvas_h_
 
-#include "entry.h"
+#include "entity.h"
 #include "frame_render.h"
 
 namespace ui
@@ -16,6 +18,9 @@ namespace ui
 
     render_2d &Render2d;
 
+  protected:
+    friend class entity;
+
     // Cavas values
     ivec2 Pos;      // Position
     isize2 Size;    // Size
@@ -23,22 +28,26 @@ namespace ui
     mask Mask;      // Mask for canvas
 
     // Entries' values
-    entry
-      *Root        {nullptr}, // Root entry - root is an entry with canvas size
-      *FocusEntry  {nullptr}, // Current focused entry
-      *HoverEntry  {nullptr}; // Current hovered entry
+    entity
+      *Root        {nullptr}, // Root entity - root is an entity with canvas size
+      *FocusEntity  {nullptr}, // Current focused entity
+      *HoverEntity  {nullptr}; // Current hovered entity
+
+    std::stack<entity *> DrawStack;
+
   public:
 
-    canvas( render_2d &NewRender2d, const ivec2 &NewPos, const isize2 &NewSize, const ::ui::layout_props &RootLayoutProps, const std::vector<entry *> &Entries ) :
+    canvas( render_2d &NewRender2d, const ivec2 &NewPos, const isize2 &NewSize, const ::ui::layout_props &RootLayoutProps, const std::vector<entity *> &Entries ) :
       Render2d(NewRender2d),
       Pos(NewPos),
       Size(NewSize),
       Mask(Pos, Size),
-      Root(new entry(entry_props { .Id = "Canvas root", .Pos = {0, 0}, .Size = Size, .LayoutProps = RootLayoutProps }, Entries, nullptr)) // Provides root isn't nullptr
+      Root(new entity(entity_props { .Id = "Canvas root", .Pos = {0, 0}, .Size = Size, .LayoutProps = RootLayoutProps }, Entries, nullptr)) // Provides root isn't nullptr
     {
       // Root init
       Root->SetCanvas(this);
       Root->OnAddChild(nullptr);
+      Redraw();
     } /* End of 'canvas' function */
 
     /* Destructor function */
@@ -47,7 +56,7 @@ namespace ui
 
     } /* End of '~canvas' function */
 
-    entry * GetRoot( VOID )
+    entity * GetRoot( VOID )
     {
       return Root;
     } /* End of 'GetRoot' function */
@@ -58,7 +67,7 @@ namespace ui
       Mask = {Pos, Size};
 
       Root->Resize(Size);
-      Root->Draw();
+      Redraw();
     } /* End of 'Resize' function */
 
     VOID Move( const ivec2 &NewPos )
@@ -67,39 +76,39 @@ namespace ui
       Mask = {Pos, Size};
 
       Root->Move(Pos);
-      Root->Draw();
+      Redraw();
     } /* End of 'Move' function */
 
     /* Input events */
 
-    entry * FindHoverEntry( const ivec2 &GlobalMousePos )
+    entity * FindHoverEntity( const ivec2 &GlobalMousePos )
     {
       if (!Root->IsOver(GlobalMousePos))
         return nullptr;
 
-      entry *CurEntry = Root;
+      entity *CurEntity = Root;
 
-      if (HoverEntry != nullptr)
+      if (HoverEntity != nullptr)
       {
-        CurEntry = HoverEntry;
+        CurEntity = HoverEntity;
 
         // Go up
-        while (CurEntry != nullptr && !CurEntry->IsOver(GlobalMousePos))
-          CurEntry = CurEntry->Parent;
+        while (CurEntity != nullptr && !CurEntity->IsOver(GlobalMousePos))
+          CurEntity = CurEntity->Parent;
       }
 
-      if (CurEntry != nullptr)
+      if (CurEntity != nullptr)
       {
         // Go down
         while (1)
         {
           BOOL IsFound = false;
 
-          for (entry *Child : CurEntry->Children)
+          for (entity *Child : CurEntity->Children)
             if (Child->IsOver(GlobalMousePos))
             {
               assert(Child != nullptr);
-              CurEntry = Child;
+              CurEntity = Child;
               IsFound = true;
               break;
             }
@@ -109,59 +118,79 @@ namespace ui
         }
       }
 
-      return CurEntry;
-    } /* End of 'FindHoverEntry' function */
+      return CurEntity;
+    } /* End of 'FindHoverEntity' function */
 
     VOID OnMouseMove( const ivec3 &Delta, const ivec2 &GlobalMousePos )
     {
-      entry *NewHoverEntry = FindHoverEntry(GlobalMousePos);
+      entity *NewHoverEntity = FindHoverEntity(GlobalMousePos);
 
       // On mouse move event
-      if (HoverEntry != nullptr)
-        HoverEntry->OnMouseMoveEvent(Delta, GlobalMousePos - HoverEntry->GlobalPos);
-      if (NewHoverEntry != nullptr)
-        NewHoverEntry->OnMouseMoveEvent(Delta, GlobalMousePos - NewHoverEntry->GlobalPos);
+      if (HoverEntity != nullptr)
+        PushToDraw(HoverEntity->OnMouseMoveEvent(Delta, GlobalMousePos - HoverEntity->GlobalPos));
+      if (NewHoverEntity != nullptr)
+        PushToDraw(NewHoverEntity->OnMouseMoveEvent(Delta, GlobalMousePos - NewHoverEntity->GlobalPos));
 
       // On hover/unhover event
-      if (NewHoverEntry != HoverEntry)
+      if (NewHoverEntity != HoverEntity)
       {
-        if (HoverEntry != nullptr)
-          HoverEntry->OnUnhoverEvent(GlobalMousePos - HoverEntry->GlobalPos);
-        if (NewHoverEntry != nullptr)
-          NewHoverEntry->OnHoverEvent(GlobalMousePos - NewHoverEntry->GlobalPos);
-        HoverEntry = NewHoverEntry;
+        if (HoverEntity != nullptr)
+          PushToDraw(HoverEntity->OnUnhoverEvent(GlobalMousePos - HoverEntity->GlobalPos));
+        if (NewHoverEntity != nullptr)
+          PushToDraw(NewHoverEntity->OnHoverEvent(GlobalMousePos - NewHoverEntity->GlobalPos));
+        HoverEntity = NewHoverEntity;
       }
 
       // On drag event
-      if (FocusEntry != nullptr)
-        FocusEntry->OnDragEvent(Delta, GlobalMousePos - FocusEntry->GlobalPos);
+      if (FocusEntity != nullptr)
+        PushToDraw(FocusEntity->OnDragEvent(Delta, GlobalMousePos - FocusEntity->GlobalPos));
     
     } /* End of 'OnMouseMove' function */
 
     VOID OnMouseDown( const ivec2 &MousePos )
     {
-      if (HoverEntry != nullptr)
-        HoverEntry->OnMouseDownEvent(MousePos - HoverEntry->GlobalPos);
+      if (HoverEntity != nullptr)
+        PushToDraw(HoverEntity->OnMouseDownEvent(MousePos - HoverEntity->GlobalPos));
 
-      FocusEntry = HoverEntry;
+      FocusEntity = HoverEntity;
     } /* End of 'OnMouseDown' function */
   
     VOID OnMouseUp( const ivec2 &MousePos )
     {
-      if (FocusEntry != nullptr)
+      if (FocusEntity != nullptr)
       {
-        FocusEntry->OnMouseUpEvent(MousePos - FocusEntry->GlobalPos);
-        if (FocusEntry == HoverEntry)
-          FocusEntry->OnClickEvent(MousePos - FocusEntry->GlobalPos);
+        PushToDraw(FocusEntity->OnMouseUpEvent(MousePos - FocusEntity->GlobalPos));
+        if (FocusEntity == HoverEntity)
+          PushToDraw(FocusEntity->OnClickEvent(MousePos - FocusEntity->GlobalPos));
       }
 
-      FocusEntry = nullptr;
+      FocusEntity = nullptr;
     } /* End of 'OnMouseUp' function */
 
+    /* Draw stack functions */
+
+    /* Push to draw stack function */
+    VOID PushToDraw( entity *e )
+    {
+      if (e != nullptr) // Then here will be more checks
+        DrawStack.push(e);
+    } /* End of 'PushToDraw' function */
+
+    /* Draw draw stack function */
     VOID Draw( VOID )
     {
-      Root->Draw();
+      while (!DrawStack.empty())
+      {
+        DrawStack.top()->Draw();
+        DrawStack.pop();
+      }
     } /* End of 'Draw' function */
+
+    /* Redraw whole root function */
+    VOID Redraw( VOID )
+    {
+      PushToDraw(Root);
+    } /* End of 'Redraw' function */
 
   }; /* End of 'canvas' class */
 } /* end of 'ui' namespace */

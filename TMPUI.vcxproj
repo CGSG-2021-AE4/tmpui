@@ -148,7 +148,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="src\main.cpp" />
-    <ClCompile Include="src\ui\entry.cpp" />
+    <ClCompile Include="src\ui\entity.cpp" />
     <ClCompile Include="src\win\win.cpp" />
     <ClCompile Include="src\win\win_msg.cpp" />
   </ItemGroup>
@@ -167,9 +167,8 @@
     <ClInclude Include="src\mth\mth_vec4.h" />
     <ClInclude Include="src\render.h" />
     <ClInclude Include="src\ui\canvas.h" />
-    <ClInclude Include="src\ui\controls.h" />
     <ClInclude Include="src\ui\controls\div.h" />
-    <ClInclude Include="src\ui\entry.h" />
+    <ClInclude Include="src\ui\entity.h" />
     <ClInclude Include="src\ui\frame_render.h" />
     <ClInclude Include="src\ui\ui_def.h" />
     <ClInclude Include="src\win\win.h" />

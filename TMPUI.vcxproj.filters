@@ -42,7 +42,7 @@
     <ClCompile Include="src\main.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\ui\entry.cpp">
+    <ClCompile Include="src\ui\entity.cpp">
       <Filter>Source Files\UI</Filter>
     </ClCompile>
   </ItemGroup>
@@ -92,10 +92,7 @@
     <ClInclude Include="src\ui\canvas.h">
       <Filter>Source Files\UI</Filter>
     </ClInclude>
-    <ClInclude Include="src\ui\controls.h">
-      <Filter>Source Files\UI</Filter>
-    </ClInclude>
-    <ClInclude Include="src\ui\entry.h">
+    <ClInclude Include="src\ui\entity.h">
       <Filter>Source Files\UI</Filter>
     </ClInclude>
     <ClInclude Include="src\ui\frame_render.h">

@@ -30,7 +30,6 @@
 
 #include "./ui/frame_render.h"
 #include "./ui/canvas.h"
-#include "./ui/controls.h"
 #include "./ui/controls/div.h"
 
 #include <iostream>
@@ -40,7 +39,7 @@ namespace cs = ::ui::controls;
 /*
 * 
 * new cs::div({ .Id = "Left bar", .LayoutProps = { .Flex = 0, .MinSize = {30, 0} }, .BoxStyle = { .SpaceColor = ::ui::vec3::Rnd0() } }, {}),
-    new ::ui::entry( ::ui::entry_props { .Id = "Div layout", .LayoutProps = { .Type = ::ui::layout_type::eFlexRow, .Flex = 1 } }, {
+    new ::ui::entity( ::ui::entity_props { .Id = "Div layout", .LayoutProps = { .Type = ::ui::layout_type::eFlexRow, .Flex = 1 } }, {
       new cs::div({ .Id = "Div layout 1", .LayoutProps = { .Flex = 1 }, .BoxStyle = { .SpaceColor = ::ui::vec3::Rnd0() } }, {}),
       new cs::div({ .Id = "Div layout 2", .LayoutProps = { .Type = ::ui::layout_type::eFlexColumn, .Flex = 2 }, .BoxStyle = { .SpaceColor = ::ui::vec3::Rnd0() } }, {
         new cs::div({ .Id = "Div layout 2.1", .LayoutProps = { .Type = ::ui::layout_type::eFlexRow, .Flex = 1 }, .BoxStyle = { .SpaceColor = ::ui::vec3::Rnd0() } }, {
@@ -70,7 +69,7 @@ public:
     Render2d(NewRender2d),
     Canvas(NewRender2d, 0, Size, { .Type = ::ui::layout_type::eFlexRow }, {})
   {
-    std::vector<::ui::entry *> ListDivs;
+    std::vector<::ui::entity *> ListDivs;
 
     for (UINT i = 0; i < 10; i++)
       ListDivs.push_back(new cs::div({
@@ -205,6 +204,8 @@ namespace tmp
         Test.Canvas.OnMouseDown(MousePos);
       if (MouseState == mouse_state::Released)
         Test.Canvas.OnMouseUp(MousePos);
+
+      Test.Canvas.Draw();
 
       /*
        ************* DRAW INTERFACE END *************

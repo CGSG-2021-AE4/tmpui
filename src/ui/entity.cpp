@@ -1,8 +1,8 @@
-#include "entry.h"
+#include "entity.h"
 #include "canvas.h"
 
-/* Update entry global pos function. */
-VOID ::ui::entry::UpdateGlobalPos( VOID )
+/* Update entity global pos function. */
+VOID ::ui::entity::UpdateGlobalPos( VOID )
 {
   // Don't know is it right
   if (Parent != nullptr)

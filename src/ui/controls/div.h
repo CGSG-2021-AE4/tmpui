@@ -1,7 +1,7 @@
 #ifndef __ui_controls_div_h_
 #define __ui_controls_div_h_
 
-#include "../entry.h"
+#include "../entity.h"
 
 namespace ui
 {
@@ -26,15 +26,15 @@ namespace ui
     }; /* End of 'div_props' struct */
 
     /* Div class */
-    class div : public entry
+    class div : public entity
     {
       box_style BoxStyle;
 
     public:
   
       /* Contsructor function */
-      div( const div_props &NewProps, const std::vector<entry *> &NewChildren = {} ) :
-        entry(NewProps, NewChildren),
+      div( const div_props &NewProps, const std::vector<entity *> &NewChildren = {} ) :
+        entity(NewProps, NewChildren),
         BoxStyle(NewProps.BoxStyle)
       {
       } /* End of 'div' function */
@@ -48,7 +48,7 @@ namespace ui
       /* On draw event function */
       VOID OnDraw( VOID ) override
       {
-        const FLT Coef = State > entry_state::eDef ? 0.8 : 1; // Just for debug
+        const FLT Coef = State > entity_state::eDef ? 0.8 : 1; // Just for debug
 
         if (BoxProps.BorderW)
           Canvas->Render2d.PutBar(GlobalPos, Size, ToRGB(BoxStyle.BorderColor), ToRGB(BoxStyle.SpaceColor * Coef), BoxProps.BorderW, SelfDrawMask);
@@ -57,15 +57,15 @@ namespace ui
       } /* End of 'OnDraw' function */
 
       /* On hover event function */
-      VOID OnHover( const ivec2 &LocalMousePos ) override
+      BOOL OnHover( const ivec2 &LocalMousePos ) override
       {
-        Draw();
+        return true;
       } /* End of 'OnHover' function */
       
       /* On unhover event function */
-      VOID OnUnhover( const ivec2 &LocalMousePos ) override
+      BOOL OnUnhover( const ivec2 &LocalMousePos ) override
       {
-        Draw();
+        return true;
       } /* End of 'OnUnhover' function */
 
     }; /* End of 'div' class */
