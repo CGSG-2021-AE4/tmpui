@@ -40,8 +40,9 @@ namespace ui
       } /* End of 'div' function */
       
       /* On click event function */
-      VOID OnClick( const ivec2 &LocalMousePos ) override
+      BOOL OnClick( const ivec2 &LocalMousePos ) override
       {
+        return true;
       } /* End of 'OnClick' function */
 
       /* On draw event function */

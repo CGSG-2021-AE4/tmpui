@@ -112,7 +112,7 @@ namespace ui
       return CurEntry;
     } /* End of 'FindHoverEntry' function */
 
-    VOID OnMouseMove( const ivec2 &Delta, const ivec2 &GlobalMousePos )
+    VOID OnMouseMove( const ivec3 &Delta, const ivec2 &GlobalMousePos )
     {
       entry *NewHoverEntry = FindHoverEntry(GlobalMousePos);
 

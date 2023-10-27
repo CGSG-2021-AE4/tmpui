@@ -30,6 +30,7 @@ namespace ui
     FLT Flex         = 0;                   // Flex coef
     isize2 MinSize   = {0, 0};              // Min size
     isize2 MaxSize   = {-1, -1};            // Max size
+    BOOL IsScrollable = 0;                  // Can the entry be scrolled
   }; /* End of 'layout_props' struct */
 
   /* Box props */
@@ -48,6 +49,7 @@ namespace ui
     ivec2 Pos {0};
     isize2 Size {0};
     layout_props LayoutProps {};
+    box_props BoxProps {};
   }; /* End of 'entry_props' struct */
 
   /* Physical entry state */
@@ -65,18 +67,28 @@ namespace ui
     /* Values */
   protected:
 
+    // Info
+
     std::string Id {""};                   // Entries id
+
+    // Position
 
     ivec2
       LocalPos {0},                        // Position in parent basis
+      GlobalPos {0},                       // Position in canvas basis
       GlobalContentPos {0},                // Position in canvas basis
-      GlobalPos {0};                       // Position in canvas basis
+      ContentOffset {0};                   // Content offset
+
+    // Sizes
 
     isize2
       Size {0},                            // Size
       BorderSize {0},                      // Border size
       ContentSize {0},                     // Content size
+      CompContentSize {0},                 // Computed content size
       MarginSize {0};                      // Margin size
+
+    // Masks
 
     mask
       SelfMask,                            // Self mask
@@ -84,20 +96,26 @@ namespace ui
       SelfDrawMask,                        // Mask that is visible on the screen
       ContentDrawMask;                     // Mask for content that is visible on the screen
     
+    // Neighbours pointers
+
     entry *Parent {nullptr};               // Parent pointer
     canvas *Canvas {nullptr};              // Canvas pointer
     std::vector<entry *> Children;         // Children pointers
 
-    BOOL IsVisible;                        // Is entry visible
+    // Dynamic state
 
     entry_state
       State{ entry_state::eDef };          // State of entry
 
-    // Style props
+    // Style stuff
+
+    BOOL IsVisible;                        // Is entry visible
+
     layout_props LayoutProps {};           // Props of entry's layout
     box_props BoxProps {};                 // Props of entry's box
     FLT ChildrenFlexSum = 0;               // Sum of children's flex values (is used only with FlexRow/FlexColumn flex type)
-    isize2 ChildrenFlex0Size = 0;             // Sum of min sizes of children with flex 0
+    isize2 ChildrenFlex0Size = 0;          // Sum of min sizes of children with flex 0
+    BOOL IsScrollable = 0;                 // Can the entry be scrolled
 
     /* Events */
   public:
@@ -128,8 +146,9 @@ namespace ui
     {
     } /* End of 'OnUnhover' function */
 
-    virtual VOID OnClick( const ivec2 &LocalMousePos )
+    virtual BOOL OnClick( const ivec2 &LocalMousePos )
     {
+      return false;
     } /* End of 'OnClick' function */
 
     virtual VOID OnMouseDown( const ivec2 &LocalMousePos )
@@ -140,12 +159,14 @@ namespace ui
     {
     } /* End of 'OnMouseUp' function */
 
-    virtual VOID OnMouseMove( const ivec2 &Delta, const ivec2 &LocalMousePos )
+    virtual BOOL OnMouseMove( const ivec3 &Delta, const ivec2 &LocalMousePos )
     {
+      return false;
     } /* End of 'OnMouseMove' function */
 
-    virtual VOID OnDrag( const ivec2 &Delta, const ivec2 &LocalMousePos )
+    virtual BOOL OnDrag( const ivec3 &Delta, const ivec2 &LocalMousePos )
     {
+      return false;
     } /* End of 'OnDrag' function */
 
     virtual VOID OnChange( VOID )
@@ -186,10 +207,10 @@ namespace ui
       OnUnhover(LocalMousePos);
     } /* End of 'OnUnhoverEvent' function */
 
-    inline VOID OnClickEvent( const ivec2 &LocalMousePos )
+    inline BOOL OnClickEvent( const ivec2 &LocalMousePos )
     {
       Log(std::format("Entry {} OnClick event.", Id));
-      OnClick(LocalMousePos);
+      return OnClick(LocalMousePos) ? true : Parent != nullptr ? Parent->OnClickEvent(LocalMousePos + LocalPos) : false;
     } /* End of 'OnClickEvent' function */
 
     inline VOID OnMouseDownEvent( const ivec2 &LocalMousePos )
@@ -206,16 +227,33 @@ namespace ui
       OnMouseUp(LocalMousePos);
     } /* End of 'OnMouseUpEvent' function */
 
-    inline VOID OnMouseMoveEvent( const ivec2 &Delta, const ivec2 &LocalMousePos )
+    inline BOOL OnMouseMoveEvent( const ivec3 &Delta, const ivec2 &LocalMousePos )
     {
       //Log(std::format("${} OnMouseMove event.", Id));
-      OnMouseMove(Delta, LocalMousePos);
+      if (LayoutProps.IsScrollable && Delta.Z != 0) // May be later I'l add a check with the content mask
+      {
+        // Scroll response
+        ivec2 DeltaMove = {0, Delta.Z}; // Some temp shit
+
+        // Clamping
+        ContentOffset = {std::min(std::max(ContentOffset.X + DeltaMove.X + CompContentSize.W, ContentSize.W) - CompContentSize.W, 0),
+                         std::min(std::max(ContentOffset.Y + DeltaMove.Y + CompContentSize.H, ContentSize.H) - CompContentSize.H, 0)};
+        for (auto *c : Children)
+        {
+          c->UpdateGlobalPosRec();
+          c->UpdateMasksRec();
+        }
+        Draw(); // DOTO I think this is shit and  I will remove it later
+        return true;
+      }
+
+      return OnMouseMove(Delta, LocalMousePos) ? true : Parent != nullptr ? Parent->OnMouseMoveEvent(Delta, LocalMousePos + LocalPos) : false;
     } /* End of 'OnMouseMoveEvent' function */
 
-    inline VOID OnDragEvent( const ivec2 &Delta, const ivec2 &LocalMousePos )
+    inline BOOL OnDragEvent( const ivec3 &Delta, const ivec2 &LocalMousePos )
     {
       Log(std::format("Entry {} OnDrag event.", Id));
-      OnDrag(Delta, LocalMousePos);
+      return OnDrag(Delta, LocalMousePos) ? true : Parent != nullptr ? Parent->OnDragEvent(Delta, LocalMousePos + LocalPos) : false;
     } /* End of 'OnDragEvent' function */
 
     inline VOID OnChangeEvent( VOID )
@@ -277,11 +315,10 @@ namespace ui
           LayoutProps = Props.LayoutProps;
         if constexpr (requires { Props.BoxProps; })
           BoxProps = Props.BoxProps;
-        
+
         SetParent(NewParent);
-        UpdateShape();
         AddChildren(NewChildren);
-        UpdateChildrenLayout();
+        UpdateShape();
       } /* End of 'entry' function */
 
     /* Entry desctrictor function */
@@ -311,16 +348,21 @@ namespace ui
       if (LayoutProps.Type == layout_type::eFlexRow)
       {
         INT ContentFlexSizeW = ContentSize.W - ChildrenFlex0Size.W;
+
+        CompContentSize = {};
         if (ChildrenFlexSum == 0)
         {
           INT Offset = 0;
           isize2 NewSize;
+
 
           for (entry *c : Children)
           {
             NewSize = Clamp({c->LayoutProps.MinSize.W, ContentSize.H}, c->LayoutProps.MinSize, c->LayoutProps.MaxSize);
             c->Reform({Offset, 0}, NewSize);
             Offset += NewSize.W;
+            CompContentSize.W += NewSize.W;
+            CompContentSize.H = std::max(CompContentSize.H, NewSize.H);
           }
         }
         else
@@ -333,11 +375,15 @@ namespace ui
             NewSize = Clamp({(INT)(c->LayoutProps.Flex / ChildrenFlexSum * ContentFlexSizeW), ContentSize.H}, c->LayoutProps.MinSize, c->LayoutProps.MaxSize);
             c->Reform({Offset, 0}, NewSize);
             Offset += NewSize.W;
+            CompContentSize.W += NewSize.W;
+            CompContentSize.H = std::max(CompContentSize.H, NewSize.H);
           }
         }
       }
       else if (LayoutProps.Type == layout_type::eFlexColumn)
       {
+        CompContentSize = {};
+
         INT ContentFlexSizeH = ContentSize.H - ChildrenFlex0Size.H;
         if (ChildrenFlexSum == 0)
         {
@@ -349,6 +395,8 @@ namespace ui
             NewSize = Clamp({ContentSize.W, c->LayoutProps.MinSize.H}, c->LayoutProps.MinSize, c->LayoutProps.MaxSize);
             c->Reform({0, Offset}, NewSize);
             Offset += NewSize.H;
+            CompContentSize.H += NewSize.H;
+            CompContentSize.W = std::max(CompContentSize.W, NewSize.W);
           }
         }
         else
@@ -356,11 +404,14 @@ namespace ui
           INT Offset = 0;
           isize2 NewSize;
 
+
           for (entry *c : Children)
           {
             NewSize = Clamp({ContentSize.W, (INT)(c->LayoutProps.Flex / ChildrenFlexSum * ContentFlexSizeH)}, c->LayoutProps.MinSize, c->LayoutProps.MaxSize);
             c->Reform({0, Offset}, NewSize);
             Offset += NewSize.H;
+            CompContentSize.H += NewSize.H;
+            CompContentSize.W = std::max(CompContentSize.W, NewSize.W);
           }
         }
       }
@@ -374,10 +425,6 @@ namespace ui
      */
     VOID UpdateMasks( VOID )
     {
-#ifdef ENABLE_PATH_LOG
-      Log(std::format("Entry {} update masks.", Id));
-#endif // ENABLE_PATH_LOG
-
       SelfMask = GetSelfMask(GlobalPos, Size);
       ContentMask = GetContentMask(GlobalPos + ivec2(BoxProps.BorderW), BorderSize);
       if (Parent != nullptr)
@@ -392,17 +439,35 @@ namespace ui
       }
     } /* End of 'UpdateDrawMask' function */
 
+    /* Update self and childrens masks function (recursive) */
+    VOID UpdateMasksRec( VOID )
+    {
+      UpdateMasks();
+      for (entry *c : Children)
+        c->UpdateMasksRec();
+    } /* End of 'UpdateMasksRec' function */
+
     /* Update entry global pos function */
     VOID UpdateGlobalPos( VOID );
+
+    /* Update entry global pos recursive function (+ update children) */
+    VOID UpdateGlobalPosRec( VOID )
+    {
+      UpdateGlobalPos();
+      for (entry *c : Children)
+        c->UpdateGlobalPosRec();
+    } /* End of 'UpdateGlobalPos' function */
 
     /* Update shape function */
     VOID UpdateShape( VOID )
     {
+#ifdef ENABLE_PATH_LOG
+      Log(std::format("Entry {} update shape.", Id));
+#endif // ENABLE_PATH_LOG
+
       UpdateGlobalPos();
       UpdateMasks();
-
-      for (entry *Child : Children)
-        Child->UpdateGlobalPos();
+      UpdateChildrenLayout();
     } /* End of 'UpdateShape' function */
 
     /* Set position function */
@@ -437,8 +502,7 @@ namespace ui
       // Update sizes
       SetSize(NewSize);
       
-      UpdateMasks();
-      UpdateChildrenLayout();
+      UpdateShape();
       OnResize();
     } /* End of 'Resize' function */
 
@@ -455,9 +519,8 @@ namespace ui
 #endif // ENABLE_PATH_LOG
       SetPos(NewLocalPos);
 
-
-      UpdateShape();
-      UpdateChildrenLayout();
+      UpdateGlobalPosRec();
+      UpdateMasksRec();
       OnMove();
     } /* End of 'Resize' function */
 
@@ -478,7 +541,6 @@ namespace ui
       SetSize(NewSize);
 
       UpdateShape();
-      UpdateChildrenLayout();
       OnMove();
       OnResize();
     } /* End of 'Reform' function */
@@ -565,13 +627,15 @@ namespace ui
 
     // Later there must be funtions to instert children into specific positions
 
-    /* Add child function.
+  private:
+
+    /* Add child private function.
      * ARGUMENTS:
      *   - adding child:
      *       entry *NewChild;
      * RETURNS: None.
      */
-    VOID AddChild( entry *NewChild )
+    VOID AddChildUnsafe( entry *NewChild )
     {
       if (NewChild == nullptr)
         return;
@@ -585,6 +649,20 @@ namespace ui
       ChildrenFlexSum += NewChild->LayoutProps.Flex;
       if (NewChild->LayoutProps.Flex == 0)
         ChildrenFlex0Size += NewChild->LayoutProps.MinSize;
+    } /* End of 'AddChildUnsafe' function */
+
+  public:
+
+    /* Add child public function.
+     * ARGUMENTS:
+     *   - adding child:
+     *       entry *NewChild;
+     * RETURNS: None.
+     */
+    VOID AddChild( entry *NewChild )
+    {
+      AddChildUnsafe(NewChild);
+      UpdateChildrenLayout();
     } /* End of 'AddChild' function */
 
     /* Add children function.
@@ -597,6 +675,8 @@ namespace ui
     {
       for (entry *Child : NewChildren)
         AddChild(Child);
+
+      UpdateChildrenLayout();
     } /* End of 'AddChildren' function */
 
     /* Find a child function.
@@ -632,6 +712,7 @@ namespace ui
       if ((*FoundChild)->LayoutProps.Flex == 0)
         ChildrenFlex0Size -= (*FoundChild)->LayoutProps.MinSize;
       Children.erase(FoundChild);
+      UpdateChildrenLayout();
     } /* End of 'DeleteChild' function */
 
   }; /* End of 'entry' class */

@@ -140,6 +140,11 @@ namespace tmp
 
     }
 
+    VOID OnMouseWheel( INT X, INT Y, INT Z, UINT Keys ) override
+    {
+      StdScene.OnWheel(Z);
+    }
+
     /* WM_SIZE window message handle function.
      * ARGUMENTS:
      *   - sizing flag (see SIZE_***, like SIZE_MAXIMIZED)

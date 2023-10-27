@@ -6,7 +6,7 @@ VOID ::ui::entry::UpdateGlobalPos( VOID )
 {
   // Don't know is it right
   if (Parent != nullptr)
-    GlobalPos = Parent->GlobalContentPos + LocalPos;
+    GlobalPos = Parent->GlobalContentPos + Parent->ContentOffset + LocalPos;
   else if (Canvas != nullptr)
     GlobalPos = Canvas->Pos + LocalPos;
   else

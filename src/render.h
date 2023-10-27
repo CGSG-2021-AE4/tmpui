@@ -68,7 +68,18 @@ public:
   /* Contructor function */
   test( ::ui::render_2d &NewRender2d, const ::ui::isize2 &Size ) :
     Render2d(NewRender2d),
-    Canvas(NewRender2d, 0, Size, { .Type = ::ui::layout_type::eFlexRow }, {
+    Canvas(NewRender2d, 0, Size, { .Type = ::ui::layout_type::eFlexRow }, {})
+  {
+    std::vector<::ui::entry *> ListDivs;
+
+    for (UINT i = 0; i < 10; i++)
+      ListDivs.push_back(new cs::div({
+        .Id = std::format("Div 1.2.{}", i + 1),
+        .LayoutProps = { .Flex = 0, .MinSize = 100 },
+        .BoxProps = StdDivProps,
+        .BoxStyle = { .SpaceColor = ::ui::vec3::Rnd0(), .BorderColor = ::ui::vec3::Rnd0() } }, {}));
+
+    Canvas.GetRoot()->AddChildren({
       new cs::div({ .Id = "Left bar", .LayoutProps = { .MinSize = {30} }, .BoxProps = { .MarginW = 0, .BorderW = 2, .PaddingW = 2 }, .BoxStyle = StdDivStyle }, {}),
       new cs::div({ .Id = "Div 1", .LayoutProps = { .Type = ::ui::layout_type::eFlexRow, .Flex = 1 }, .BoxProps = { .MarginW = 0, .BorderW = 0, .PaddingW = 2 }, .BoxStyle = StdDivStyle }, {
         new cs::div({ .Id = "Div 1.1", .LayoutProps = { .Type = ::ui::layout_type::eFlexRow, .Flex = 1 }, .BoxProps = StdDivProps, .BoxStyle = StdDivStyle }, {
@@ -78,17 +89,10 @@ public:
           new cs::div({ .Id = "Div 1.1.4", .LayoutProps = { .Flex = 1 }, .BoxProps = StdDivProps, .BoxStyle = { .SpaceColor = ::ui::vec3::Rnd0(), .BorderColor = ::ui::vec3::Rnd0() } }, {}),
           new cs::div({ .Id = "Div 1.1.5", .LayoutProps = { .Flex = 1 }, .BoxProps = StdDivProps, .BoxStyle = { .SpaceColor = ::ui::vec3::Rnd0(), .BorderColor = ::ui::vec3::Rnd0() } }, {}),
           }),
-        new cs::div({ .Id = "Div 1.2", .LayoutProps = { .Type = ::ui::layout_type::eFlexColumn, .Flex = 1 }, .BoxProps = StdDivProps, .BoxStyle = StdDivStyle }, {
-          new cs::div({ .Id = "Div 1.2.1", .LayoutProps = { .Flex = 0, .MinSize = 100 }, .BoxProps = StdDivProps, .BoxStyle = { .SpaceColor = ::ui::vec3::Rnd0(), .BorderColor = ::ui::vec3::Rnd0() } }, {}),
-          new cs::div({ .Id = "Div 1.2.2", .LayoutProps = { .Flex = 0, .MinSize = 100 }, .BoxProps = StdDivProps, .BoxStyle = { .SpaceColor = ::ui::vec3::Rnd0(), .BorderColor = ::ui::vec3::Rnd0() } }, {}),
-          new cs::div({ .Id = "Div 1.2.3", .LayoutProps = { .Flex = 0, .MinSize = 100 }, .BoxProps = StdDivProps, .BoxStyle = { .SpaceColor = ::ui::vec3::Rnd0(), .BorderColor = ::ui::vec3::Rnd0() } }, {}),
-          new cs::div({ .Id = "Div 1.2.4", .LayoutProps = { .Flex = 0, .MinSize = 100 }, .BoxProps = StdDivProps, .BoxStyle = { .SpaceColor = ::ui::vec3::Rnd0(), .BorderColor = ::ui::vec3::Rnd0() } }, {}),
-          new cs::div({ .Id = "Div 1.2.5", .LayoutProps = { .Flex = 0, .MinSize = 100 }, .BoxProps = StdDivProps, .BoxStyle = { .SpaceColor = ::ui::vec3::Rnd0(), .BorderColor = ::ui::vec3::Rnd0() } }, {}),
-          }),
+        new cs::div({ .Id = "Div 1.2", .LayoutProps = { .Type = ::ui::layout_type::eFlexColumn, .Flex = 1, .IsScrollable = true }, .BoxProps = StdDivProps, .BoxStyle = StdDivStyle }, ListDivs),
         }),
       new cs::div({ .Id = "Right bar", .LayoutProps = { .MinSize = {30} }, .BoxProps = { .MarginW = 0, .BorderW = 2, .PaddingW = 2 }, .BoxStyle = StdDivStyle }, {}),
-    })
-  {
+    });
   } /* End of 'test' function */
 
   VOID Init( VOID )
@@ -158,6 +162,12 @@ namespace tmp
       Test.Canvas.Resize({NewW, NewH});
     } /* End of 'Resize' function */
 
+    VOID OnWheel( INT WheelDelta )
+    {
+      ivec2 MousePos = GetMousePos();
+      Test.Canvas.OnMouseMove({0, 0, WheelDelta / 20}, MousePos);
+    }
+
     /* Ray tracing main render function
      * ARGUMENTS: None.
      * RETURNS: None
@@ -190,7 +200,7 @@ namespace tmp
        */
 
       if (DeltaMousePos != ivec2(0, 0))
-        Test.Canvas.OnMouseMove(DeltaMousePos, MousePos);
+        Test.Canvas.OnMouseMove({DeltaMousePos.X, DeltaMousePos.Y, 0}, MousePos);
       if (MouseState == mouse_state::Clicked)
         Test.Canvas.OnMouseDown(MousePos);
       if (MouseState == mouse_state::Released)
