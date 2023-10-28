@@ -338,26 +338,26 @@ namespace ui
         UpdateShape();
       } /* End of 'entity' function */
 
+  protected:
     /* Entity desctrictor function */
-    ~entity( VOID )
+    virtual ~entity( VOID )
     {
-#ifdef ENABLE_PATH_LOG
+//#ifdef ENABLE_PATH_LOG
       Log(std::format("Entity {} Destructor.", Id));
-#endif // ENABLE_PATH_LOG
+//#endif // ENABLE_PATH_LOG
 
       // SOME REAL SHIT
-      if (Parent == nullptr)
-        for (entity *c : Children)
-          delete c;
+      //if (Parent == nullptr)
+      for (entity *c : Children)
+        delete c;
+      Children.clear();
 
       // Rebind children to parent
-      for (entity *c : Children)
-        c->SetParent(Parent);
+      //for (entity *c : Children)
+      //  c->SetParent(Parent);
       // Delete self from parent
-      Parent->DeleteChild(this);
+      //Parent->DeleteChild(this);
     } /* End of '~entity' function */
-
-  private:
 
     /* Update children layout function */
     VOID UpdateChildrenLayout( VOID )

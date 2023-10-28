@@ -160,7 +160,7 @@ namespace ui
     /* Destructor function */
     ~canvas( VOID )
     {
-
+      delete Root;
     } /* End of '~canvas' function */
 
     entity * GetRoot( VOID )

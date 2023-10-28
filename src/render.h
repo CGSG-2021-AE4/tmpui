@@ -70,7 +70,7 @@ public:
   {
     std::vector<::ui::entity *> ListDivs;
 
-    for (UINT i = 0; i < 300; i++)
+    for (UINT i = 0; i < 30; i++)
       ListDivs.push_back(new cs::div({
         .Id = std::format("Div 1.2.{}", i + 1),
         .LayoutProps = { .Type = ::ui::layout_type::eFlexRow, .Flex = 0, .MinSize = 100 },
