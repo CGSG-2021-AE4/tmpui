@@ -63,7 +63,6 @@ public:
   ::ui::render_2d &Render2d;
   ::ui::canvas Canvas;
 
-
   /* Contructor function */
   test( ::ui::render_2d &NewRender2d, const ::ui::isize2 &Size ) :
     Render2d(NewRender2d),
@@ -71,12 +70,23 @@ public:
   {
     std::vector<::ui::entity *> ListDivs;
 
-    for (UINT i = 0; i < 10; i++)
+    for (UINT i = 0; i < 300; i++)
       ListDivs.push_back(new cs::div({
         .Id = std::format("Div 1.2.{}", i + 1),
-        .LayoutProps = { .Flex = 0, .MinSize = 100 },
+        .LayoutProps = { .Type = ::ui::layout_type::eFlexRow, .Flex = 0, .MinSize = 100 },
         .BoxProps = StdDivProps,
-        .BoxStyle = { .SpaceColor = ::ui::vec3::Rnd0(), .BorderColor = ::ui::vec3::Rnd0() } }, {}));
+        .BoxStyle = { .SpaceColor = ::ui::vec3::Rnd0(), .BorderColor = ::ui::vec3::Rnd0() } }, {
+          new cs::div({
+            .Id = std::format("Div 1.2.{}.1", i + 1),
+            .LayoutProps = { .Flex = 0, .MinSize = 30 },
+            .BoxProps = StdDivProps,
+            .BoxStyle = { .SpaceColor = ::ui::vec3::Rnd0(), .BorderColor = ::ui::vec3::Rnd0() } }),
+          new cs::div({
+            .Id = std::format("Div 1.2.{}.2", i + 1),
+            .LayoutProps = { .Flex = 0, .MinSize = 30 },
+            .BoxProps = StdDivProps,
+            .BoxStyle = { .SpaceColor = ::ui::vec3::Rnd0(), .BorderColor = ::ui::vec3::Rnd0() } }),
+        }));
 
     Canvas.GetRoot()->AddChildren({
       new cs::div({ .Id = "Left bar", .LayoutProps = { .MinSize = {30} }, .BoxProps = { .MarginW = 0, .BorderW = 2, .PaddingW = 2 }, .BoxStyle = StdDivStyle }, {}),
@@ -158,14 +168,20 @@ namespace tmp
     VOID Resize( INT NewW, INT NewH )
     {
       Render2d.Resize({NewW, NewH});
+      auto Start = std::chrono::high_resolution_clock::now();
       Test.Canvas.Resize({NewW, NewH});
+      auto End = std::chrono::high_resolution_clock::now();
+      std::cout << std::format("Resize time {} microseconds.\n", std::chrono::duration_cast<std::chrono::microseconds>(End - Start));
     } /* End of 'Resize' function */
 
     VOID OnWheel( INT WheelDelta )
     {
       ivec2 MousePos = GetMousePos();
-      Test.Canvas.OnMouseMove({0, 0, WheelDelta / 20}, MousePos);
-    }
+      // auto Start = std::chrono::high_resolution_clock::now();
+      Test.Canvas.OnMouseMove({0, 0, WheelDelta / 5}, MousePos);
+      // auto End = std::chrono::high_resolution_clock::now();
+      // std::cout << std::format("On mouse wheel time {} microseconds.\n", std::chrono::duration_cast<std::chrono::microseconds>(End - Start));
+    } /* End of 'OnWheel' function */
 
     /* Ray tracing main render function
      * ARGUMENTS: None.
@@ -187,16 +203,13 @@ namespace tmp
       else if (OldMouseState > mouse_state::Released)
         MouseState = mouse_state::Released;
 
-      static INT OldFrameTime;
-      static DBL FPS = 0;
-
-      OldFrameTime = std::clock();
-
       ivec2 MousePos = GetMousePos();
       ivec2 DeltaMousePos = MousePos - OldMousePos;
       /*
        ************* DRAW INTERFACE BEGINNING *************
        */
+
+      // auto T1 = std::chrono::high_resolution_clock::now();
 
       if (DeltaMousePos != ivec2(0, 0))
         Test.Canvas.OnMouseMove({DeltaMousePos.X, DeltaMousePos.Y, 0}, MousePos);
@@ -205,7 +218,17 @@ namespace tmp
       if (MouseState == mouse_state::Released)
         Test.Canvas.OnMouseUp(MousePos);
 
+      // auto T2 = std::chrono::high_resolution_clock::now();
+
+      //std::cout << std::format("Response time {} microseconds.\n", std::chrono::duration_cast<std::chrono::microseconds>(T2 - T1));
+
+      // T1 = std::chrono::high_resolution_clock::now();
+
       Test.Canvas.Draw();
+      
+      // T2 = std::chrono::high_resolution_clock::now();
+
+      //std::cout << std::format("Draw time {} microseconds.\n", std::chrono::duration_cast<std::chrono::microseconds>(T2 - T1));
 
       /*
        ************* DRAW INTERFACE END *************
@@ -213,18 +236,6 @@ namespace tmp
 
       OldMousePos = MousePos;
       OldMouseState = MouseState;
-
-      INT NewFrameDelta = std::clock();
-
-      FPS = CLOCKS_PER_SEC / (DBL)(NewFrameDelta - OldFrameTime);
-
-      /*
-      for (INT y = 0; y < Fr.H; y++)
-        for (INT x = 0; x < Fr.W; x++)
-        {
-          Fr.PutPixel(x, y, RGB(x % 255, y % 255, (x * y) % 255));
-        }
-      */
 
       if (Render2d.FrameSize.W != Fr.W || Render2d.FrameSize.H != Fr.H)
       {

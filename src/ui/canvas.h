@@ -1,5 +1,8 @@
 #include <cassert>
 #include <stack>
+#include <chrono>
+#include <map>
+#include <optional>
 
 #include "ui_def.h"
 
@@ -14,6 +17,108 @@ namespace ui
   /* UI canvas class */
   class canvas
   {
+    /* Draw tree node class */
+    class node
+    {
+      entity *E {nullptr};
+      std::map<entity *, node> Children;
+
+    public:
+
+      /* Constructor function */
+      node( entity *NewE ) :
+        E(NewE)
+      {
+      } /* End of 'node' function */
+
+      /* Def constructor function */
+      node( VOID ) :
+        E(nullptr)
+      {
+      } /* End of 'node' function */
+
+      /* Draw recursive function */
+      template<BOOL DrawE = true>
+        VOID DrawRec( VOID )
+        {
+          if (Children.empty())
+          {
+            if constexpr (DrawE)
+            {
+              E->Draw();
+            }
+            return;
+          }
+
+          for (auto &n : Children)
+            n.second.DrawRec();
+          Children.clear();
+        } /* End of 'DrawRec' function */
+
+      /* Add to tree recuresive function */
+      VOID AddRec( std::stack<entity *> &PathStack, BOOL IsNew )
+      {
+        if (!PathStack.empty())
+        {
+          if (!IsNew && Children.empty())
+            return;
+
+          entity *E = PathStack.top();
+          if (Children.find(E) == Children.end())
+          {
+            Children.emplace(E, node(E));
+            PathStack.pop();
+            Children[E].AddRec(PathStack, 1); // Like new node
+          }
+          else
+          {
+            PathStack.pop();
+            Children[E].AddRec(PathStack, 0); // Like not new node
+          }
+        }
+        else
+          Children.clear();
+      } /* End of 'AddRec' function */
+
+    }; /* End of 'node' class */
+      
+    /* Draw manager class */
+    class draw_manager
+    {
+    private:
+
+      render_2d &Render2d;
+      node RootNode;
+
+    public:
+
+      /* Construct function */
+      draw_manager( render_2d &NewR ) :
+        Render2d(NewR)
+      {
+      } /* End of 'draw_manager' function */
+
+      /* Push to entity to draw function */
+      VOID PushToDraw( entity *Entity )
+      {
+        // Making Path
+        std::stack<entity *> Path;
+        for (entity *e = Entity; e != nullptr; e = e->Parent)
+          Path.push(e);
+
+        RootNode.AddRec(Path, 1);
+      } /* End of 'PushToDraw' function */
+
+      /* Draw draw tree function */
+      VOID Draw( VOID )
+      {
+        // Log("-- Draw manager start --");
+        RootNode.DrawRec<false>();
+        // Log("-- Draw manager end --");
+      } /* End of 'Draw' function */
+
+    }; /* End of 'draw_manager' class */
+  
   public:
 
     render_2d &Render2d;
@@ -34,6 +139,7 @@ namespace ui
       *HoverEntity  {nullptr}; // Current hovered entity
 
     std::stack<entity *> DrawStack;
+    draw_manager DrawManager;
 
   public:
 
@@ -42,7 +148,8 @@ namespace ui
       Pos(NewPos),
       Size(NewSize),
       Mask(Pos, Size),
-      Root(new entity(entity_props { .Id = "Canvas root", .Pos = {0, 0}, .Size = Size, .LayoutProps = RootLayoutProps }, Entries, nullptr)) // Provides root isn't nullptr
+      Root(new entity(entity_props { .Id = "Canvas root", .Pos = {0, 0}, .Size = Size, .LayoutProps = RootLayoutProps }, Entries, nullptr)), // Provides root isn't nullptr
+      DrawManager(Render2d)
     {
       // Root init
       Root->SetCanvas(this);
@@ -172,18 +279,14 @@ namespace ui
     /* Push to draw stack function */
     VOID PushToDraw( entity *e )
     {
-      if (e != nullptr) // Then here will be more checks
-        DrawStack.push(e);
+      if (e != nullptr)
+        DrawManager.PushToDraw(e);
     } /* End of 'PushToDraw' function */
 
     /* Draw draw stack function */
     VOID Draw( VOID )
     {
-      while (!DrawStack.empty())
-      {
-        DrawStack.top()->Draw();
-        DrawStack.pop();
-      }
+      DrawManager.Draw();
     } /* End of 'Draw' function */
 
     /* Redraw whole root function */
