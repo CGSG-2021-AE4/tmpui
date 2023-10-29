@@ -7,35 +7,39 @@ namespace ui
 {
   namespace controls
   {
-    /* Box style values struct */
-    struct box_style
+    /* Div style structure */
+    struct div_style
     {
       vec3
         SpaceColor = {0},  // Color of div space
         BorderColor = {1}; // Color of div border
-    }; /* End of 'box_style' struct */
+    }; /* End of 'div_style' struct */
 
+    /* Div style structure */
     struct div_props
     {
+      // Entity part
       std::string Id {"Div"};
       ivec2 Pos {0};
       isize2 Size {0};
       layout_props LayoutProps {}; // Layout props
       box_props BoxProps {};
-      box_style BoxStyle {};       // Div box style
+
+      // Div part
+      div_style Style {};       // Div box style
     }; /* End of 'div_props' struct */
 
     /* Div class */
     class div : public entity
     {
-      box_style BoxStyle;
+      div_style Style;
 
     public:
   
       /* Contsructor function */
       div( const div_props &NewProps, const std::vector<entity *> &NewChildren = {} ) :
         entity(NewProps, NewChildren),
-        BoxStyle(NewProps.BoxStyle)
+        Style(NewProps.Style)
       {
       } /* End of 'div' function */
       
@@ -51,9 +55,9 @@ namespace ui
         const FLT Coef = State > entity_state::eDef ? 0.8 : 1; // Just for debug
 
         if (BoxProps.BorderW)
-          Canvas->Render2d.PutBar(GlobalPos, Size, ToRGB(BoxStyle.BorderColor), ToRGB(BoxStyle.SpaceColor * Coef), BoxProps.BorderW, SelfDrawMask);
+          Canvas->Render2d.PutBar(GlobalPos, Size, ToRGB(Style.BorderColor), ToRGB(Style.SpaceColor * Coef), BoxProps.BorderW, SelfDrawMask);
         else
-          Canvas->Render2d.FillBar(GlobalPos, Size, ToRGB(BoxStyle.SpaceColor * Coef), SelfDrawMask);
+          Canvas->Render2d.FillBar(GlobalPos, Size, ToRGB(Style.SpaceColor * Coef), SelfDrawMask);
       } /* End of 'OnDraw' function */
 
       /* On hover event function */

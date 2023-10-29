@@ -119,12 +119,11 @@ namespace tmp
   {
   public:
     scene StdScene;
-    mth::cam<DBL> Camera;
     frame Fr;
     bool ResizeFlag = 0;
 
     //rtwin class construct
-    rtwin( HINSTANCE hInst = GetModuleHandle(nullptr) ) : win(hInst), StdScene(hWnd, W, H), Camera()
+    rtwin( HINSTANCE hInst = GetModuleHandle(nullptr) ) : win(hInst), StdScene(hWnd, W, H)
     {
       Fr.Resize(W, H);
 
@@ -168,7 +167,6 @@ namespace tmp
       SelectObject(hMemDC, hBm);
 
       Fr.Resize(W, H);
-      Camera.Resize(W, H);
       StdScene.Render2d.Resize(size(W, H));
       StdScene.Resize(W, H);
       ResizeFlag = 1;
@@ -185,63 +183,11 @@ namespace tmp
     VOID OnPaint( HDC DrawhDC, PAINTSTRUCT *PS ) override
     {
       static unsigned long long FrameCounter = 0;
-      //HPEN hPn = (HPEN)GetStockObject(DC_PEN);
-      //HBRUSH hBr = (HBRUSH)GetStockObject(DC_BRUSH);
-      //
-      //SelectObject(hMemDC, hBr);
-      //SetDCBrushColor(hMemDC, RGB(0, 25, 0));
-      //SelectObject(hMemDC, hPn);
-      //SetDCPenColor(hMemDC, RGB(0, 25, 0));
-      //Rectangle(hMemDC, 0, 0, W, H);
-      //SetDCPenColor(hMemDC, RGB(255, 255, 255));
-      ///* Paint */
-      //
-      //
-      //SetDCPenColor(hMemDC, RGB(0, 255, 0));
-      ////PutPixel(hMemDC, ScaleXC, ScaleYC);
-      //SetPixel(hMemDC, 100, 100, RGB(255, 0, 0));
-  
-  
-  
-      /*
-      DWORD *ImageBits = new DWORD(ImageBm.bmWidth * ImageBm.bmHeight);
-  
-      if (GetBitmapBits(hImageBm, ImageBm.bmWidth * ImageBm.bmHeight, ImageBits))
-      {
-        BITMAPINFOHEADER bmih = {sizeof(BITMAPINFOHEADER ), ImageBm.bmWidth, -ImageBm.bmHeight, ImageBm.bmPlanes, ImageBm.bmBitsPixel};
-        SetDIBits(hMemDC, hBm, 0, ImageBm.bmHeight, ImageBits, (BITMAPINFO *)&bmih, DIB_RGB_COLORS);
-      }
-      */
 
-      if (GetAsyncKeyState(VK_UP) & 0x8000)
-        Camera.Rotate(vec3(-1, 0, 0));
-      if (GetAsyncKeyState(VK_LEFT) & 0x8000)
-        Camera.Rotate(vec3(0, -1, 0));
-      if (GetAsyncKeyState(VK_DOWN) & 0x8000)
-        Camera.Rotate(vec3(1, 0, 0));
-      if (GetAsyncKeyState(VK_RIGHT) & 0x8000)
-        Camera.Rotate(vec3(0, 1, 0));
-
-        //Camera movement
-      if (GetAsyncKeyState('W') & 0x8000)
-        Camera.Move(vec3(0, 0, 0.2));
-      if (GetAsyncKeyState('A') & 0x8000)
-        Camera.Move(vec3(-0.2, 0, 0));
-      if (GetAsyncKeyState('S') & 0x8000)
-        Camera.Move(vec3(0, 0, -0.2));
-      if (GetAsyncKeyState('D') & 0x8000)
-        Camera.Move(vec3(0.2, 0, 0));
-
-      if (GetAsyncKeyState(VK_SPACE) & 0x8000)
-        Camera.Move(vec3(0, 0.2, 0));
-      if (GetAsyncKeyState(VK_SHIFT) & 0x8000)
-        Camera.Move(vec3(0, -0.2, 0));
-
-      
       Fr.Display(hMemDC, hBm);
       
       if (!ResizeFlag)
-        StdScene.Render(Camera, Fr);
+        StdScene.Render(Fr);
       ResizeFlag = 0;
 
       RECT ClientRect;

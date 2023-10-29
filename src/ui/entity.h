@@ -5,6 +5,8 @@
 #ifndef __entity_h_
 #define __entity_h_
 
+#include "props.h"
+
 //#define ENABLE_PATH_LOG
 
 // Some real kal
@@ -14,33 +16,6 @@ namespace ui
 {
   /* Friend classes prototypes */
   class canvas;
-
-  /* Layout type enum struct */
-  enum struct layout_type
-  {
-    eBlock,
-    eFlexRow,
-    eFlexColumn,
-  }; /* End of 'layout_type' enum struct */
-
-  /* Layout props struct */
-  struct layout_props
-  {
-    layout_type Type = layout_type::eBlock; // Type of entity layout
-    FLT Flex         = 0;                   // Flex coef
-    isize2 MinSize   = {0, 0};              // Min size
-    isize2 MaxSize   = {-1, -1};            // Max size
-    BOOL IsScrollable = 0;                  // Can the entity be scrolled
-  }; /* End of 'layout_props' struct */
-
-  /* Box props */
-  struct box_props
-  {
-    INT
-      MarginW = 0,  // Margin width
-      BorderW = 0,  // Border width
-      PaddingW = 0; // Padding width
-  }; /* End of 'box_props' struct */
 
   /* Entity props structure */
   struct entity_props
@@ -212,14 +187,16 @@ namespace ui
     inline entity * OnHoverEvent( const ivec2 &LocalMousePos )
     {
       Log(std::format("Entity {} OnHover event.", Id));
-      State = entity_state::eHovered;
+      if (State == entity_state::eDef)
+        State = entity_state::eHovered;
       return OnHover(LocalMousePos) ? this : nullptr;
     } /* End of 'OnHoverEvent' function */
 
     inline entity * OnUnhoverEvent( const ivec2 &LocalMousePos )
     {
       Log(std::format("Entity {} OnUnhover event.", Id));
-      State = entity_state::eDef;
+      if (State == entity_state::eHovered)
+        State = entity_state::eDef;
       return OnUnhover(LocalMousePos) ? this : nullptr;
     } /* End of 'OnUnhoverEvent' function */
 
@@ -347,16 +324,9 @@ namespace ui
 //#endif // ENABLE_PATH_LOG
 
       // SOME REAL SHIT
-      //if (Parent == nullptr)
       for (entity *c : Children)
         delete c;
       Children.clear();
-
-      // Rebind children to parent
-      //for (entity *c : Children)
-      //  c->SetParent(Parent);
-      // Delete self from parent
-      //Parent->DeleteChild(this);
     } /* End of '~entity' function */
 
     /* Update children layout function */

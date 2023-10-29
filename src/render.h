@@ -31,6 +31,7 @@
 #include "./ui/frame_render.h"
 #include "./ui/canvas.h"
 #include "./ui/controls/div.h"
+#include "./ui/controls/button.h"
 
 #include <iostream>
 
@@ -58,7 +59,7 @@ class test
 public:
   
   ::ui::box_props StdDivProps { .MarginW = 4, .BorderW = 2, .PaddingW = 2 };
-  cs::box_style StdDivStyle { .SpaceColor = {0.35}, .BorderColor = {0.75} };
+  cs::div_style StdDivStyle { .SpaceColor = {0.35}, .BorderColor = {0.75} };
 
   ::ui::render_2d &Render2d;
   ::ui::canvas Canvas;
@@ -75,32 +76,40 @@ public:
         .Id = std::format("Div 1.2.{}", i + 1),
         .LayoutProps = { .Type = ::ui::layout_type::eFlexRow, .Flex = 0, .MinSize = 100 },
         .BoxProps = StdDivProps,
-        .BoxStyle = { .SpaceColor = ::ui::vec3::Rnd0(), .BorderColor = ::ui::vec3::Rnd0() } }, {
-          new cs::div({
-            .Id = std::format("Div 1.2.{}.1", i + 1),
-            .LayoutProps = { .Flex = 0, .MinSize = 30 },
-            .BoxProps = StdDivProps,
-            .BoxStyle = { .SpaceColor = ::ui::vec3::Rnd0(), .BorderColor = ::ui::vec3::Rnd0() } }),
-          new cs::div({
-            .Id = std::format("Div 1.2.{}.2", i + 1),
-            .LayoutProps = { .Flex = 0, .MinSize = 30 },
-            .BoxProps = StdDivProps,
-            .BoxStyle = { .SpaceColor = ::ui::vec3::Rnd0(), .BorderColor = ::ui::vec3::Rnd0() } }),
+        .Style = { .SpaceColor = ::ui::vec3::Rnd0(), .BorderColor = ::ui::vec3::Rnd0() }
+        }, {
+        new cs::div({
+          .Id = std::format("Div 1.2.{}.1", i + 1),
+          .LayoutProps = { .Flex = 0, .MinSize = 30 },
+          .BoxProps = StdDivProps,
+          .Style = { .SpaceColor = ::ui::vec3::Rnd0(), .BorderColor = ::ui::vec3::Rnd0() }
+          }),
+        new cs::div({
+          .Id = std::format("Div 1.2.{}.2", i + 1),
+          .LayoutProps = { .Flex = 1, .MinSize = 30 },
+          .BoxProps = StdDivProps,
+          .Style = { .SpaceColor = ::ui::vec3::Rnd0(), .BorderColor = ::ui::vec3::Rnd0() }
+          }),
+        new cs::button({
+          .Id = std::format("Button 1.2.{}.3", i + 1),
+          .LayoutProps = { .Flex = 0, .MinSize = 30, .MaxSize = 30 },
+          .IsPress = true,
+          }),
         }));
 
     Canvas.GetRoot()->AddChildren({
-      new cs::div({ .Id = "Left bar", .LayoutProps = { .MinSize = {30} }, .BoxProps = { .MarginW = 0, .BorderW = 2, .PaddingW = 2 }, .BoxStyle = StdDivStyle }, {}),
-      new cs::div({ .Id = "Div 1", .LayoutProps = { .Type = ::ui::layout_type::eFlexRow, .Flex = 1 }, .BoxProps = { .MarginW = 0, .BorderW = 0, .PaddingW = 2 }, .BoxStyle = StdDivStyle }, {
-        new cs::div({ .Id = "Div 1.1", .LayoutProps = { .Type = ::ui::layout_type::eFlexRow, .Flex = 1 }, .BoxProps = StdDivProps, .BoxStyle = StdDivStyle }, {
-          new cs::div({ .Id = "Div 1.1.1", .LayoutProps = { .Flex = 1 }, .BoxProps = StdDivProps, .BoxStyle = { .SpaceColor = ::ui::vec3::Rnd0(), .BorderColor = ::ui::vec3::Rnd0() } }, {}),
-          new cs::div({ .Id = "Div 1.1.2", .LayoutProps = { .Flex = 1 }, .BoxProps = StdDivProps, .BoxStyle = { .SpaceColor = ::ui::vec3::Rnd0(), .BorderColor = ::ui::vec3::Rnd0() } }, {}),
-          new cs::div({ .Id = "Div 1.1.3", .LayoutProps = { .Flex = 1 }, .BoxProps = StdDivProps, .BoxStyle = { .SpaceColor = ::ui::vec3::Rnd0(), .BorderColor = ::ui::vec3::Rnd0() } }, {}),
-          new cs::div({ .Id = "Div 1.1.4", .LayoutProps = { .Flex = 1 }, .BoxProps = StdDivProps, .BoxStyle = { .SpaceColor = ::ui::vec3::Rnd0(), .BorderColor = ::ui::vec3::Rnd0() } }, {}),
-          new cs::div({ .Id = "Div 1.1.5", .LayoutProps = { .Flex = 1 }, .BoxProps = StdDivProps, .BoxStyle = { .SpaceColor = ::ui::vec3::Rnd0(), .BorderColor = ::ui::vec3::Rnd0() } }, {}),
+      new cs::div({ .Id = "Left bar", .LayoutProps = { .MinSize = {30} }, .BoxProps = { .MarginW = 0, .BorderW = 2, .PaddingW = 2 }, .Style = StdDivStyle }, {}),
+      new cs::div({ .Id = "Div 1", .LayoutProps = { .Type = ::ui::layout_type::eFlexRow, .Flex = 1 }, .BoxProps = { .MarginW = 0, .BorderW = 0, .PaddingW = 2 }, .Style = StdDivStyle }, {
+        new cs::div({ .Id = "Div 1.1", .LayoutProps = { .Type = ::ui::layout_type::eFlexRow, .Flex = 1 }, .BoxProps = StdDivProps, .Style = StdDivStyle }, {
+          new cs::div({ .Id = "Div 1.1.1", .LayoutProps = { .Flex = 1 }, .BoxProps = StdDivProps, .Style = { .SpaceColor = ::ui::vec3::Rnd0(), .BorderColor = ::ui::vec3::Rnd0() } }, {}),
+          new cs::div({ .Id = "Div 1.1.2", .LayoutProps = { .Flex = 1 }, .BoxProps = StdDivProps, .Style = { .SpaceColor = ::ui::vec3::Rnd0(), .BorderColor = ::ui::vec3::Rnd0() } }, {}),
+          new cs::div({ .Id = "Div 1.1.3", .LayoutProps = { .Flex = 1 }, .BoxProps = StdDivProps, .Style = { .SpaceColor = ::ui::vec3::Rnd0(), .BorderColor = ::ui::vec3::Rnd0() } }, {}),
+          new cs::div({ .Id = "Div 1.1.4", .LayoutProps = { .Flex = 1 }, .BoxProps = StdDivProps, .Style = { .SpaceColor = ::ui::vec3::Rnd0(), .BorderColor = ::ui::vec3::Rnd0() } }, {}),
+          new cs::div({ .Id = "Div 1.1.5", .LayoutProps = { .Flex = 1 }, .BoxProps = StdDivProps, .Style = { .SpaceColor = ::ui::vec3::Rnd0(), .BorderColor = ::ui::vec3::Rnd0() } }, {}),
           }),
-        new cs::div({ .Id = "Div 1.2", .LayoutProps = { .Type = ::ui::layout_type::eFlexColumn, .Flex = 1, .IsScrollable = true }, .BoxProps = StdDivProps, .BoxStyle = StdDivStyle }, ListDivs),
+        new cs::div({ .Id = "Div 1.2", .LayoutProps = { .Type = ::ui::layout_type::eFlexColumn, .Flex = 1, .IsScrollable = true }, .BoxProps = StdDivProps, .Style = StdDivStyle }, ListDivs),
         }),
-      new cs::div({ .Id = "Right bar", .LayoutProps = { .MinSize = {30} }, .BoxProps = { .MarginW = 0, .BorderW = 2, .PaddingW = 2 }, .BoxStyle = StdDivStyle }, {}),
+      new cs::div({ .Id = "Right bar", .LayoutProps = { .MinSize = {30} }, .BoxProps = { .MarginW = 0, .BorderW = 2, .PaddingW = 2 }, .Style = StdDivStyle }, {}),
     });
   } /* End of 'test' function */
 
@@ -184,10 +193,12 @@ namespace tmp
     } /* End of 'OnWheel' function */
 
     /* Ray tracing main render function
-     * ARGUMENTS: None.
+     * ARGUMENTS:
+     *   - frame to draw:
+     *       frame &Fr;
      * RETURNS: None
      */
-    void Render( mth::cam<DBL> &Camera, frame &Fr )
+    void Render( frame &Fr )
     {
       mouse_state MouseState = mouse_state::NotPressed;
       
