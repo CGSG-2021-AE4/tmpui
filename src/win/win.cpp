@@ -108,7 +108,7 @@ LRESULT CALLBACK tmp::win::WinFunc( HWND hWnd, UINT Msg,
       case WM_SIZE:
         Win->W = (INT)(SHORT)LOWORD(lParam);
         Win->H = (INT)(SHORT)HIWORD(lParam);
-        Win->OnSize(wParam, LOWORD(lParam), HIWORD(lParam));
+        Win->OnSize((UINT)wParam, LOWORD(lParam), HIWORD(lParam));
         return 0;
       case WM_ACTIVATE:
         Win->IsActive = LOWORD(wParam) != WA_INACTIVE;
@@ -128,7 +128,7 @@ LRESULT CALLBACK tmp::win::WinFunc( HWND hWnd, UINT Msg,
         Win->OnTimer((UINT)wParam);
         return 0;
       case WM_KEYDOWN:
-        Win->OnKeyDown(wParam);
+        Win->OnKeyDown((UINT)wParam);
         return 0;
       case WM_MOUSEWHEEL:
         Win->OnMouseWheel((INT)(SHORT)LOWORD(lParam),

@@ -11,15 +11,19 @@ namespace ui
     struct button_style
     {
       vec3
-        DefColor =      {0.35}, // Default space color
-        DefBColor =     {0.7}, // Default border color
-        HoverColor =    {0.5}, // Hover space color
-        HoverBColor =   {0.3}, // Hover border color
-        ActiveColor =   {0.8}, // Active space color
-        ActiveBColor =  {0.8}, // Active border color
-        PressedColor =  {0.55}, // Pressed space color
-        PressedBColor = {0.8}; // Pressed border color
-    }; /* End of 'box_style' struct */
+        DefColor =      {0.35},       // Default state space color
+        DefBColor =     {0.6},        // Default state border color
+        PressedColor =  {0.5},        // Pressed state space color
+        PressedBColor = {0.6},        // Pressed state border color
+          
+        DefHoverColor =    {0.35},    // Hover default state space color
+        DefHoverBColor =   {0.8},     // Hover default state border color
+        PressedHoverColor =    {0.5}, // Hover pressed state space color
+        PressedHoverBColor =   {0.8}, // Hover pressed state border color
+        
+        ActiveColor =   {0.8},        // Active state space color
+        ActiveBColor =  {0.8};        // Active state border color
+    }; /* End of 'button_style' struct */
 
     /* Button props struct */
     struct button_props
@@ -73,12 +77,10 @@ namespace ui
       /* On draw event function */
       VOID OnDraw( VOID ) override
       {
-        const FLT Coef = State > entity_state::eDef ? 0.8 : 1; // Just for debug
-
         if (State > entity_state::eDef)
         {
           if (State == entity_state::eHovered)
-            Canvas->Render2d.PutBar(GlobalPos, Size, ToRGB(Style.HoverBColor), ToRGB(Style.HoverColor), BoxProps.BorderW, SelfDrawMask);
+            Canvas->Render2d.PutBar(GlobalPos, Size, ToRGB(Value ? Style.PressedHoverBColor : Style.DefHoverBColor), ToRGB(Value ? Style.PressedHoverColor : Style.DefHoverColor), BoxProps.BorderW, SelfDrawMask);
           else
             Canvas->Render2d.PutBar(GlobalPos, Size, ToRGB(Style.ActiveBColor), ToRGB(Style.ActiveColor), BoxProps.BorderW, SelfDrawMask);
         }

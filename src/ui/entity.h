@@ -156,17 +156,13 @@ namespace ui
       return false;
     } /* End of 'OnChange' function */
 
-    /* May be they are not needed
-    
     virtual VOID OnResize( VOID )
     {
-    } /* End of 'OnResize' function * /
+    } /* End of 'OnResize' function */
 
     virtual VOID OnMove( VOID )
     {
-    } /* End of 'OnResize' function * /
-
-    */
+    } /* End of 'OnResize' function */
 
     /* User mask functions */
 
@@ -186,7 +182,7 @@ namespace ui
 
     inline entity * OnHoverEvent( const ivec2 &LocalMousePos )
     {
-      Log(std::format("Entity {} OnHover event.", Id));
+      //Log(std::format("Entity {} OnHover event.", Id));
       if (State == entity_state::eDef)
         State = entity_state::eHovered;
       return OnHover(LocalMousePos) ? this : nullptr;
@@ -194,7 +190,7 @@ namespace ui
 
     inline entity * OnUnhoverEvent( const ivec2 &LocalMousePos )
     {
-      Log(std::format("Entity {} OnUnhover event.", Id));
+      //Log(std::format("Entity {} OnUnhover event.", Id));
       if (State == entity_state::eHovered)
         State = entity_state::eDef;
       return OnUnhover(LocalMousePos) ? this : nullptr;
@@ -208,14 +204,14 @@ namespace ui
 
     inline entity * OnMouseDownEvent( const ivec2 &LocalMousePos )
     {
-      Log(std::format("Entity {} OnMouseDown event.", Id));
+      //Log(std::format("Entity {} OnMouseDown event.", Id));
       State = entity_state::eActive;
       return OnMouseDown(LocalMousePos) ? this : nullptr;
     } /* End of 'OnMouseDownEvent' function */
 
     inline entity * OnMouseUpEvent( const ivec2 &LocalMousePos )
     {
-      Log(std::format("Entity {} OnMouseUp event.", Id));
+      //Log(std::format("Entity {} OnMouseUp event.", Id));
       State = entity_state::eHovered;
       return OnMouseUp(LocalMousePos) ? this : nullptr;
     } /* End of 'OnMouseUpEvent' function */
@@ -244,30 +240,28 @@ namespace ui
 
     inline entity * OnDragEvent( const ivec3 &Delta, const ivec2 &LocalMousePos )
     {
-      Log(std::format("Entity {} OnDrag event.", Id));
+      //Log(std::format("Entity {} OnDrag event.", Id));
       return OnDrag(Delta, LocalMousePos) ? this : Parent != nullptr ? Parent->OnDragEvent(Delta, LocalMousePos + LocalPos) : nullptr;
     } /* End of 'OnDragEvent' function */
 
     inline entity * OnChangeEvent( VOID )
     {
-      Log(std::format("Entity {} OnChange event.", Id));
+      //Log(std::format("Entity {} OnChange event.", Id));
       return OnChange() ? this : nullptr;
     } /* End of 'OnChangeEvent' function */
 
-    /*
     inline VOID OnResizeEvent( VOID )
     {
-      Log(std::format("Entity {} OnResize event.", Id));
+      //Log(std::format("Entity {} OnResize event.", Id));
       OnResize();
-    } /* End of 'OnResizeEvent' function * /
+    } /* End of 'OnResizeEvent' function */
 
     inline VOID OnMoveEvent( VOID )
     {
-      Log(std::format("Entity {} OnMove event.", Id));
+      //Log(std::format("Entity {} OnMove event.", Id));
       OnMove();
-    } /* End of 'OnResizeEvent' function * /
-    */
-
+    } /* End of 'OnResizeEvent' function */
+    
   protected:
   public: // !!! TMP DEBUG SHIT
 
@@ -301,15 +295,15 @@ namespace ui
 
         if constexpr (requires { Props.Id; })
           Id = Props.Id;
-        if constexpr (requires { Props.Pos; })
-          SetPos(Props.Pos);
-        if constexpr (requires { Props.Size; })
-          SetSize(Props.Size);
         if constexpr (requires { Props.LayoutProps; })
           LayoutProps = Props.LayoutProps;
         if constexpr (requires { Props.BoxProps; })
           BoxProps = Props.BoxProps;
-
+        if constexpr (requires { Props.Pos; })
+          SetPos(Props.Pos);
+        if constexpr (requires { Props.Size; })
+          SetSize(Props.Size);
+        
         SetParent(NewParent);
         AddChildren(NewChildren);
         UpdateShape();
@@ -402,6 +396,13 @@ namespace ui
           }
         }
       }
+      else
+      {
+        for (entity *c : Children)
+        {
+          c->UpdateShape();
+        }
+      }
       // if (LayoutProps.Type == layout_type::eBlock)
       // return;
     } /* End of 'UpdateChildrenLayout' function */
@@ -490,7 +491,7 @@ namespace ui
       SetSize(NewSize);
       
       UpdateShape();
-      //OnResize();
+      OnResize();
     } /* End of 'Resize' function */
 
     /* Move function.
@@ -508,7 +509,7 @@ namespace ui
 
       UpdateGlobalPosRec();
       UpdateMasksRec();
-      //OnMove();
+      OnMove();
     } /* End of 'Resize' function */
 
     /* Combined move and resize function.
@@ -528,8 +529,8 @@ namespace ui
       SetSize(NewSize);
 
       UpdateShape();
-      //OnMove();
-      //OnResize();
+      OnMove();
+      OnResize();
     } /* End of 'Reform' function */
 
     /* Draw entity's children function */
@@ -550,7 +551,10 @@ namespace ui
 
       OnDraw();
       DrawChildren();
-    } /* End of 'draw' function */
+    } /* End of 'Draw' function */
+
+    /* Redraw entity function - push it to canvas draw manager */
+    VOID Redraw( VOID );
 
     /************ Parents/Children operations functions ************/
 

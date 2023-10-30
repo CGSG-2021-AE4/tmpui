@@ -178,6 +178,8 @@ namespace ui
 
     VOID PutBar( const ivec2 &Pos0, const ivec2 &Pos1, DWORD FrameColor, mask Mask )
     {
+      // Bar isn't filled
+      // Border is 1
       PutBar<0, 1>(Pos0, Pos1, FrameColor, 0, 0, Mask);
     } /* End of 'PutBar' function */
 
@@ -188,11 +190,15 @@ namespace ui
 
     VOID PutBar( const ivec2 &Pos0, const isize2 &Size, DWORD FrameColor, DWORD SpaceColor, mask Mask )
     {
+      // Bar is filled
+      // Border is 1
       PutBar<1, 1>(Pos0, ivec2(Pos0.X + Size.W - 1, Pos0.Y + Size.H - 1), FrameColor, SpaceColor, 0, Mask);
     } /* End of 'PutBar' function */
 
     VOID PutBar( const ivec2 &Pos0, const ivec2 &Pos1, DWORD FrameColor, INT BorderW, mask Mask )
     {
+      // Bar isn't filled
+      // Border isn't 1
       PutBar<0, 0>(Pos0, Pos1, FrameColor, 0, BorderW, Mask);
     } /* End of 'PutBar' function */
 
@@ -203,6 +209,8 @@ namespace ui
 
     VOID PutBar( const ivec2 &Pos0, const isize2 &Size, DWORD FrameColor, DWORD SpaceColor, INT BorderW, mask Mask )
     {
+      // Bar is filled
+      // Border isn't 1
       PutBar<1, 0>(Pos0, ivec2(Pos0.X + Size.W - 1, Pos0.Y + Size.H - 1), FrameColor, SpaceColor, BorderW, Mask);
     } /* End of 'PutBar' function */
 

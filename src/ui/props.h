@@ -34,6 +34,27 @@ namespace ui
       PaddingW = 0; // Padding width
   }; /* End of 'box_props' struct */
 
+  /* Different states styles */
+  struct state_style
+  {
+    vec3
+      DefColor = {0},    // Default state color
+      HoverColor = {0},  // Hover state color
+      ActiveColor = {0}; // Active state color
+  }; /* End of 'state_style' struct */
+
+  struct box_style
+  {
+    state_style
+      Space,  // Space style
+      Border; // Border style
+  }; /* End of 'box_style' struct */
+
+  struct entity_styles
+  {
+    box_style BoxStyle;
+  };
+
 } /* end of 'ui' namespace */
 
 #endif // __ui_props_h_

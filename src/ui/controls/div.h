@@ -11,11 +11,11 @@ namespace ui
     struct div_style
     {
       vec3
-        SpaceColor = {0},  // Color of div space
-        BorderColor = {1}; // Color of div border
+        SpaceColor,
+        BorderColor;
     }; /* End of 'div_style' struct */
 
-    /* Div style structure */
+    /* Div props structure */
     struct div_props
     {
       // Entity part
@@ -26,7 +26,7 @@ namespace ui
       box_props BoxProps {};
 
       // Div part
-      div_style Style {};       // Div box style
+      div_style Style {};
     }; /* End of 'div_props' struct */
 
     /* Div class */
@@ -52,12 +52,7 @@ namespace ui
       /* On draw event function */
       VOID OnDraw( VOID ) override
       {
-        const FLT Coef = State > entity_state::eDef ? 0.8 : 1; // Just for debug
-
-        if (BoxProps.BorderW)
-          Canvas->Render2d.PutBar(GlobalPos, Size, ToRGB(Style.BorderColor), ToRGB(Style.SpaceColor * Coef), BoxProps.BorderW, SelfDrawMask);
-        else
-          Canvas->Render2d.FillBar(GlobalPos, Size, ToRGB(Style.SpaceColor * Coef), SelfDrawMask);
+        Canvas->Render2d.PutBar(GlobalPos, Size, ToRGB(Style.BorderColor), ToRGB(Style.SpaceColor), BoxProps.BorderW, SelfDrawMask);
       } /* End of 'OnDraw' function */
 
       /* On hover event function */

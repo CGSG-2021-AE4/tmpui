@@ -32,6 +32,7 @@
 #include "./ui/canvas.h"
 #include "./ui/controls/div.h"
 #include "./ui/controls/button.h"
+#include "./ui/controls/slider.h"
 
 #include <iostream>
 
@@ -60,9 +61,12 @@ public:
   
   ::ui::box_props StdDivProps { .MarginW = 4, .BorderW = 2, .PaddingW = 2 };
   cs::div_style StdDivStyle { .SpaceColor = {0.35}, .BorderColor = {0.75} };
+  //::ui::box_style StdDivStyle { .Space = { .DefColor = 0.35 }, .Border = { .DefColor = 0.75 } };
 
   ::ui::render_2d &Render2d;
   ::ui::canvas Canvas;
+  std::vector<cs::slider *> Sliders;
+
 
   /* Contructor function */
   test( ::ui::render_2d &NewRender2d, const ::ui::isize2 &Size ) :
@@ -72,6 +76,16 @@ public:
     std::vector<::ui::entity *> ListDivs;
 
     for (UINT i = 0; i < 30; i++)
+    {
+      auto *SliderPtr = new cs::slider({
+            .Id = std::format("Slider 1.2.{}.2.1", i + 1),
+            .Pos = {0},
+            .Size = {200, 30},
+            .Style = { .Track = { .Space = { .DefColor = ::ui::vec3::Rnd0() }, .Border = { .DefColor = ::ui::vec3::Rnd0() } },
+                       .Thumb = { .Space = { .DefColor = ::ui::vec3::Rnd0() }, .Border = { .DefColor = ::ui::vec3::Rnd0() } }},
+            });
+      Sliders.push_back(SliderPtr);
+
       ListDivs.push_back(new cs::div({
         .Id = std::format("Div 1.2.{}", i + 1),
         .LayoutProps = { .Type = ::ui::layout_type::eFlexRow, .Flex = 0, .MinSize = 100 },
@@ -89,6 +103,8 @@ public:
           .LayoutProps = { .Flex = 1, .MinSize = 30 },
           .BoxProps = StdDivProps,
           .Style = { .SpaceColor = ::ui::vec3::Rnd0(), .BorderColor = ::ui::vec3::Rnd0() }
+          }, {
+            SliderPtr,
           }),
         new cs::button({
           .Id = std::format("Button 1.2.{}.3", i + 1),
@@ -96,16 +112,13 @@ public:
           .IsPress = true,
           }),
         }));
+    }
 
     Canvas.GetRoot()->AddChildren({
       new cs::div({ .Id = "Left bar", .LayoutProps = { .MinSize = {30} }, .BoxProps = { .MarginW = 0, .BorderW = 2, .PaddingW = 2 }, .Style = StdDivStyle }, {}),
       new cs::div({ .Id = "Div 1", .LayoutProps = { .Type = ::ui::layout_type::eFlexRow, .Flex = 1 }, .BoxProps = { .MarginW = 0, .BorderW = 0, .PaddingW = 2 }, .Style = StdDivStyle }, {
         new cs::div({ .Id = "Div 1.1", .LayoutProps = { .Type = ::ui::layout_type::eFlexRow, .Flex = 1 }, .BoxProps = StdDivProps, .Style = StdDivStyle }, {
           new cs::div({ .Id = "Div 1.1.1", .LayoutProps = { .Flex = 1 }, .BoxProps = StdDivProps, .Style = { .SpaceColor = ::ui::vec3::Rnd0(), .BorderColor = ::ui::vec3::Rnd0() } }, {}),
-          new cs::div({ .Id = "Div 1.1.2", .LayoutProps = { .Flex = 1 }, .BoxProps = StdDivProps, .Style = { .SpaceColor = ::ui::vec3::Rnd0(), .BorderColor = ::ui::vec3::Rnd0() } }, {}),
-          new cs::div({ .Id = "Div 1.1.3", .LayoutProps = { .Flex = 1 }, .BoxProps = StdDivProps, .Style = { .SpaceColor = ::ui::vec3::Rnd0(), .BorderColor = ::ui::vec3::Rnd0() } }, {}),
-          new cs::div({ .Id = "Div 1.1.4", .LayoutProps = { .Flex = 1 }, .BoxProps = StdDivProps, .Style = { .SpaceColor = ::ui::vec3::Rnd0(), .BorderColor = ::ui::vec3::Rnd0() } }, {}),
-          new cs::div({ .Id = "Div 1.1.5", .LayoutProps = { .Flex = 1 }, .BoxProps = StdDivProps, .Style = { .SpaceColor = ::ui::vec3::Rnd0(), .BorderColor = ::ui::vec3::Rnd0() } }, {}),
           }),
         new cs::div({ .Id = "Div 1.2", .LayoutProps = { .Type = ::ui::layout_type::eFlexColumn, .Flex = 1, .IsScrollable = true }, .BoxProps = StdDivProps, .Style = StdDivStyle }, ListDivs),
         }),
@@ -200,6 +213,7 @@ namespace tmp
      */
     void Render( frame &Fr )
     {
+      static ULONGLONG FrameCounter = 0;
       mouse_state MouseState = mouse_state::NotPressed;
       
       if (GetKeyState(VK_LBUTTON) & 0x8000)
@@ -233,6 +247,9 @@ namespace tmp
 
       //std::cout << std::format("Response time {} microseconds.\n", std::chrono::duration_cast<std::chrono::microseconds>(T2 - T1));
 
+      //for (UINT i = 0; i < (UINT)Test.Sliders.size(); i++)
+      //  Test.Sliders[i]->SetValue(abs(sin(sin(i) + FrameCounter * 0.1)));
+
       // T1 = std::chrono::high_resolution_clock::now();
 
       Test.Canvas.Draw();
@@ -240,7 +257,8 @@ namespace tmp
       // T2 = std::chrono::high_resolution_clock::now();
 
       //std::cout << std::format("Draw time {} microseconds.\n", std::chrono::duration_cast<std::chrono::microseconds>(T2 - T1));
-
+      
+      FrameCounter++;
       /*
        ************* DRAW INTERFACE END *************
        */
