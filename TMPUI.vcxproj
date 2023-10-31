@@ -169,6 +169,8 @@
     <ClInclude Include="src\ui\canvas.h" />
     <ClInclude Include="src\ui\controls\button.h" />
     <ClInclude Include="src\ui\controls\div.h" />
+    <ClInclude Include="src\ui\controls\slider.h" />
+    <ClInclude Include="src\ui\controls\text.h" />
     <ClInclude Include="src\ui\entity.h" />
     <ClInclude Include="src\ui\frame_render.h" />
     <ClInclude Include="src\ui\props.h" />

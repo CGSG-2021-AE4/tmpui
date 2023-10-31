@@ -16,6 +16,10 @@ namespace ui
     INT FrameSizeMul;     // W mul H (for fast check)
     std::vector<DWORD> Frame;      // Frame bits array
     mask FrameMask;       // Frame mask
+
+    const static INT FontH = 16;
+    const static INT FontW = 8;
+
     isize2 CharSize;
     std::vector<std::vector<FLT>> CharSet;
     /* Char set setup function */
@@ -29,10 +33,9 @@ namespace ui
       hMemDC = CreateCompatibleDC(hDC);
 
       // Font
-      INT FontH = 16;
       DWORD TextColor = 0xFFFFFFFF;
       
-      CharSize = {FontH / 2, FontH};
+      CharSize = {FontW, FontH};
       
       HFONT hFont = CreateFont(CharSize.H, CharSize.W, 0, 0, 0, 0, 0, 0,
                                ANSI_CHARSET,
@@ -124,6 +127,12 @@ namespace ui
         PutChar(Str[i], Pos + ivec2(i * CharSize.W, 0), Color, Mask);
     } /* End of 'PutStr' function */
 
+    inline VOID PutStr( const std::string_view &Str, const ivec2 &Pos, const vec3 &Color, const mask &Mask )
+    {
+      for (UINT i = 0; i < (UINT)Str.size(); i++)
+        PutChar(Str[i], Pos + ivec2(i * CharSize.W, 0), Color, Mask);
+    } /* End of 'PutStr' function */
+
     enum struct vert_align
     {
       eTop    = 0x00000000,
@@ -139,6 +148,25 @@ namespace ui
     }; /* End of 'hor_align' enum struct */
 
     inline VOID PutStr( const std::string &Str, const ivec2 &Pos, const isize2 Size, const ivec2 &Padding, DWORD LayoutFlags, const vec3 &Color, const mask &Mask )
+    {
+      ivec2 OutPos = Pos + Padding; // Vertical align - top, Horizontal align - left
+
+      // Check vertical align flags
+      if (LayoutFlags & (DWORD)vert_align::eCenter)
+        OutPos.Y = (INT)(Pos.Y + (Size.H - CharSize.H) / 2.0);
+      if (LayoutFlags & (DWORD)vert_align::eBottom)
+        OutPos.Y = Pos.Y + Size.H - Padding.Y - CharSize.H;
+
+      // Check horizontal align flags
+      if (LayoutFlags & (DWORD)hor_align::eCenter)
+        OutPos.X = (INT)(Pos.X + (Size.W - CharSize.W * (INT)Str.size()) / 2.0);
+      if (LayoutFlags & (DWORD)hor_align::eRight)
+        OutPos.X = Pos.X + Size.W - Padding.X - CharSize.W * (INT)Str.size();
+
+      PutStr(Str, OutPos, Color, Mask);
+    } /* End of 'PutStr' function */
+
+    inline VOID PutStr( const std::string_view &Str, const ivec2 &Pos, const isize2 Size, const ivec2 &Padding, DWORD LayoutFlags, const vec3 &Color, const mask &Mask )
     {
       ivec2 OutPos = Pos + Padding; // Vertical align - top, Horizontal align - left
 

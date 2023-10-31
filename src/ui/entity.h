@@ -91,6 +91,7 @@ namespace ui
     FLT ChildrenFlexSum = 0;               // Sum of children's flex values (is used only with FlexRow/FlexColumn flex type)
     isize2 ChildrenFlex0Size = 0;          // Sum of min sizes of children with flex 0
     BOOL IsScrollable = 0;                 // Can the entity be scrolled
+    BOOL IsBackgroundTransparent = 0;      // If the background is transparent entity's parent should also be redrawn 
 
     /* Events */
   public:
@@ -307,6 +308,8 @@ namespace ui
         SetParent(NewParent);
         AddChildren(NewChildren);
         UpdateShape();
+        OnMove();
+        OnResize();
       } /* End of 'entity' function */
 
   protected:

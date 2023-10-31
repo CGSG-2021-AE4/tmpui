@@ -110,5 +110,11 @@
     <ClInclude Include="src\ui\props.h">
       <Filter>Source Files\UI</Filter>
     </ClInclude>
+    <ClInclude Include="src\ui\controls\slider.h">
+      <Filter>Source Files\UI\Controls</Filter>
+    </ClInclude>
+    <ClInclude Include="src\ui\controls\text.h">
+      <Filter>Source Files\UI\Controls</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

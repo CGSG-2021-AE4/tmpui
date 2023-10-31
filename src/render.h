@@ -33,26 +33,11 @@
 #include "./ui/controls/div.h"
 #include "./ui/controls/button.h"
 #include "./ui/controls/slider.h"
+#include "./ui/controls/text.h"
 
 #include <iostream>
 
 namespace cs = ::ui::controls;
-
-/*
-* 
-* new cs::div({ .Id = "Left bar", .LayoutProps = { .Flex = 0, .MinSize = {30, 0} }, .BoxStyle = { .SpaceColor = ::ui::vec3::Rnd0() } }, {}),
-    new ::ui::entity( ::ui::entity_props { .Id = "Div layout", .LayoutProps = { .Type = ::ui::layout_type::eFlexRow, .Flex = 1 } }, {
-      new cs::div({ .Id = "Div layout 1", .LayoutProps = { .Flex = 1 }, .BoxStyle = { .SpaceColor = ::ui::vec3::Rnd0() } }, {}),
-      new cs::div({ .Id = "Div layout 2", .LayoutProps = { .Type = ::ui::layout_type::eFlexColumn, .Flex = 2 }, .BoxStyle = { .SpaceColor = ::ui::vec3::Rnd0() } }, {
-        new cs::div({ .Id = "Div layout 2.1", .LayoutProps = { .Type = ::ui::layout_type::eFlexRow, .Flex = 1 }, .BoxStyle = { .SpaceColor = ::ui::vec3::Rnd0() } }, {
-          new cs::div({ .Id = "Div layout 2.1.1", .LayoutProps = { .Flex = 3 }, .BoxStyle = { .SpaceColor = ::ui::vec3::Rnd0() } }, {}),
-          new cs::div({ .Id = "Div layout 2.1.2", .LayoutProps = { .Flex = 1 }, .BoxStyle = { .SpaceColor = ::ui::vec3::Rnd0() } }, {}),
-          }),
-        new cs::div({ .Id = "Div layout 2.2", .LayoutProps = { .Flex = 2 }, .BoxStyle = { .SpaceColor = ::ui::vec3::Rnd0() } }, {}),
-        }),
-      }),
-
-*/
 
 /* Test class */
 class test
@@ -66,7 +51,6 @@ public:
   ::ui::render_2d &Render2d;
   ::ui::canvas Canvas;
   std::vector<cs::slider *> Sliders;
-
 
   /* Contructor function */
   test( ::ui::render_2d &NewRender2d, const ::ui::isize2 &Size ) :
@@ -84,6 +68,7 @@ public:
             .Style = { .Track = { .Space = { .DefColor = ::ui::vec3::Rnd0() }, .Border = { .DefColor = ::ui::vec3::Rnd0() } },
                        .Thumb = { .Space = { .DefColor = ::ui::vec3::Rnd0() }, .Border = { .DefColor = ::ui::vec3::Rnd0() } }},
             });
+
       Sliders.push_back(SliderPtr);
 
       ListDivs.push_back(new cs::div({
@@ -118,7 +103,11 @@ public:
       new cs::div({ .Id = "Left bar", .LayoutProps = { .MinSize = {30} }, .BoxProps = { .MarginW = 0, .BorderW = 2, .PaddingW = 2 }, .Style = StdDivStyle }, {}),
       new cs::div({ .Id = "Div 1", .LayoutProps = { .Type = ::ui::layout_type::eFlexRow, .Flex = 1 }, .BoxProps = { .MarginW = 0, .BorderW = 0, .PaddingW = 2 }, .Style = StdDivStyle }, {
         new cs::div({ .Id = "Div 1.1", .LayoutProps = { .Type = ::ui::layout_type::eFlexRow, .Flex = 1 }, .BoxProps = StdDivProps, .Style = StdDivStyle }, {
-          new cs::div({ .Id = "Div 1.1.1", .LayoutProps = { .Flex = 1 }, .BoxProps = StdDivProps, .Style = { .SpaceColor = ::ui::vec3::Rnd0(), .BorderColor = ::ui::vec3::Rnd0() } }, {}),
+          new cs::div({ .Id = "Div 1.1.1", .LayoutProps = { .Type = ::ui::layout_type::eFlexRow, .Flex = 2 }, .BoxProps = StdDivProps, .Style = { .SpaceColor = ::ui::vec3::Rnd0(), .BorderColor = ::ui::vec3::Rnd0() } }, {
+            new cs::text({ .Id = "Text 1.1.1.1", .LayoutProps = { .Flex = 1 }, .Style = { .Color = 0 }, .Str =
+              ("Hi, my dear fried. Here there is a small description of my user interface.\nMy user interface has different props:\n'Div' - it is a box control, analog of html div. It has just space and border color which can be set by the user.\n'Button' - simple press button.\n'Slider' - now it is just a slider that changes value from 0 to 1.\n'Text' - just text you see.\n\nThank you for reading this shit. :)")}),
+            }),
+          new cs::div({ .Id = "Div 1.1.2", .LayoutProps = { .Flex = 1 }, .BoxProps = StdDivProps, .Style = { .SpaceColor = ::ui::vec3::Rnd0(), .BorderColor = ::ui::vec3::Rnd0() } }, {}),
           }),
         new cs::div({ .Id = "Div 1.2", .LayoutProps = { .Type = ::ui::layout_type::eFlexColumn, .Flex = 1, .IsScrollable = true }, .BoxProps = StdDivProps, .Style = StdDivStyle }, ListDivs),
         }),

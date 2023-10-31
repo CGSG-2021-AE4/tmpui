@@ -21,9 +21,12 @@ VOID ::ui::entity::Redraw( VOID )
 #ifdef ENABLE_PATH_LOG
   Log(std::format("Entity {} Redraw.", Id));
 #endif // ENABLE_PATH_LOG
+
   if (!IsVisible)
     return;
 
-  if (Canvas != nullptr)
+  if (IsBackgroundTransparent && Parent != nullptr)
+    Parent->Redraw();
+  else if (Canvas != nullptr)
     Canvas->PushToDraw(this);
 } /* End of 'Redraw' function */
