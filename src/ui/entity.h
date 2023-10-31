@@ -546,7 +546,7 @@ namespace ui
 #ifdef ENABLE_PATH_LOG
       Log(std::format("Entity {} Draw.", Id));
 #endif // ENABLE_PATH_LOG
-      if (!IsVisible)
+      if (!IsVisible || !SelfDrawMask.IsExist())
         return;
 
       OnDraw();

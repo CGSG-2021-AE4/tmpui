@@ -43,29 +43,11 @@ namespace ui
       {
       } /* End of 'div' function */
       
-      /* On click event function */
-      BOOL OnClick( const ivec2 &LocalMousePos ) override
-      {
-        return true;
-      } /* End of 'OnClick' function */
-
       /* On draw event function */
       VOID OnDraw( VOID ) override
       {
         Canvas->Render2d.PutBar(GlobalPos, Size, ToRGB(Style.BorderColor), ToRGB(Style.SpaceColor), BoxProps.BorderW, SelfDrawMask);
       } /* End of 'OnDraw' function */
-
-      /* On hover event function */
-      BOOL OnHover( const ivec2 &LocalMousePos ) override
-      {
-        return true;
-      } /* End of 'OnHover' function */
-      
-      /* On unhover event function */
-      BOOL OnUnhover( const ivec2 &LocalMousePos ) override
-      {
-        return true;
-      } /* End of 'OnUnhover' function */
 
     }; /* End of 'div' class */
 

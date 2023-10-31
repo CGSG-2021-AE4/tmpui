@@ -95,6 +95,13 @@ namespace ui
         // Thumb
         Canvas->Render2d.PutBar(GlobalPos + ThumbRelativePos + ivec2(BoxProps.BorderW), isize2(ThumbW), ToRGB(Style.Thumb.Border.DefColor), ToRGB(Style.Thumb.Space.DefColor), BoxProps.BorderW, SelfDrawMask);
         
+        std::ostringstream Str;
+
+        Str.width(6);
+        Str.precision(3);
+        Str << "Value: " << Value;
+
+        Canvas->Render2d.PutStr(Str.str(), GlobalPos, Size, {8, 0}, (DWORD)render_2d::vert_align::eCenter | (DWORD)render_2d::hor_align::eLeft, 0, SelfDrawMask);
         // if (State > entity_state::eDef)
         //   if (State > entity_state::eHovered)
         //   {

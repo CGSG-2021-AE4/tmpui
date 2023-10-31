@@ -233,8 +233,9 @@ namespace tmp
       /*
        ************* DRAW INTERFACE BEGINNING *************
        */
+      std::chrono::steady_clock::time_point T1, T2;
 
-      // auto T1 = std::chrono::high_resolution_clock::now();
+      // T1 = std::chrono::high_resolution_clock::now();
 
       if (DeltaMousePos != ivec2(0, 0))
         Test.Canvas.OnMouseMove({DeltaMousePos.X, DeltaMousePos.Y, 0}, MousePos);
@@ -243,20 +244,19 @@ namespace tmp
       if (MouseState == mouse_state::Released)
         Test.Canvas.OnMouseUp(MousePos);
 
-      // auto T2 = std::chrono::high_resolution_clock::now();
+      // T2 = std::chrono::high_resolution_clock::now();
 
       //std::cout << std::format("Response time {} microseconds.\n", std::chrono::duration_cast<std::chrono::microseconds>(T2 - T1));
 
       //for (UINT i = 0; i < (UINT)Test.Sliders.size(); i++)
       //  Test.Sliders[i]->SetValue(abs(sin(sin(i) + FrameCounter * 0.1)));
 
-      // T1 = std::chrono::high_resolution_clock::now();
-
+      T1 = std::chrono::high_resolution_clock::now();
       Test.Canvas.Draw();
       
-      // T2 = std::chrono::high_resolution_clock::now();
+      T2 = std::chrono::high_resolution_clock::now();
 
-      //std::cout << std::format("Draw time {} microseconds.\n", std::chrono::duration_cast<std::chrono::microseconds>(T2 - T1));
+      std::cout << std::format("Draw time {} microseconds.\n", std::chrono::duration_cast<std::chrono::microseconds>(T2 - T1));
       
       FrameCounter++;
       /*
