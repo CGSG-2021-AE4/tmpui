@@ -122,11 +122,15 @@
       <ConformanceMode>true</ConformanceMode>
       <AdditionalIncludeDirectories>X:\TGRKIT\INCLUDE;.\src;</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpp20</LanguageStandard>
+      <BrowseInformation>true</BrowseInformation>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
     </Link>
+    <Bscmake>
+      <PreserveSbr>true</PreserveSbr>
+    </Bscmake>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <ClCompile>
@@ -169,6 +173,8 @@
     <ClInclude Include="src\ui\canvas.h" />
     <ClInclude Include="src\ui\controls\button.h" />
     <ClInclude Include="src\ui\controls\div.h" />
+    <ClInclude Include="src\ui\controls\empty.h" />
+    <ClInclude Include="src\ui\controls\range.h" />
     <ClInclude Include="src\ui\controls\slider.h" />
     <ClInclude Include="src\ui\controls\text.h" />
     <ClInclude Include="src\ui\entity.h" />

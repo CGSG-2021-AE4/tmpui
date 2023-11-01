@@ -17,16 +17,6 @@ namespace ui
   /* Friend classes prototypes */
   class canvas;
 
-  /* Entity props structure */
-  struct entity_props
-  {
-    std::string Id {""};
-    ivec2 Pos {0};
-    isize2 Size {0};
-    layout_props LayoutProps {};
-    box_props BoxProps {};
-  }; /* End of 'entity_props' struct */
-
   /* Physical entity state */
   enum struct entity_state
   {
@@ -177,6 +167,11 @@ namespace ui
       return {GlobalContentPos, ContentSize};
     } /* End of 'GetContentMask' function */
 
+    virtual isize2 GetMinSize( const isize2 &PreferedtSize )
+    {
+      return LayoutProps.MinSize;
+    } /* End of 'GetMinSize' function */
+
     /* ****** Inline event functions (interlayer) ******
      * Functions return (entity *) - pointer to entity to redraw or nullptr. It could be the upper level entity because of event bubbling. The pointer to entity may be used later for draw.
      */
@@ -226,8 +221,14 @@ namespace ui
         ivec2 DeltaMove = {0, Delta.Z}; // Some temp shit
 
         // Clamping
-        ContentOffset = {std::min(std::max(ContentOffset.X + DeltaMove.X + CompContentSize.W, ContentSize.W) - CompContentSize.W, 0),
-                         std::min(std::max(ContentOffset.Y + DeltaMove.Y + CompContentSize.H, ContentSize.H) - CompContentSize.H, 0)};
+        auto OldContentOffset = ContentOffset;
+
+        ContentOffset = {std::clamp(ContentOffset.X + DeltaMove.X, ContentSize.W - CompContentSize.W, 0),
+                         std::clamp(ContentOffset.Y + DeltaMove.Y, ContentSize.H - CompContentSize.H, 0)};
+        
+        if (OldContentOffset == ContentOffset)
+          return nullptr;
+        
         for (auto *c : Children)
         {
           c->UpdateGlobalPosRec();
@@ -305,11 +306,12 @@ namespace ui
         if constexpr (requires { Props.Size; })
           SetSize(Props.Size);
         
+        OnMove();
+        OnResize();
+
         SetParent(NewParent);
         AddChildren(NewChildren);
         UpdateShape();
-        OnMove();
-        OnResize();
       } /* End of 'entity' function */
 
   protected:
@@ -326,6 +328,36 @@ namespace ui
       Children.clear();
     } /* End of '~entity' function */
 
+    /* Update min size function */
+    // const isize2 & UpdateMinSize( const isize2 &PreferedSize )
+    // {
+    //   if (LayoutProps.Type == layout_type::eFlexRow)
+    //   {
+    //     LayoutProps.MinSize = 0;
+    //     for (entity *c : Children)
+    //     {
+    //       const isize2 &ChildMinSize = c->UpdateMinSize({0, PreferedSize.H});
+    //       LayoutProps.MinSize.W += ChildMinSize.W;
+    //       LayoutProps.MinSize.H = std::max(LayoutProps.MinSize.H, ChildMinSize.H);
+    //     }
+    //   }
+    //   else if (LayoutProps.Type == layout_type::eFlexColumn)
+    //   {
+    //     LayoutProps.MinSize = 0;
+    //     for (entity *c : Children)
+    //     {
+    //       const isize2 &ChildMinSize = c->UpdateMinSize({PreferedSize.W, 0});
+    //       LayoutProps.MinSize.W = std::max(LayoutProps.MinSize.W, ChildMinSize.W);
+    //       LayoutProps.MinSize.H += ChildMinSize.H;
+    //     }
+    //   }
+    //   else if (LayoutProps.Type == layout_type::eBlock)
+    //   {
+    //     LayoutProps.MinSize = GetMinSize(PreferedSize);
+    //   }
+    // } /* End of 'UpdateMinSize' function */
+    // 
+    public:
     /* Update children layout function */
     VOID UpdateChildrenLayout( VOID )
     {
@@ -338,7 +370,6 @@ namespace ui
         {
           INT Offset = 0;
           isize2 NewSize;
-
 
           for (entity *c : Children)
           {
@@ -400,12 +431,12 @@ namespace ui
         }
       }
       else
-      {
         for (entity *c : Children)
-        {
           c->UpdateShape();
-        }
-      }
+
+      if (IsScrollable)
+        ContentOffset = {std::clamp(ContentOffset.X, ContentSize.W - CompContentSize.W, 0),
+                         std::clamp(ContentOffset.Y, ContentSize.H - CompContentSize.H, 0)};
       // if (LayoutProps.Type == layout_type::eBlock)
       // return;
     } /* End of 'UpdateChildrenLayout' function */

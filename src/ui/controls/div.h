@@ -15,20 +15,6 @@ namespace ui
         BorderColor;
     }; /* End of 'div_style' struct */
 
-    /* Div props structure */
-    struct div_props
-    {
-      // Entity part
-      std::string Id {"Div"};
-      ivec2 Pos {0};
-      isize2 Size {0};
-      layout_props LayoutProps {}; // Layout props
-      box_props BoxProps {};
-
-      // Div part
-      div_style Style {};
-    }; /* End of 'div_props' struct */
-
     /* Div class */
     class div : public entity
     {
@@ -37,7 +23,7 @@ namespace ui
     public:
   
       /* Contsructor function */
-      div( const div_props &NewProps, const std::vector<entity *> &NewChildren = {} ) :
+      div( const entity_props<BYTE, div_style> &NewProps, const std::vector<entity *> &NewChildren = {} ) :
         entity(NewProps, NewChildren),
         Style(NewProps.Style)
       {

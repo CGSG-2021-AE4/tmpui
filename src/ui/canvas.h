@@ -148,7 +148,7 @@ namespace ui
       Pos(NewPos),
       Size(NewSize),
       Mask(Pos, Size),
-      Root(new entity(entity_props { .Id = "Canvas root", .Pos = {0, 0}, .Size = Size, .LayoutProps = RootLayoutProps }, Entries, nullptr)), // Provides root isn't nullptr
+      Root(new entity(entity_props<BYTE, BYTE>{ .Id = "Canvas root", .Pos = {0, 0}, .Size = Size, .LayoutProps = RootLayoutProps }, Entries, nullptr)), // Provides root isn't nullptr
       DrawManager(Render2d)
     {
       // Root init

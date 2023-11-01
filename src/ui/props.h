@@ -50,11 +50,20 @@ namespace ui
       Border; // Border style
   }; /* End of 'box_style' struct */
 
-  struct entity_styles
-  {
-    box_style BoxStyle;
-  };
+  /* Entity props structure */
+  template<typename additional_props_type, typename style_props_type>
+    struct entity_props
+    {
+      std::string Id {""};
+      ivec2 Pos {0};
+      isize2 Size {0};
+      layout_props LayoutProps {};
+      box_props BoxProps {};
 
+      additional_props_type Props {};
+      style_props_type Style {};
+    }; /* End of 'entity_props' struct */
+  
 } /* end of 'ui' namespace */
 
 #endif // __ui_props_h_

@@ -34,6 +34,8 @@
 #include "./ui/controls/button.h"
 #include "./ui/controls/slider.h"
 #include "./ui/controls/text.h"
+#include "./ui/controls/range.h"
+#include "./ui/controls/empty.h"
 
 #include <iostream>
 
@@ -62,12 +64,12 @@ public:
     for (UINT i = 0; i < 30; i++)
     {
       auto *SliderPtr = new cs::slider({
-            .Id = std::format("Slider 1.2.{}.2.1", i + 1),
-            .Pos = {0},
-            .Size = {200, 30},
-            .Style = { .Track = { .Space = { .DefColor = ::ui::vec3::Rnd0() }, .Border = { .DefColor = ::ui::vec3::Rnd0() } },
-                       .Thumb = { .Space = { .DefColor = ::ui::vec3::Rnd0() }, .Border = { .DefColor = ::ui::vec3::Rnd0() } }},
-            });
+        .Id = std::format("Slider 1.2.{}.2.1", i + 1),
+        .Pos = {0},
+        .Size = {200, 30},
+        .Style = { .Track = { .Space = { .DefColor = ::ui::vec3::Rnd0() }, .Border = { .DefColor = ::ui::vec3::Rnd0() } },
+                   .Thumb = { .Space = { .DefColor = ::ui::vec3::Rnd0() }, .Border = { .DefColor = ::ui::vec3::Rnd0() } }},
+        });
 
       Sliders.push_back(SliderPtr);
 
@@ -90,11 +92,28 @@ public:
           .Style = { .SpaceColor = ::ui::vec3::Rnd0(), .BorderColor = ::ui::vec3::Rnd0() }
           }, {
             SliderPtr,
+            new cs::range({
+            .Id = std::format("Range 1.2.{}.2.1", i + 1),
+            .Pos = {0, 40},
+            .Size = {200, 30},
+            .Style = { .Left =  { .Space = { .DefColor = ::ui::vec3::Rnd0() } },
+                       .Right = { .Space = { .DefColor = ::ui::vec3::Rnd0() } }},
+            })
           }),
-        new cs::button({
-          .Id = std::format("Button 1.2.{}.3", i + 1),
-          .LayoutProps = { .Flex = 0, .MinSize = 30, .MaxSize = 30 },
-          .IsPress = true,
+        new cs::empty({
+          .Id = std::format("Emtpy 1.2.{}.3", i + 1),
+          .LayoutProps = { .Flex = 0 },
+          }, {
+            new cs::button({
+            .Id = std::format("Button 1.2.{}.3.1", i + 1),
+            .LayoutProps = { .Flex = 0, .MinSize = 30, .MaxSize = 30 },
+            .Props = { .IsPress = true, .OnChangeCallBack = []( BOOL NewValue ){ ::ui::Log(std::format("New value: {}", NewValue )); } },
+            }),
+            new cs::button({
+            .Id = std::format("Button 1.2.{}.3.2", i + 1),
+            .LayoutProps = { .Flex = 0, .MinSize = 30, .MaxSize = 30 },
+            .Props = { .OnClickCallBack = []( VOID ){ ::ui::Log(std::format("FUCK")); } },
+            }),
           }),
         }));
     }
@@ -103,9 +122,11 @@ public:
       new cs::div({ .Id = "Left bar", .LayoutProps = { .MinSize = {30} }, .BoxProps = { .MarginW = 0, .BorderW = 2, .PaddingW = 2 }, .Style = StdDivStyle }, {}),
       new cs::div({ .Id = "Div 1", .LayoutProps = { .Type = ::ui::layout_type::eFlexRow, .Flex = 1 }, .BoxProps = { .MarginW = 0, .BorderW = 0, .PaddingW = 2 }, .Style = StdDivStyle }, {
         new cs::div({ .Id = "Div 1.1", .LayoutProps = { .Type = ::ui::layout_type::eFlexRow, .Flex = 1 }, .BoxProps = StdDivProps, .Style = StdDivStyle }, {
-          new cs::div({ .Id = "Div 1.1.1", .LayoutProps = { .Type = ::ui::layout_type::eFlexRow, .Flex = 2 }, .BoxProps = StdDivProps, .Style = { .SpaceColor = ::ui::vec3::Rnd0(), .BorderColor = ::ui::vec3::Rnd0() } }, {
-            new cs::text({ .Id = "Text 1.1.1.1", .LayoutProps = { .Flex = 1 }, .Style = { .Color = 0 }, .Str =
-              ("Hi, my dear fried. Here there is a small description of my user interface.\nMy user interface has different props:\n'Div' - it is a box control, analog of html div. It has just space and border color which can be set by the user.\n'Button' - simple press button.\n'Slider' - now it is just a slider that changes value from 0 to 1.\n'Text' - just text you see.\n\nThank you for reading this shit. :)")}),
+          new cs::div({ .Id = "Div 1.1.1", .LayoutProps = { .Type = ::ui::layout_type::eFlexRow, .Flex = 2, .IsScrollable = true }, .BoxProps = StdDivProps, .Style = { .SpaceColor = ::ui::vec3::Rnd0(), .BorderColor = ::ui::vec3::Rnd0() } }, {
+            new cs::text({ .Id = "Text 1.1.1.1", .LayoutProps = { .Flex = 1 }, .Props = { .Str =
+              //"Hi, my dear fried. Here there is a small description of my user interface.\nMy user interface has different props:\n'Div' - it is a box control, analog of html div. It has just space and border color which can be set by the user.\n'Button' - simple press button.\n'Slider' - now it is just a slider that changes value from 0 to 1.\n'Text' - just text you see.\n\nThank you for reading this shit. :)"
+              "Maecenas luctus felis fermentum, posuere orci pharetra, viverra nulla. Duis id ullamcorper magna, ut luctus sem. Phasellus congue nisl quis magna auctor, id molestie sem mollis. Proin imperdiet vulputate augue eget consequat. Quisque accumsan metus eros, ac congue tortor pharetra et. Nam quis lorem rutrum, hendrerit urna nec, condimentum ante. Vestibulum ante ipsum primis in faucibus orci luctus et ultrices posuere cubilia curae; Proin sodales elit vitae dui egestas, tincidunt elementum lectus lobortis. Donec ultricies tortor augue, vel viverra elit rutrum non. Morbi maximus urna viverra, congue metus eget, lacinia massa. In feugiat leo luctus purus malesuada accumsan."
+              }, .Style = { .Color = 0 } }),
             }),
           new cs::div({ .Id = "Div 1.1.2", .LayoutProps = { .Flex = 1 }, .BoxProps = StdDivProps, .Style = { .SpaceColor = ::ui::vec3::Rnd0(), .BorderColor = ::ui::vec3::Rnd0() } }, {}),
           }),
@@ -235,12 +256,14 @@ namespace tmp
 
       // T2 = std::chrono::high_resolution_clock::now();
 
-      //std::cout << std::format("Response time {} microseconds.\n", std::chrono::duration_cast<std::chrono::microseconds>(T2 - T1));
+      // std::cout << std::format("Response time {} microseconds.\n", std::chrono::duration_cast<std::chrono::microseconds>(T2 - T1));
 
-      //for (UINT i = 0; i < (UINT)Test.Sliders.size(); i++)
-      //  Test.Sliders[i]->SetValue(abs(sin(sin(i) + FrameCounter * 0.1)));
+      // for (UINT i = 0; i < (UINT)Test.Sliders.size(); i++)
+      //   Test.Sliders[i]->SetValue(abs(sin(sin(i) + FrameCounter * 0.1)));
 
       T1 = std::chrono::high_resolution_clock::now();
+      //st.Render2d.FillBar(0, Text.);
+      //Test.Render2d.ClearFrame();
       Test.Canvas.Draw();
       
       T2 = std::chrono::high_resolution_clock::now();

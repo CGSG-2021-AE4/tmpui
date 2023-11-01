@@ -1,5 +1,5 @@
-#ifndef __ui_controls_slider_h_
-#define __ui_controls_slider_h_
+#ifndef __ui_controls_range_h_
+#define __ui_controls_range_h_
 
 #include "../entity.h"
 
@@ -7,16 +7,16 @@ namespace ui
 {
   namespace controls
   {
-    /* Slider style values struct */
-    struct slider_style
+    /* Range style values struct */
+    struct range_style
     {
       box_style
-        Track, // Track style
-        Thumb; // Thumb style
-    }; /* End of 'slider_style' struct */
+        Left,  // Left range part style
+        Right; // Right range part style
+    }; /* End of 'range_style' struct */
 
-    /* Slider props struct */
-    struct slider_props
+    /* Range props struct */
+    struct range_props
     {
       // Entity part
       std::string Id {"Slider"};
@@ -28,42 +28,39 @@ namespace ui
         Min = 0,
         Max = 1,
         Value = 0.5;
-      slider_style Style {};
-    }; /* End of 'slidre_props' struct */
+      range_style Style {};
+    }; /* End of 'range_props' struct */
 
-    struct full_slider_props : slider_props
+    struct full_range_props : range_props
     {
       layout_props LayoutProps {};
       box_props BoxProps { .MarginW = 2, .BorderW = 2 };
-    }; /* End of 'full_slider_props' struct */
+    }; /* End of 'full_range_props' struct */
 
-    /* Slider class */
-    class slider : public entity
+    /* Range class */
+    class range : public entity
     {
       FLT
         Min = 0,
         Max = 1,
         Value = 0.5;
-      INT ThumbW = 0;
-      slider_style Style {};
+      range_style Style {};
 
     public:
   
       /* Contsructor function */
-      slider( const slider_props &NewProps ) :
-        entity(full_slider_props(NewProps)),
+      range( const range_props &NewProps ) :
+        entity(full_range_props(NewProps)),
         Style(NewProps.Style),
         Min(NewProps.Min),
         Max(NewProps.Max),
         Value(NewProps.Value)
       {
-        ThumbW = Size.H - BoxProps.BorderW * 2;
       } /* End of 'slider' function */
 
       VOID UpdateValue( const ivec2 &LocalMousePos )
       {
-        FLT TrackL = BorderSize.W - ThumbW;
-        Value = Min + ((FLT)LocalMousePos.X - ThumbW / 2) / TrackL * (Max - Min);
+        Value = Min + ((FLT)LocalMousePos.X - BoxProps.BorderW) / BorderSize.W * (Max - Min);
         Value = std::clamp(Value, Min, Max);
       }
       
@@ -88,12 +85,13 @@ namespace ui
       /* On draw event function */
       VOID OnDraw( VOID ) override
       {
-        ivec2 ThumbRelativePos = ivec2((INT)((Value - Min) / (Max - Min) * (BorderSize.W - ThumbW)), 0);
-        
-        // Track
-        Canvas->Render2d.PutBar(GlobalPos, Size, ToRGB(Style.Track.Border.DefColor), ToRGB(Style.Track.Space.DefColor), BoxProps.BorderW, SelfDrawMask);
-        // Thumb
-        Canvas->Render2d.PutBar(GlobalPos + ThumbRelativePos + ivec2(BoxProps.BorderW), isize2(ThumbW), ToRGB(Style.Thumb.Border.DefColor), ToRGB(Style.Thumb.Space.DefColor), BoxProps.BorderW, SelfDrawMask);
+        FLT SeparationLineX = (Value - Min) / (Max - Min) * BorderSize.W + BoxProps.BorderW;
+        // Left
+        Canvas->Render2d.FillBar(GlobalPos, isize2(SeparationLineX, Size.H), ToRGB(Style.Left.Space.DefColor), SelfDrawMask);
+        // Right
+        Canvas->Render2d.FillBar(GlobalPos + ivec2(SeparationLineX, 0), isize2(Size.W - SeparationLineX, Size.H), ToRGB(Style.Right.Space.DefColor), SelfDrawMask);
+        // Frame
+        Canvas->Render2d.PutBar(GlobalPos, Size, ToRGB(Style.Left.Border.DefColor), BoxProps.BorderW, SelfDrawMask);
         
         std::ostringstream Str;
 
@@ -136,7 +134,7 @@ namespace ui
         Redraw();
       } /* End of 'SetValue' function */
 
-    }; /* End of 'button' class */
+    }; /* End of 'range' class */
 
   } /* end of 'controls' namespace */
 } /* end of 'ui' namespace */

@@ -20,14 +20,6 @@ namespace ui
     /* Text props structure */
     struct text_props
     {
-      // Entity part
-      std::string Id {"Text"};
-      ivec2 Pos {0};
-      isize2 Size {0};
-      layout_props LayoutProps {}; // Layout props
-      box_props BoxProps {};
-
-      // Text part
       BOOL IsSingleLine {false};
       text_style Style {};
       std::string Str {""};
@@ -36,19 +28,19 @@ namespace ui
     /* Text class */
     class text : public entity
     {
-      BOOL IsSingleLine;
       text_style Style;
+      text_props Props;
       std::string Str;
       std::vector<std::string_view> Lines; // Isn't used if text is a single line
 
     public:
   
       /* Contsructor function */
-      text( const text_props &NewProps ) :
+      text( const entity_props<text_props, text_style> &NewProps ) :
         entity(NewProps),
-        IsSingleLine(NewProps.IsSingleLine),
+        Props(NewProps.Props),
         Style(NewProps.Style),
-        Str(NewProps.Str)
+        Str(Props.Str)
       {
         IsBackgroundTransparent = true;
       } /* End of 'text' function */
@@ -57,7 +49,7 @@ namespace ui
       {
         INT CharsPerLine = (INT)((Size.W - Style.Padding.X * 2) / render_2d::FontW);
 
-        if (IsSingleLine || CharsPerLine == 0)
+        if (Props.IsSingleLine || CharsPerLine == 0)
         {
           Lines = {Str};
           return;
@@ -100,8 +92,11 @@ namespace ui
             else if (PrevWordEnd < PrevWordStart) // We are in a word
             {
               Lines.push_back(std::string_view(Str).substr(LineStartOffset, PrevWordEnd - LineStartOffset));
-              LineStartOffset = PrevWordStart;
 
+              if (PrevWordStart <= LineStartOffset)
+                LineStartOffset = Offset;
+              else
+                LineStartOffset = PrevWordStart;
             }
           }
           else
@@ -110,14 +105,12 @@ namespace ui
             LineStartOffset = Offset;
           }
         }
-
-        //for (INT Offset = 0; Offset < (INT)Str.size(); Offset += CharsPerLine)
-        //  Lines.push_back(std::string_view(Str).substr(Offset, CharsPerLine));
       } /* End of 'UpdateLines' function */
 
       virtual VOID OnResize( VOID )
       {
         UpdateLines();
+        LayoutProps.MinSize.H = render_2d::FontH * (INT)Lines.size();
       } /* End of 'OnResize' function */
       
       /* On draw event function */
@@ -131,7 +124,9 @@ namespace ui
       VOID SetStr( const std::string &NewStr )
       {
         Str = NewStr;
-        UpdateLines();
+        OnResize();
+        if (Parent != nullptr)
+          Parent->UpdateChildrenLayout();
         Redraw();
       } /* End of 'SetStr' function */
 

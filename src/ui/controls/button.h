@@ -1,6 +1,8 @@
 #ifndef __ui_controls_button_h_
 #define __ui_controls_button_h_
 
+#include <functional>
+
 #include "../entity.h"
 
 namespace ui
@@ -28,39 +30,38 @@ namespace ui
     /* Button props struct */
     struct button_props
     {
-      // Entity part
-      std::string Id {"Button"};
-      ivec2 Pos {};
-      isize2 Size {60, 30};
-      layout_props LayoutProps {};
-      box_props BoxProps { .MarginW = 2, .BorderW = 2 };
-
-      // Button part
       BOOL IsPress = 0;
-      button_style Style {};
+      std::function<VOID( VOID )> OnClickCallBack {[](){}};
+      std::function<VOID( BOOL NewValue )> OnChangeCallBack {[]( BOOL NewValue ){}};
     }; /* End of 'div_props' struct */
 
     /* Button class */
     class button : public entity
     {
       button_style Style;
-      BOOL IsPress;
-      BOOL Value {0};
-
+      button_props Props;
+      BOOL Value;
+      
     public:
   
       /* Contsructor function */
-      button( const button_props &NewProps ) :
+      button( const entity_props<button_props, button_style> &NewProps ) :
         entity(NewProps),
         Style(NewProps.Style),
-        IsPress(NewProps.IsPress)
+        Props(NewProps.Props)
       {
       } /* End of 'button' function */
       
       BOOL OnClick( const ivec2 &LocalMousePos ) override
       {
-        if (IsPress)
+        if (Props.IsPress)
+        {
           Value = !Value;
+          Props.OnChangeCallBack(Value);
+        }
+        else
+          Props.OnClickCallBack();
+
         return true;
       } /* End of 'OnClick' function */
 
