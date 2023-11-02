@@ -35,104 +35,208 @@
 #include "./ui/controls/slider.h"
 #include "./ui/controls/text.h"
 #include "./ui/controls/range.h"
-#include "./ui/controls/empty.h"
 
 #include <iostream>
 
 namespace cs = ::ui::controls;
+
+template<typename entity_type, typename props_type>
+  ::ui::entity * Create( const props_type &Props, const std::vector<::ui::entity *> &NewChildren = {}, ::ui::entity *NewParent = nullptr )
+  {
+    ::ui::entity * NewE = new entity_type(Props);
+
+    NewE->AddChildren(NewChildren);
+    NewE->SetParent(NewParent);
+    return NewE;
+  } /* End of 'Create' function */
 
 /* Test class */
 class test
 {
 public:
   
-  ::ui::box_props StdDivProps { .MarginW = 4, .BorderW = 2, .PaddingW = 2 };
-  cs::div_style StdDivStyle { .SpaceColor = {0.35}, .BorderColor = {0.75} };
   //::ui::box_style StdDivStyle { .Space = { .DefColor = 0.35 }, .Border = { .DefColor = 0.75 } };
+
+  ::ui::box_props StdDivBoxProps = ::ui::box_props({ .MarginW = 4, .BorderW = 2, .PaddingW = 2 });
+  ::ui::box_props StdMarginBoxProps = ::ui::box_props({ .MarginW = 2, .BorderW = 0, .PaddingW = 0 });
+  cs::div_style StdDivStyle = cs::div_style({ .SpaceColor = {0.35}, .BorderColor = {0.75} });
+
 
   ::ui::render_2d &Render2d;
   ::ui::canvas Canvas;
-  std::vector<cs::slider *> Sliders;
+
+  /* Create value function - test component */
+  ::ui::entity * CreateValue( const std::string &Name )
+  {
+    std::string Prefix = std::format("Value {} ", Name);
+
+    return
+      Create<cs::div, ::ui::entity_props<BYTE, cs::div_style>>({
+        .Id = Prefix + "main bar",
+        .LayoutType = ::ui::layout_type::eFlexColumn,
+        .BoxProps = StdDivBoxProps,
+        .Style = StdDivStyle
+      }, {
+        Create<cs::div, ::ui::entity_props<BYTE, cs::div_style>>({
+          .Id = Prefix + "first slider bar",
+          .LayoutType = ::ui::layout_type::eFlexRow,
+          .BoxProps = StdMarginBoxProps,
+          .Style = StdDivStyle,
+        }, {
+          Create<cs::text, ::ui::entity_props<cs::text_props, cs::text_style>>({
+            .Id = Prefix + "first slider bar text",
+            .Flex = { .Grow = 1 },
+            .BoxProps = StdDivBoxProps,
+            .Props = { .Str = "First slider" },
+            .Style = { .Color = ::ui::vec3(1) }
+          }),
+          Create<cs::slider, cs::slider_props>({
+            .Id = Prefix + "first slider bar slider",
+            .Size = {200, 30},
+            .Style = {
+              .Track = { .Space = { .DefColor = ::ui::vec3::Rnd0() }, .Border = { .DefColor = ::ui::vec3::Rnd0() } },
+              .Thumb = { .Space = { .DefColor = ::ui::vec3::Rnd0() }, .Border = { .DefColor = ::ui::vec3::Rnd0() } }
+            },
+          }),
+        }), // First slider bar
+        Create<cs::div, ::ui::entity_props<BYTE, cs::div_style>>({
+          .Id = Prefix + "second button bar",
+          .LayoutType = ::ui::layout_type::eFlexRow,
+          .BoxProps = StdMarginBoxProps,
+          .Style = StdDivStyle,
+        }, {
+          Create<cs::text, ::ui::entity_props<cs::text_props, cs::text_style>>({
+            .Id = Prefix + "second button bar text",
+            .Flex = { .Grow = 1 },
+            .BoxProps = StdDivBoxProps,
+            .Props = { .Str = "Second button" },
+            .Style = { .Color = ::ui::vec3(1) }
+          }),
+          Create<cs::button, ::ui::entity_props<cs::button_props, cs::button_style>>({
+            .Id = "second button bar button",
+            .Size = 30, 
+            .Flex = { .Basis = ::ui::flex_basis_type::eFixed },
+            .BoxProps = StdDivBoxProps,
+            .Props = { .IsPress = true, .OnChangeCallBack = []( cs::button *Button ){ ::ui::Log(std::format("New value: {}", Button->GetValue() )); } },
+          }),
+        }), // Second button bar
+        Create<cs::div, ::ui::entity_props<BYTE, cs::div_style>>({
+          .Id = Prefix + "third range bar",
+          .LayoutType = ::ui::layout_type::eFlexRow,
+          .BoxProps = StdMarginBoxProps,
+          .Style = StdDivStyle,
+        }, {
+          Create<cs::text, ::ui::entity_props<cs::text_props, cs::text_style>>({
+            .Id = Prefix + "third range bar text",
+            .Flex = { .Grow = 1 },
+            .BoxProps = StdDivBoxProps,
+            .Props = { .Str = "Third range" },
+            .Style = { .Color = ::ui::vec3(1) }
+          }),
+          Create<cs::range, cs::range_props>({
+            .Id = Prefix + "third range bar range",
+            .Size = {200, 30},
+            .Style = {
+              .Left  = { .Space = { .DefColor = ::ui::vec3::Rnd0() } },
+              .Right = { .Space = { .DefColor = ::ui::vec3::Rnd0() } }
+            },
+          }),
+        }), // Third bar
+      }); // Main bar
+  } /* End of 'CreateValue' function */
+
+  //std::vector<cs::slider *> Sliders;
 
   /* Contructor function */
   test( ::ui::render_2d &NewRender2d, const ::ui::isize2 &Size ) :
     Render2d(NewRender2d),
-    Canvas(NewRender2d, 0, Size, { .Type = ::ui::layout_type::eFlexRow }, {})
+    Canvas(NewRender2d, 0, Size, ::ui::layout_type::eFlexRow, {})
   {
     std::vector<::ui::entity *> ListDivs;
 
+    std::vector<::ui::entity *> Values;
+
     for (UINT i = 0; i < 30; i++)
-    {
-      auto *SliderPtr = new cs::slider({
-        .Id = std::format("Slider 1.2.{}.2.1", i + 1),
-        .Pos = {0},
-        .Size = {200, 30},
-        .Style = { .Track = { .Space = { .DefColor = ::ui::vec3::Rnd0() }, .Border = { .DefColor = ::ui::vec3::Rnd0() } },
-                   .Thumb = { .Space = { .DefColor = ::ui::vec3::Rnd0() }, .Border = { .DefColor = ::ui::vec3::Rnd0() } }},
-        });
-
-      Sliders.push_back(SliderPtr);
-
-      ListDivs.push_back(new cs::div({
-        .Id = std::format("Div 1.2.{}", i + 1),
-        .LayoutProps = { .Type = ::ui::layout_type::eFlexRow, .Flex = 0, .MinSize = 100 },
-        .BoxProps = StdDivProps,
-        .Style = { .SpaceColor = ::ui::vec3::Rnd0(), .BorderColor = ::ui::vec3::Rnd0() }
-        }, {
-        new cs::div({
-          .Id = std::format("Div 1.2.{}.1", i + 1),
-          .LayoutProps = { .Flex = 0, .MinSize = 30 },
-          .BoxProps = StdDivProps,
-          .Style = { .SpaceColor = ::ui::vec3::Rnd0(), .BorderColor = ::ui::vec3::Rnd0() }
-          }),
-        new cs::div({
-          .Id = std::format("Div 1.2.{}.2", i + 1),
-          .LayoutProps = { .Flex = 1, .MinSize = 30 },
-          .BoxProps = StdDivProps,
-          .Style = { .SpaceColor = ::ui::vec3::Rnd0(), .BorderColor = ::ui::vec3::Rnd0() }
-          }, {
-            SliderPtr,
-            new cs::range({
-            .Id = std::format("Range 1.2.{}.2.1", i + 1),
-            .Pos = {0, 40},
-            .Size = {200, 30},
-            .Style = { .Left =  { .Space = { .DefColor = ::ui::vec3::Rnd0() } },
-                       .Right = { .Space = { .DefColor = ::ui::vec3::Rnd0() } }},
-            })
-          }),
-        new cs::empty({
-          .Id = std::format("Emtpy 1.2.{}.3", i + 1),
-          .LayoutProps = { .Flex = 0 },
-          }, {
-            new cs::button({
-            .Id = std::format("Button 1.2.{}.3.1", i + 1),
-            .LayoutProps = { .Flex = 0, .MinSize = 30, .MaxSize = 30 },
-            .Props = { .IsPress = true, .OnChangeCallBack = []( BOOL NewValue ){ ::ui::Log(std::format("New value: {}", NewValue )); } },
-            }),
-            new cs::button({
-            .Id = std::format("Button 1.2.{}.3.2", i + 1),
-            .LayoutProps = { .Flex = 0, .MinSize = 30, .MaxSize = 30 },
-            .Props = { .OnClickCallBack = []( VOID ){ ::ui::Log(std::format("FUCK")); } },
-            }),
-          }),
-        }));
-    }
+      Values.push_back(CreateValue(std::format("{}", i)));
 
     Canvas.GetRoot()->AddChildren({
-      new cs::div({ .Id = "Left bar", .LayoutProps = { .MinSize = {30} }, .BoxProps = { .MarginW = 0, .BorderW = 2, .PaddingW = 2 }, .Style = StdDivStyle }, {}),
-      new cs::div({ .Id = "Div 1", .LayoutProps = { .Type = ::ui::layout_type::eFlexRow, .Flex = 1 }, .BoxProps = { .MarginW = 0, .BorderW = 0, .PaddingW = 2 }, .Style = StdDivStyle }, {
-        new cs::div({ .Id = "Div 1.1", .LayoutProps = { .Type = ::ui::layout_type::eFlexRow, .Flex = 1 }, .BoxProps = StdDivProps, .Style = StdDivStyle }, {
-          new cs::div({ .Id = "Div 1.1.1", .LayoutProps = { .Type = ::ui::layout_type::eFlexRow, .Flex = 2, .IsScrollable = true }, .BoxProps = StdDivProps, .Style = { .SpaceColor = ::ui::vec3::Rnd0(), .BorderColor = ::ui::vec3::Rnd0() } }, {
-            new cs::text({ .Id = "Text 1.1.1.1", .LayoutProps = { .Flex = 1 }, .Props = { .Str =
-              //"Hi, my dear fried. Here there is a small description of my user interface.\nMy user interface has different props:\n'Div' - it is a box control, analog of html div. It has just space and border color which can be set by the user.\n'Button' - simple press button.\n'Slider' - now it is just a slider that changes value from 0 to 1.\n'Text' - just text you see.\n\nThank you for reading this shit. :)"
-              "Maecenas luctus felis fermentum, posuere orci pharetra, viverra nulla. Duis id ullamcorper magna, ut luctus sem. Phasellus congue nisl quis magna auctor, id molestie sem mollis. Proin imperdiet vulputate augue eget consequat. Quisque accumsan metus eros, ac congue tortor pharetra et. Nam quis lorem rutrum, hendrerit urna nec, condimentum ante. Vestibulum ante ipsum primis in faucibus orci luctus et ultrices posuere cubilia curae; Proin sodales elit vitae dui egestas, tincidunt elementum lectus lobortis. Donec ultricies tortor augue, vel viverra elit rutrum non. Morbi maximus urna viverra, congue metus eget, lacinia massa. In feugiat leo luctus purus malesuada accumsan."
-              }, .Style = { .Color = 0 } }),
+      Create<cs::div, ::ui::entity_props<BYTE, cs::div_style>>({
+        .Id = "Main bar",
+        .Pos = {100},
+        .Size = {300, 200},
+        .LayoutType = ::ui::layout_type::eFlexRow,
+        .Flex = { .Grow = 1, .Shrink = 1 },
+        .BoxProps = StdDivBoxProps,
+        .Style = StdDivStyle
+      }, {
+        Create<cs::div, ::ui::entity_props<BYTE, cs::div_style>>({
+          .Id = "Value list",
+          .LayoutType = ::ui::layout_type::eFlexColumn,
+          .Overflow = ::ui::overflow_type::eScroll,
+          .Flex = { .Grow = 2 },
+          .BoxProps = StdDivBoxProps,
+          .Style = StdDivStyle,
+        }, Values),
+        Create<cs::text, ::ui::entity_props<cs::text_props, cs::text_style>>({
+          .Id = "Text2",
+          .Flex = { .Grow = 1, .Shrink = 1 },
+          .BoxProps = StdDivBoxProps,
+          .Props = {
+            .Str = "Some text" //"I pounder of something great, my lungs will fill and then deflate. They fill with fire, exhale desire, I know it's dire my time today."
+          },
+          .Style = { .Color = ::ui::vec3(1) } }),
+        Create<cs::div, ::ui::entity_props<BYTE, cs::div_style>>({
+          .Id = "Button bar",
+          .LayoutType = ::ui::layout_type::eFlexColumn,
+          .Overflow = ::ui::overflow_type::eScroll,
+          .BoxProps = StdDivBoxProps,
+          .Style = StdDivStyle,
+        }, {
+          Create<cs::div, ::ui::entity_props<BYTE, cs::div_style>>({
+            .Id = "Button bar 1",
+            .LayoutType = ::ui::layout_type::eFlexRow,
+            .BoxProps = StdDivBoxProps,
+            .Style = StdDivStyle,
+          }, {
+            Create<cs::button, ::ui::entity_props<cs::button_props, cs::button_style>>({
+              .Id = "Button 1.1",
+              .Size = 30, 
+              .Flex = { .Basis = ::ui::flex_basis_type::eFixed },
+              .BoxProps = StdDivBoxProps,
+              .Props = { .IsPress = true, .OnChangeCallBack = []( cs::button *Button ){ ::ui::Log(std::format("New value: {}", Button->GetValue() )); } },
             }),
-          new cs::div({ .Id = "Div 1.1.2", .LayoutProps = { .Flex = 1 }, .BoxProps = StdDivProps, .Style = { .SpaceColor = ::ui::vec3::Rnd0(), .BorderColor = ::ui::vec3::Rnd0() } }, {}),
+            Create<cs::button, ::ui::entity_props<cs::button_props, cs::button_style>>({
+              .Id = "Button 1.2",
+              .Size = 30, 
+              .Flex = { .Basis = ::ui::flex_basis_type::eFixed },
+              .BoxProps = StdDivBoxProps,
+              .Props = { .IsPress = true, .OnChangeCallBack = []( cs::button *Button ){ ::ui::Log(std::format("New value: {}", Button->GetValue() )); } },
+            }),
           }),
-        new cs::div({ .Id = "Div 1.2", .LayoutProps = { .Type = ::ui::layout_type::eFlexColumn, .Flex = 1, .IsScrollable = true }, .BoxProps = StdDivProps, .Style = StdDivStyle }, ListDivs),
-        }),
-      new cs::div({ .Id = "Right bar", .LayoutProps = { .MinSize = {30} }, .BoxProps = { .MarginW = 0, .BorderW = 2, .PaddingW = 2 }, .Style = StdDivStyle }, {}),
+          Create<cs::button, ::ui::entity_props<cs::button_props, cs::button_style>>({
+            .Id = "Button 1",
+            .Size = 30, 
+            .Flex = { .Basis = ::ui::flex_basis_type::eFixed },
+            .BoxProps = StdDivBoxProps,
+            .Props = { .IsPress = true, .OnChangeCallBack = []( cs::button *Button ){ ::ui::Log(std::format("New value: {}", Button->GetValue() )); } },
+            }),
+          Create<cs::button, ::ui::entity_props<cs::button_props, cs::button_style>>({
+            .Id = "Button 2",
+            .Size = 30,
+            .Flex = { .Basis = ::ui::flex_basis_type::eFixed },
+            .BoxProps = StdDivBoxProps,
+            .Props = { .IsPress = true, .OnChangeCallBack = []( cs::button *Button ){ ::ui::Log(std::format("New value: {}", Button->GetValue() )); } },
+          }),
+          Create<cs::slider, cs::slider_props>({
+            .Id = "Slider 1",
+            .Size = {200, 30},
+            .Style = {
+              .Track = { .Space = { .DefColor = ::ui::vec3::Rnd0() }, .Border = { .DefColor = ::ui::vec3::Rnd0() } },
+              .Thumb = { .Space = { .DefColor = ::ui::vec3::Rnd0() }, .Border = { .DefColor = ::ui::vec3::Rnd0() } }
+            },
+          }),
+        }), // Button bar
+      }), // Main bar
     });
   } /* End of 'test' function */
 
@@ -209,10 +313,11 @@ namespace tmp
     VOID OnWheel( INT WheelDelta )
     {
       ivec2 MousePos = GetMousePos();
-      // auto Start = std::chrono::high_resolution_clock::now();
+
+      auto Start = std::chrono::high_resolution_clock::now();
       Test.Canvas.OnMouseMove({0, 0, WheelDelta / 5}, MousePos);
-      // auto End = std::chrono::high_resolution_clock::now();
-      // std::cout << std::format("On mouse wheel time {} microseconds.\n", std::chrono::duration_cast<std::chrono::microseconds>(End - Start));
+      auto End = std::chrono::high_resolution_clock::now();
+      std::cout << std::format("On mouse wheel time {} microseconds.\n", std::chrono::duration_cast<std::chrono::microseconds>(End - Start));
     } /* End of 'OnWheel' function */
 
     /* Ray tracing main render function

@@ -184,7 +184,6 @@ namespace tmp
     {
       static unsigned long long FrameCounter = 0;
 
-      Fr.Display(hMemDC, hBm);
       
       if (!ResizeFlag)
         StdScene.Render(Fr);
@@ -194,6 +193,7 @@ namespace tmp
         
       GetClientRect(hWnd, &ClientRect);
 
+      Fr.Display(hMemDC, hBm);
       BitBlt(hDC,
         0, 0,
         ClientRect.right - ClientRect.left, ClientRect.bottom - ClientRect.top,

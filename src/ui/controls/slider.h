@@ -1,6 +1,9 @@
+#include <sstream>
+
 #ifndef __ui_controls_slider_h_
 #define __ui_controls_slider_h_
 
+#include "../frame_render.h"
 #include "../entity.h"
 
 namespace ui
@@ -33,7 +36,10 @@ namespace ui
 
     struct full_slider_props : slider_props
     {
-      layout_props LayoutProps {};
+      layout_type LayoutType = layout_type::eBlock;
+      overflow_type Overflow = overflow_type::eHidden;
+      flex_props Flex = { .Basis = flex_basis_type::eFixed };
+
       box_props BoxProps { .MarginW = 2, .BorderW = 2 };
     }; /* End of 'full_slider_props' struct */
 
@@ -44,7 +50,6 @@ namespace ui
         Min = 0,
         Max = 1,
         Value = 0.5;
-      INT ThumbW = 0;
       slider_style Style {};
 
     public:
@@ -57,13 +62,12 @@ namespace ui
         Max(NewProps.Max),
         Value(NewProps.Value)
       {
-        ThumbW = Size.H - BoxProps.BorderW * 2;
       } /* End of 'slider' function */
 
       VOID UpdateValue( const ivec2 &LocalMousePos )
       {
-        FLT TrackL = BorderSize.W - ThumbW;
-        Value = Min + ((FLT)LocalMousePos.X - ThumbW / 2) / TrackL * (Max - Min);
+        FLT TrackL = BorderSize.W - BorderSize.H;
+        Value = Min + ((FLT)LocalMousePos.X - BorderSize.H / 2) / TrackL * (Max - Min);
         Value = std::clamp(Value, Min, Max);
       }
       
@@ -88,12 +92,12 @@ namespace ui
       /* On draw event function */
       VOID OnDraw( VOID ) override
       {
-        ivec2 ThumbRelativePos = ivec2((INT)((Value - Min) / (Max - Min) * (BorderSize.W - ThumbW)), 0);
+        ivec2 ThumbRelativePos = ivec2((INT)((Value - Min) / (Max - Min) * (BorderSize.W - BorderSize.H)), 0);
         
         // Track
         Canvas->Render2d.PutBar(GlobalPos, Size, ToRGB(Style.Track.Border.DefColor), ToRGB(Style.Track.Space.DefColor), BoxProps.BorderW, SelfDrawMask);
         // Thumb
-        Canvas->Render2d.PutBar(GlobalPos + ThumbRelativePos + ivec2(BoxProps.BorderW), isize2(ThumbW), ToRGB(Style.Thumb.Border.DefColor), ToRGB(Style.Thumb.Space.DefColor), BoxProps.BorderW, SelfDrawMask);
+        Canvas->Render2d.PutBar(GlobalPos + ThumbRelativePos + ivec2(BoxProps.BorderW), isize2(BorderSize.H), ToRGB(Style.Thumb.Border.DefColor), ToRGB(Style.Thumb.Space.DefColor), BoxProps.BorderW, SelfDrawMask);
         
         std::ostringstream Str;
 

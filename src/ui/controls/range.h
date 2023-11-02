@@ -1,6 +1,9 @@
+#include <sstream>
+
 #ifndef __ui_controls_range_h_
 #define __ui_controls_range_h_
 
+#include "../frame_render.h"
 #include "../entity.h"
 
 namespace ui
@@ -33,7 +36,10 @@ namespace ui
 
     struct full_range_props : range_props
     {
-      layout_props LayoutProps {};
+      layout_type LayoutType = layout_type::eBlock;
+      overflow_type Overflow = overflow_type::eHidden;
+      flex_props Flex = { .Basis = flex_basis_type::eFixed };
+
       box_props BoxProps { .MarginW = 2, .BorderW = 2 };
     }; /* End of 'full_range_props' struct */
 

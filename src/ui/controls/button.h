@@ -27,12 +27,14 @@ namespace ui
         ActiveBColor =  {0.8};        // Active state border color
     }; /* End of 'button_style' struct */
 
+    class button;
+
     /* Button props struct */
     struct button_props
     {
       BOOL IsPress = 0;
-      std::function<VOID( VOID )> OnClickCallBack {[](){}};
-      std::function<VOID( BOOL NewValue )> OnChangeCallBack {[]( BOOL NewValue ){}};
+      std::function<VOID ( button *Button )> OnClickCallBack {[]( button *Button ){}};
+      std::function<VOID ( button *Button )> OnChangeCallBack {[]( button *Button ){}};
     }; /* End of 'div_props' struct */
 
     /* Button class */
@@ -51,16 +53,22 @@ namespace ui
         Props(NewProps.Props)
       {
       } /* End of 'button' function */
-      
+
+      /* Value getter function */
+      BOOL GetValue( VOID ) const
+      {
+        return Value;
+      } /* End of 'GetValue' function */
+
       BOOL OnClick( const ivec2 &LocalMousePos ) override
       {
         if (Props.IsPress)
         {
           Value = !Value;
-          Props.OnChangeCallBack(Value);
+          Props.OnChangeCallBack(this);
         }
         else
-          Props.OnClickCallBack();
+          Props.OnClickCallBack(this);
 
         return true;
       } /* End of 'OnClick' function */

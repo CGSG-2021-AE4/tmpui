@@ -21,7 +21,6 @@ namespace ui
     struct text_props
     {
       BOOL IsSingleLine {false};
-      text_style Style {};
       std::string Str {""};
     }; /* End of 'div_props' struct */
 
@@ -45,11 +44,16 @@ namespace ui
         IsBackgroundTransparent = true;
       } /* End of 'text' function */
 
+      isize2 GetMaxContent( VOID ) override
+      {
+        return {(INT)Str.size() * render_2d::FontW + Style.Padding.X, render_2d::FontH};
+      } /* End of 'UpdateMinMaxContent' function */
+
       VOID UpdateLines( VOID )
       {
         INT CharsPerLine = (INT)((Size.W - Style.Padding.X * 2) / render_2d::FontW);
 
-        if (Props.IsSingleLine || CharsPerLine == 0)
+        if (Props.IsSingleLine || CharsPerLine <= 0)
         {
           Lines = {Str};
           return;
@@ -57,12 +61,12 @@ namespace ui
 
         Lines.clear();
 
-        INT PrevWordStart = 0, PrevWordEnd = 0;
+        INT PrevWordStart = -1, PrevWordEnd = -1;
 
         for (INT LineStartOffset = 0; LineStartOffset < (INT)Str.size();)
         {
           INT Offset = LineStartOffset;
-          BOOL IsPrevCSpace = 0;
+          BOOL IsPrevCSpace = 1;
 
           while (Offset < (INT)Str.size() && Offset - LineStartOffset < CharsPerLine && Str[Offset] != '\n')
           {
@@ -110,14 +114,15 @@ namespace ui
       virtual VOID OnResize( VOID )
       {
         UpdateLines();
-        LayoutProps.MinSize.H = render_2d::FontH * (INT)Lines.size();
       } /* End of 'OnResize' function */
       
       /* On draw event function */
       VOID OnDraw( VOID ) override
       {
+        Canvas->Render2d.PutBar(GlobalPos, Size, ToRGB(vec3(0.8)), ToRGB(vec3(0.6)), BoxProps.BorderW, SelfDrawMask);
+
         for (INT Line = 0; Line < (INT)Lines.size(); Line++)
-          Canvas->Render2d.PutStr(Lines[Line], GlobalPos + ivec2(0, Line * render_2d::FontH), Size, Style.Padding, Style.LayoutFlags, 0, SelfDrawMask);
+          Canvas->Render2d.PutStr(Lines[Line], GlobalContentPos + ivec2(0, Line * render_2d::FontH), InnerSize, Style.Padding, Style.LayoutFlags, 0, SelfDrawMask);
       } /* End of 'OnDraw' function */
 
       /* Set text function */
@@ -125,9 +130,9 @@ namespace ui
       {
         Str = NewStr;
         OnResize();
-        if (Parent != nullptr)
-          Parent->UpdateChildrenLayout();
-        Redraw();
+        //UpdateMinMaxContentRec();
+        OnUpdateContent();
+        //Redraw();
       } /* End of 'SetStr' function */
 
     }; /* End of 'text' class */

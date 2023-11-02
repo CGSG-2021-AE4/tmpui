@@ -7,7 +7,7 @@
 
 #include "props.h"
 
-//#define ENABLE_PATH_LOG
+#define ENABLE_PATH_LOG
 
 // Some real kal
 using namespace tmp;
@@ -30,7 +30,7 @@ namespace ui
   class entity
   {
     /* Values */
-  protected:
+  public:
 
     // Info
 
@@ -49,9 +49,11 @@ namespace ui
     isize2
       Size {0},                            // Size
       BorderSize {0},                      // Border size
-      ContentSize {0},                     // Content size
-      CompContentSize {0},                 // Computed content size
-      MarginSize {0};                      // Margin size
+      InnerSize {0},                       // Content size
+      OuterSize {0},                       // Margin size
+      ContentSize {0},                     // Computed content size
+      MaxContent,
+      MinContent;
 
     // Masks
 
@@ -76,11 +78,10 @@ namespace ui
 
     BOOL IsVisible;                        // Is entity visible
 
-    layout_props LayoutProps {};           // Props of entity's layout
+    layout_type LayoutType {layout_type::eBlock};
+    overflow_type Overflow {overflow_type::eHidden};
+    flex_props Flex {};
     box_props BoxProps {};                 // Props of entity's box
-    FLT ChildrenFlexSum = 0;               // Sum of children's flex values (is used only with FlexRow/FlexColumn flex type)
-    isize2 ChildrenFlex0Size = 0;          // Sum of min sizes of children with flex 0
-    BOOL IsScrollable = 0;                 // Can the entity be scrolled
     BOOL IsBackgroundTransparent = 0;      // If the background is transparent entity's parent should also be redrawn 
 
     /* Events */
@@ -162,15 +163,22 @@ namespace ui
       return {GlobalPos, Size};
     } /* End of 'GetSelfMask' function */
 
-    virtual mask GetContentMask( const ivec2 &GlobalContentPos, const isize2 &ContentSize )
+    virtual mask GetContentMask( const ivec2 &GlobalContentPos, const isize2 &InnerSize )
     {
-      return {GlobalContentPos, ContentSize};
+      return {GlobalContentPos, InnerSize};
     } /* End of 'GetContentMask' function */
 
-    virtual isize2 GetMinSize( const isize2 &PreferedtSize )
+    /* Get min content virtual function */
+    virtual isize2 GetMinContent( VOID )
     {
-      return LayoutProps.MinSize;
-    } /* End of 'GetMinSize' function */
+      return 0;
+    } /* End of 'GetMinContent' function */
+
+    /* Get max content virtual function */
+    virtual isize2 GetMaxContent( VOID )
+    {
+      return 0;
+    } /* End of 'GetMaxContent' function */
 
     /* ****** Inline event functions (interlayer) ******
      * Functions return (entity *) - pointer to entity to redraw or nullptr. It could be the upper level entity because of event bubbling. The pointer to entity may be used later for draw.
@@ -215,7 +223,7 @@ namespace ui
     inline entity * OnMouseMoveEvent( const ivec3 &Delta, const ivec2 &LocalMousePos )
     {
       //Log(std::format("${} OnMouseMove event.", Id));
-      if (LayoutProps.IsScrollable && Delta.Z != 0) // May be later I'l add a check with the content mask
+      if (Overflow == overflow_type::eScroll && Delta.Z != 0) // May be later I'l add a check with the content mask
       {
         // Scroll response
         ivec2 DeltaMove = {0, Delta.Z}; // Some temp shit
@@ -223,8 +231,8 @@ namespace ui
         // Clamping
         auto OldContentOffset = ContentOffset;
 
-        ContentOffset = {std::clamp(ContentOffset.X + DeltaMove.X, ContentSize.W - CompContentSize.W, 0),
-                         std::clamp(ContentOffset.Y + DeltaMove.Y, ContentSize.H - CompContentSize.H, 0)};
+        ContentOffset = {std::clamp(ContentOffset.X + DeltaMove.X, InnerSize.W - ContentSize.W > 0 ? 0 : InnerSize.W - ContentSize.W, 0),
+                         std::clamp(ContentOffset.Y + DeltaMove.Y, InnerSize.H - ContentSize.H > 0 ? 0 : InnerSize.H - ContentSize.H, 0)};
         
         if (OldContentOffset == ContentOffset)
           return nullptr;
@@ -279,166 +287,187 @@ namespace ui
      *       const isize2 &NewSize;
      *   - props:
      *       const props_type &Props;
-     *   - children:
-     *       const std::vector<entity *> &NewChildren;
-     *   - parent:
-     *       entity *NewParent;
      */
     template<typename props_type>
-      entity( const props_type &Props, const std::vector<entity *> &NewChildren = {}, entity *NewParent = nullptr ) :
-        Parent(NewParent),
+      entity( const props_type &Props ) : // I removed NewChildren and NewParent because they call virtual function
         IsVisible(true)
       {
-#ifdef ENABLE_PATH_LOG
-        Log(std::format("Entity {} constructor.", Id));
-#endif // ENABLE_PATH_LOG
-
         // Setup info from props
 
         if constexpr (requires { Props.Id; })
           Id = Props.Id;
-        if constexpr (requires { Props.LayoutProps; })
-          LayoutProps = Props.LayoutProps;
-        if constexpr (requires { Props.BoxProps; })
-          BoxProps = Props.BoxProps;
         if constexpr (requires { Props.Pos; })
           SetPos(Props.Pos);
         if constexpr (requires { Props.Size; })
           SetSize(Props.Size);
-        
+        if constexpr (requires { Props.LayoutType; })
+          LayoutType = Props.LayoutType;
+        if constexpr (requires { Props.Overflow; })
+          Overflow = Props.Overflow;
+        if constexpr (requires { Props.Flex; })
+          Flex = Props.Flex;
+        if constexpr (requires { Props.BoxProps; })
+          BoxProps = Props.BoxProps;
+
+#ifdef ENABLE_PATH_LOG
+        Log(std::format("Entity {} constructor.", Id));
+#endif // ENABLE_PATH_LOG
+
         OnMove();
         OnResize();
-
-        SetParent(NewParent);
-        AddChildren(NewChildren);
-        UpdateShape();
       } /* End of 'entity' function */
 
   protected:
     /* Entity desctrictor function */
     virtual ~entity( VOID )
     {
-//#ifdef ENABLE_PATH_LOG
+#ifdef ENABLE_PATH_LOG
       Log(std::format("Entity {} Destructor.", Id));
-//#endif // ENABLE_PATH_LOG
+#endif // ENABLE_PATH_LOG
 
       // SOME REAL SHIT
       for (entity *c : Children)
         delete c;
       Children.clear();
     } /* End of '~entity' function */
+  
+  public:
 
-    /* Update min size function */
-    // const isize2 & UpdateMinSize( const isize2 &PreferedSize )
-    // {
-    //   if (LayoutProps.Type == layout_type::eFlexRow)
-    //   {
-    //     LayoutProps.MinSize = 0;
-    //     for (entity *c : Children)
-    //     {
-    //       const isize2 &ChildMinSize = c->UpdateMinSize({0, PreferedSize.H});
-    //       LayoutProps.MinSize.W += ChildMinSize.W;
-    //       LayoutProps.MinSize.H = std::max(LayoutProps.MinSize.H, ChildMinSize.H);
-    //     }
-    //   }
-    //   else if (LayoutProps.Type == layout_type::eFlexColumn)
-    //   {
-    //     LayoutProps.MinSize = 0;
-    //     for (entity *c : Children)
-    //     {
-    //       const isize2 &ChildMinSize = c->UpdateMinSize({PreferedSize.W, 0});
-    //       LayoutProps.MinSize.W = std::max(LayoutProps.MinSize.W, ChildMinSize.W);
-    //       LayoutProps.MinSize.H += ChildMinSize.H;
-    //     }
-    //   }
-    //   else if (LayoutProps.Type == layout_type::eBlock)
-    //   {
-    //     LayoutProps.MinSize = GetMinSize(PreferedSize);
-    //   }
-    // } /* End of 'UpdateMinSize' function */
-    // 
-    public:
+    /* Get prefered outer size function */
+    isize2 GetPreferedSize( VOID )
+    {
+      switch (Flex.Basis)
+      {
+      case flex_basis_type::eFixed:
+        return OuterSize;
+      case flex_basis_type::eMaxContent:
+        return MaxContent + isize2(BoxProps.PaddingW + BoxProps.BorderW + BoxProps.MarginW) * 2;
+      }
+      return 0;
+    } /* End of 'GetPreferedSize' function */
+
     /* Update children layout function */
     VOID UpdateChildrenLayout( VOID )
     {
-      if (LayoutProps.Type == layout_type::eFlexRow)
+      if (LayoutType == layout_type::eFlexRow)
       {
-        INT ContentFlexSizeW = ContentSize.W - ChildrenFlex0Size.W;
+        INT
+          MainSizeWSum = 0,
+          FlexGrow0ChildrenW = 0,
+          FlexShrink0ChildrenW = 0;
+        FLT
+          FlexGrowSum = 0,
+          FlexShrinkSum = 0;
 
-        CompContentSize = {};
-        if (ChildrenFlexSum == 0)
+        for (entity *Child : Children)
         {
-          INT Offset = 0;
-          isize2 NewSize;
+          isize2 ChildPreferedSize = Child->GetPreferedSize();
 
-          for (entity *c : Children)
+          MainSizeWSum += ChildPreferedSize.W;
+          FlexGrow0ChildrenW   += ChildPreferedSize.W * (Child->Flex.Grow > 0);
+          FlexShrink0ChildrenW += ChildPreferedSize.W * (Child->Flex.Shrink > 0);
+          FlexGrowSum   += Child->Flex.Grow;
+          FlexShrinkSum += Child->Flex.Shrink;
+        }
+
+        if (MainSizeWSum <= InnerSize.W)
+        {
+          // Stretch out
+          
+          INT RestW = InnerSize.W - MainSizeWSum;
+          INT Offset = 0;
+
+          ContentSize = 0;
+          for (entity *Child : Children)
           {
-            NewSize = Clamp({c->LayoutProps.MinSize.W, ContentSize.H}, c->LayoutProps.MinSize, c->LayoutProps.MaxSize);
-            c->Reform({Offset, 0}, NewSize);
-            Offset += NewSize.W;
-            CompContentSize.W += NewSize.W;
-            CompContentSize.H = std::max(CompContentSize.H, NewSize.H);
+            isize2 ChildSize = {Child->GetPreferedSize().W + (FlexGrowSum == 0 ? 0 : ((INT)(Child->Flex.Grow / FlexGrowSum * RestW))), InnerSize.H};
+            Child->Reform({Offset, 0}, ChildSize);
+            Offset += ChildSize.W;
+            ContentSize.W += ChildSize.W;
+            ContentSize.H  = std::max(ContentSize.H, ChildSize.H);
           }
         }
         else
         {
+          // Compress
+          INT RestW = InnerSize.W - MainSizeWSum;
           INT Offset = 0;
-          isize2 NewSize;
 
-          for (entity *c : Children)
+          ContentSize = 0;
+          for (entity *Child : Children)
           {
-            NewSize = Clamp({(INT)(c->LayoutProps.Flex / ChildrenFlexSum * ContentFlexSizeW), ContentSize.H}, c->LayoutProps.MinSize, c->LayoutProps.MaxSize);
-            c->Reform({Offset, 0}, NewSize);
-            Offset += NewSize.W;
-            CompContentSize.W += NewSize.W;
-            CompContentSize.H = std::max(CompContentSize.H, NewSize.H);
+            isize2 ChildSize = {Child->GetPreferedSize().W + (FlexShrinkSum == 0 ? 0 : ((INT)(Child->Flex.Shrink / FlexShrinkSum * RestW))), InnerSize.H};
+            Child->Reform({Offset, 0}, ChildSize);
+            Offset += ChildSize.W;
+            ContentSize.W += ChildSize.W;
+            ContentSize.H  = std::max(ContentSize.H, ChildSize.H);
           }
         }
       }
-      else if (LayoutProps.Type == layout_type::eFlexColumn)
+      else if (LayoutType == layout_type::eFlexColumn)
       {
-        CompContentSize = {};
+        INT
+          MainSizeHSum = 0,
+          FlexGrow0ChildrenH = 0,
+          FlexShrink0ChildrenH = 0;
+        FLT
+          FlexGrowSum = 0,
+          FlexShrinkSum = 0;
 
-        INT ContentFlexSizeH = ContentSize.H - ChildrenFlex0Size.H;
-        if (ChildrenFlexSum == 0)
+        for (entity *Child : Children)
         {
-          INT Offset = 0;
-          isize2 NewSize;
+          isize2 ChildPreferedSize = Child->GetPreferedSize();
 
-          for (entity *c : Children)
+          MainSizeHSum += ChildPreferedSize.W;
+          FlexGrow0ChildrenH   += ChildPreferedSize.W * (Child->Flex.Grow > 0);
+          FlexShrink0ChildrenH += ChildPreferedSize.W * (Child->Flex.Shrink > 0);
+          FlexGrowSum   += Child->Flex.Grow;
+          FlexShrinkSum += Child->Flex.Shrink;
+        }
+
+        if (MainSizeHSum <= InnerSize.H)
+        {
+          // Stretch out
+
+          INT RestH = InnerSize.H - MainSizeHSum;
+          INT Offset = 0;
+
+          ContentSize = 0;
+          for (entity *Child : Children)
           {
-            NewSize = Clamp({ContentSize.W, c->LayoutProps.MinSize.H}, c->LayoutProps.MinSize, c->LayoutProps.MaxSize);
-            c->Reform({0, Offset}, NewSize);
-            Offset += NewSize.H;
-            CompContentSize.H += NewSize.H;
-            CompContentSize.W = std::max(CompContentSize.W, NewSize.W);
+            isize2 ChildSize = {InnerSize.W, Child->GetPreferedSize().H + (FlexGrowSum == 0 ? 0 : ((INT)(Child->Flex.Grow / FlexGrowSum * RestH)))};
+            Child->Reform({0, Offset}, ChildSize);
+            Offset += ChildSize.H;
+            ContentSize.W = std::max(ContentSize.W, ChildSize.W);
+            ContentSize.H += ChildSize.H;
           }
         }
         else
         {
+          // Compress
+
+          INT RestH = InnerSize.H - MainSizeHSum;
           INT Offset = 0;
-          isize2 NewSize;
 
-
-          for (entity *c : Children)
+          ContentSize = 0;
+          for (entity *Child : Children)
           {
-            NewSize = Clamp({ContentSize.W, (INT)(c->LayoutProps.Flex / ChildrenFlexSum * ContentFlexSizeH)}, c->LayoutProps.MinSize, c->LayoutProps.MaxSize);
-            c->Reform({0, Offset}, NewSize);
-            Offset += NewSize.H;
-            CompContentSize.H += NewSize.H;
-            CompContentSize.W = std::max(CompContentSize.W, NewSize.W);
+            isize2 ChildSize = {InnerSize.W, Child->GetPreferedSize().H + (FlexShrinkSum == 0 ? 0 : ((INT)(Child->Flex.Shrink / FlexShrinkSum * RestH)))};
+            Child->Reform({0, Offset}, ChildSize);
+            Offset += ChildSize.H;
+            ContentSize.W = std::max(ContentSize.W, ChildSize.W);
+            ContentSize.H += ChildSize.H;
           }
         }
       }
       else
-        for (entity *c : Children)
-          c->UpdateShape();
-
-      if (IsScrollable)
-        ContentOffset = {std::clamp(ContentOffset.X, ContentSize.W - CompContentSize.W, 0),
-                         std::clamp(ContentOffset.Y, ContentSize.H - CompContentSize.H, 0)};
+        for (entity *Child : Children)
+          Child->OnUpdateShape();
+      
+      // ContentOffset = {std::clamp(ContentOffset.X, InnerSize.W - CompContentSize.W, 0),
+      //                  std::clamp(ContentOffset.Y, InnerSize.H - CompContentSize.H, 0)};
       // if (LayoutProps.Type == layout_type::eBlock)
-      // return;
+      //   return;
     } /* End of 'UpdateChildrenLayout' function */
 
     /* Update self and content masks function.
@@ -481,7 +510,7 @@ namespace ui
     } /* End of 'UpdateGlobalPos' function */
 
     /* Update shape function */
-    VOID UpdateShape( VOID )
+    VOID OnUpdateShape( VOID )
     {
 #ifdef ENABLE_PATH_LOG
       Log(std::format("Entity {} update shape.", Id));
@@ -490,7 +519,24 @@ namespace ui
       UpdateGlobalPos();
       UpdateMasks();
       UpdateChildrenLayout();
-    } /* End of 'UpdateShape' function */
+    } /* End of 'OnUpdateShape' function */
+
+    /* On Update content function */
+    VOID OnUpdateContent( VOID )
+    {
+      // Update min, max content sizes
+      MinContent = GetMinContent();
+      MaxContent = GetMaxContent();
+
+#ifdef ENABLE_PATH_LOG
+      Log(std::format("Entity {} - update min [{}, {}], max [{}, {}] content", Id, MinContent.W, MinContent.H, MaxContent.W, MaxContent.H));
+#endif // ENABLE_PATH_LOG
+
+      if (Parent != nullptr)
+        Parent->OnUpdateContent();
+      else // We reached the top so now we will go down with shape update
+        OnUpdateShape();
+    } /* End of 'OnUpdateContent' function */
 
     /* Set position function */
     inline VOID SetPos( const ivec2 &NewLocalPos )
@@ -501,10 +547,10 @@ namespace ui
     /* Set size function */
     inline VOID SetSize( const isize2 &NewMarginSize )
     {
-      MarginSize = NewMarginSize;
-      Size = MarginSize - isize2(BoxProps.MarginW) * 2;
+      OuterSize = NewMarginSize;
+      Size = OuterSize - isize2(BoxProps.MarginW) * 2;
       BorderSize = Size - isize2(BoxProps.BorderW) * 2;
-      ContentSize = BorderSize - isize2(BoxProps.PaddingW) * 2;
+      InnerSize = BorderSize - isize2(BoxProps.PaddingW) * 2;
     } /* End of 'SetSize' function */
 
   public:
@@ -524,7 +570,7 @@ namespace ui
       // Update sizes
       SetSize(NewSize);
       
-      UpdateShape();
+      OnUpdateShape();
       OnResize();
     } /* End of 'Resize' function */
 
@@ -562,7 +608,7 @@ namespace ui
       SetPos(NewLocalPos);
       SetSize(NewSize);
 
-      UpdateShape();
+      OnUpdateShape();
       OnMove();
       OnResize();
     } /* End of 'Reform' function */
@@ -633,8 +679,6 @@ namespace ui
 
       if (Parent != nullptr)
         SetCanvas(Parent->Canvas);
-
-      UpdateShape();
     } /* End of 'OnAddChild' function */
 
     /* Set canvas function.
@@ -671,9 +715,6 @@ namespace ui
     
       Children.push_back(NewChild);
       NewChild->OnAddChild(this);
-      ChildrenFlexSum += NewChild->LayoutProps.Flex;
-      if (NewChild->LayoutProps.Flex == 0)
-        ChildrenFlex0Size += NewChild->LayoutProps.MinSize;
     } /* End of 'AddChildUnsafe' function */
 
   public:
@@ -687,7 +728,7 @@ namespace ui
     VOID AddChild( entity *NewChild )
     {
       AddChildUnsafe(NewChild);
-      UpdateChildrenLayout();
+      OnUpdateContent();
     } /* End of 'AddChild' function */
 
     /* Add children function.
@@ -699,9 +740,9 @@ namespace ui
     VOID AddChildren( const std::vector<entity *> &NewChildren )
     {
       for (entity *Child : NewChildren)
-        AddChild(Child);
-
-      UpdateChildrenLayout();
+        AddChildUnsafe(Child);
+      OnUpdateContent();
+      //UpdateChildrenLayout();
     } /* End of 'AddChildren' function */
 
     /* Find a child function.
@@ -733,11 +774,9 @@ namespace ui
       if (FoundChild == Children.end())
         return;
     
-      ChildrenFlexSum -= (*FoundChild)->LayoutProps.Flex;
-      if ((*FoundChild)->LayoutProps.Flex == 0)
-        ChildrenFlex0Size -= (*FoundChild)->LayoutProps.MinSize;
       Children.erase(FoundChild);
-      UpdateChildrenLayout();
+      OnUpdateContent();
+      //UpdateChildrenLayout();
     } /* End of 'DeleteChild' function */
 
   }; /* End of 'entity' class */

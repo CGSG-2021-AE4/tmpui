@@ -143,17 +143,18 @@ namespace ui
 
   public:
 
-    canvas( render_2d &NewRender2d, const ivec2 &NewPos, const isize2 &NewSize, const ::ui::layout_props &RootLayoutProps, const std::vector<entity *> &Entries ) :
+    canvas( render_2d &NewRender2d, const ivec2 &NewPos, const isize2 &NewSize, const ::ui::layout_type &RootLayoutType, const std::vector<entity *> &Entities ) :
       Render2d(NewRender2d),
       Pos(NewPos),
       Size(NewSize),
       Mask(Pos, Size),
-      Root(new entity(entity_props<BYTE, BYTE>{ .Id = "Canvas root", .Pos = {0, 0}, .Size = Size, .LayoutProps = RootLayoutProps }, Entries, nullptr)), // Provides root isn't nullptr
+      Root(new entity(entity_props<BYTE, BYTE>{ .Id = "Canvas root", .Pos = {0, 0}, .Size = Size, .LayoutType = RootLayoutType })), // Provides root isn't nullptr
       DrawManager(Render2d)
     {
       // Root init
       Root->SetCanvas(this);
       Root->OnAddChild(nullptr);
+      Root->AddChildren(Entities);
       Redraw();
     } /* End of 'canvas' function */
 

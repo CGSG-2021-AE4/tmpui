@@ -23,11 +23,76 @@ namespace ui
     public:
   
       /* Contsructor function */
-      div( const entity_props<BYTE, div_style> &NewProps, const std::vector<entity *> &NewChildren = {} ) :
-        entity(NewProps, NewChildren),
+      div( const entity_props<BYTE, div_style> &NewProps ) :
+        entity(NewProps),
         Style(NewProps.Style)
       {
       } /* End of 'div' function */
+
+      /* Get in content override function */
+      isize2 GetMinContent( VOID ) override
+      {
+        isize2 NewMinContent = 0;
+        switch (LayoutType)
+        {
+        case layout_type::eBlock:
+          break;
+        case layout_type::eFlexRow:
+          for (entity *Child : Children)
+          {
+            NewMinContent.W += Child->MinContent.W;
+            NewMinContent.H = std::max(NewMinContent.H, Child->MinContent.H);
+          }
+          break;
+        case layout_type::eFlexColumn:
+          for (entity *Child : Children)
+          {
+            isize2 ChildMaxContent = Child->GetPreferedSize();
+
+            NewMinContent.W = std::max(NewMinContent.W, ChildMaxContent.W);
+            NewMinContent.H += ChildMaxContent.H;
+          }
+          break;
+        }
+        return NewMinContent;
+      } /* End of 'GetMinContent' function */
+
+      /* Get max content override function */
+      isize2 GetMaxContent( VOID ) override
+      {
+        isize2 NewMaxContent = 0;
+        switch (LayoutType)
+        {
+        case layout_type::eBlock:
+          for (entity *Child : Children)
+          {
+            isize2 ChildMaxContent = Child->GetPreferedSize();
+
+            NewMaxContent = {std::max(NewMaxContent.W, Child->LocalPos.X + ChildMaxContent.W),
+                             std::max(NewMaxContent.H, Child->LocalPos.Y + ChildMaxContent.H)};
+          }
+          break;
+        case layout_type::eFlexRow:
+          for (entity *Child : Children)
+          {
+            isize2 ChildMaxContent = Child->GetPreferedSize();
+
+            NewMaxContent.W += ChildMaxContent.W;
+            NewMaxContent.H = std::max(NewMaxContent.H, ChildMaxContent.H);
+          }
+          break;
+        case layout_type::eFlexColumn:
+          for (entity *Child : Children)
+          {
+            isize2 ChildMaxContent = Child->GetPreferedSize();
+
+            NewMaxContent.W = std::max(NewMaxContent.W, ChildMaxContent.W);
+            NewMaxContent.H += ChildMaxContent.H;
+          }
+          break;
+        }
+        return NewMaxContent;
+      } /* End of 'GetMaxContent' function */
       
       /* On draw event function */
       VOID OnDraw( VOID ) override
