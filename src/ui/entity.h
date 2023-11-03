@@ -87,9 +87,21 @@ namespace ui
     box_props BoxProps {};                 // Props of entity's box
     BOOL IsBackgroundTransparent = 0;      // If the background is transparent entity's parent should also be redrawn 
 
+  private:
+
     // Values for flex sizing
-    INT ParentMaxGrowDelta = 0;
-    FLT GrowShift = 0;
+    INT
+      ParentMaxGrowDelta = 0,
+      ParentMaxShrinkDelta = 0;
+    FLT
+      ChildrenFlexGrowSum = 0,
+      ChildrenFlexShrinkSum = 0,
+      GrowShift = 0,   // Are needed only for layout values calculating
+      ShrinkShift = 0; // Are needed only for layout values calculating
+    INT
+      ChildrenPreferedSizeSum = 0,
+      ChildrenMinSizeSum = 0,
+      ChildrenMaxSizeSum = 0;
 
     /* Events */
   public:
@@ -366,45 +378,41 @@ namespace ui
       return MaxSize + isize2(BoxProps.MarginW) * 2;
     } /* End of 'GetMaxSize' function */
 
-    /* Update children layout function */
-    VOID UpdateChildrenLayout( VOID )
+    /* Get min outer size function */
+    isize2 GetMinSize( VOID )
     {
-      if (LayoutType == layout_type::eFlexRow)
+      return MinSize + isize2(BoxProps.MarginW) * 2;
+    } /* End of 'GetMinSize' function */
+    
+    /* Update layout values function  - calls in UpdateContent event, values are constant during resizes */
+    VOID UpdateChildrenLayoutValues( VOID )
+    {
+      switch (LayoutType)
       {
-        // Calculating const values
-        // Calculating flex/shrink sum
-        FLT
-          FlexGrowSum = 0,
-          FlexShrinkSum = 0;
-        INT
-          PreferedSizeWSum = 0,
-          MaxSizeWSum = 0;
+      case layout_type::eFlexRow:
+        ChildrenFlexGrowSum = 0;
+        ChildrenFlexShrinkSum = 0;
+        ChildrenPreferedSizeSum = 0;
+        ChildrenMinSizeSum = 0;
+        ChildrenMaxSizeSum = 0;
         
-        std::vector<entity *> SortedChildren(Children);
-
         for (entity *E : Children)
         {
-          FlexGrowSum += E->Flex.Grow;
-          FlexShrinkSum += E->Flex.Shrink;
-          PreferedSizeWSum += E->GetPreferedSize().W;
-          MaxSizeWSum += E->GetMaxSize().W;
+          ChildrenFlexGrowSum += E->Flex.Grow;
+          ChildrenFlexShrinkSum += E->Flex.Shrink;
+          ChildrenPreferedSizeSum += E->GetPreferedSize().W;
+          ChildrenMinSizeSum += E->GetMinSize().W;
+          ChildrenMaxSizeSum += E->GetMaxSize().W;
+          E->ParentMaxGrowDelta = 0;
           E->GrowShift = 0;
         }
         
-        // // Sort enitities by MaxGrow/FlexGrow
-        // std::sort(SortedChildren.begin(), SortedChildren.end(),
-        //   []( entity *a, entity *b )
-        //   {
-        //     FLT
-        //       ValueA = (a->Flex.Grow > 0) ? (a->GetMaxSize().W - a->GetPreferedSize().W) / a->Flex.Grow : 0,
-        //       ValueB = (b->Flex.Grow > 0) ? (b->GetMaxSize().W - b->GetPreferedSize().W) / b->Flex.Grow : 0;
-        // 
-        //     return ValueA < ValueB;
-        //   }
-        // );
+        /*************** Setting MaxGrowDelta ***************/
 
-        // Setting MaxGrowDelta
-        FLT FlexGrowSumI = FlexGrowSum; // Will change during calculatings
+        FLT FlexGrowSumI = ChildrenFlexGrowSum; // Will change during calculatings
+        std::vector<entity *> SortedChildren(Children);
+
+        // Code below isn't optimised, it is readable version. It will be optimised later.
         for (std::vector<entity *>::iterator Ei = SortedChildren.begin(); Ei != SortedChildren.end(); Ei++)
         {
           // Search min
@@ -438,21 +446,67 @@ namespace ui
           FlexGrowSumI = NewFlexGrowSumI;
         }
 
-        // Not constant calculatings
+        /*************** Setting MaxShrinkDelta ***************/
+        FLT FlexShrinkSumI = ChildrenFlexShrinkSum; // Will change during calculatings
 
-        FLT UsedFlexGrowSum = 0;
-        INT GrowDelta = InnerSize.W - PreferedSizeWSum;
-        INT RealGrowDelta = InnerSize.W - PreferedSizeWSum;
-        for (entity *EI : SortedChildren)
-          if (EI->ParentMaxGrowDelta >= GrowDelta)
-            UsedFlexGrowSum += EI->Flex.Grow;
-          else
-            RealGrowDelta -= EI->GetMaxSize().W;
-        
-        if (GrowDelta > 0)
+        // Code below isn't optimised, it is readable version. It will be optimised later.
+        for (std::vector<entity *>::iterator Ei = SortedChildren.begin(); Ei != SortedChildren.end(); Ei++)
         {
-          // Grow
+          // Search min
+
+          std::vector<entity *>::iterator MinMaxShrinkDeltaE = Ei;
+          FLT MinMaxShrinkDeltaEMaxShrinkDelta = (((*MinMaxShrinkDeltaE)->Flex.Shrink > 0) ? ((*MinMaxShrinkDeltaE)->GetMinSize().W - (*MinMaxShrinkDeltaE)->GetPreferedSize().W - (*MinMaxShrinkDeltaE)->ShrinkShift) / (*MinMaxShrinkDeltaE)->Flex.Shrink : 0) * FlexShrinkSumI;
+
+          for (std::vector<entity *>::iterator Ej = Ei + 1; Ej != SortedChildren.end(); Ej++)
+          {
+            FLT EjMaxShrinkDelta = (((*Ej)->Flex.Shrink > 0) ? ((*Ej)->GetMinSize().W - (*Ej)->GetPreferedSize().W - (*Ej)->ShrinkShift) / (*Ej)->Flex.Shrink : 0) * FlexShrinkSumI;
+            
+            if (EjMaxShrinkDelta > MinMaxShrinkDeltaEMaxShrinkDelta)
+            {
+              MinMaxShrinkDeltaE = Ej;
+              MinMaxShrinkDeltaEMaxShrinkDelta = EjMaxShrinkDelta;
+            }
+          }
+
+          (*MinMaxShrinkDeltaE)->ParentMaxShrinkDelta = (INT)MinMaxShrinkDeltaEMaxShrinkDelta;
+
+          std::iter_swap(MinMaxShrinkDeltaE, Ei);
+
+          FLT NewFlexShrinkSumI = FlexShrinkSumI - (*Ei)->Flex.Shrink;
+
+          for (std::vector<entity *>::iterator Ej = Ei + 1; Ej != SortedChildren.end(); Ej++)
+          {
+            FLT Shrink = (*Ej)->Flex.Shrink / FlexShrinkSumI * (*Ei)->ParentMaxShrinkDelta + (*Ej)->ShrinkShift;
+            (*Ej)->ShrinkShift = Shrink - (*Ej)->Flex.Shrink / NewFlexShrinkSumI * (*Ei)->ParentMaxShrinkDelta;
+          }
+
+          FlexShrinkSumI = NewFlexShrinkSumI;
+        }
+
+        break;
+      }
+    } /* End of 'UpdateChildrenLayoutValues' function */
+
+    /* Update children layout function */
+    VOID UpdateChildrenLayout( VOID )
+    {
+      if (LayoutType == layout_type::eFlexRow)
+      {
+        INT DeltaSize = InnerSize.W - ChildrenPreferedSizeSum;
+        
+        if (DeltaSize > 0)
+        {
+          // Children will grow 
           INT Offset = 0;
+          FLT UsedFlexGrowSum = 0;
+          INT RealGrowDelta = DeltaSize;
+
+          // Calculating usable flex grow sum and real grow delta without frozen entities
+          for (entity *EI : Children)
+            if (EI->ParentMaxGrowDelta >= DeltaSize)
+              UsedFlexGrowSum += EI->Flex.Grow;
+            else
+              RealGrowDelta -= EI->GetMaxSize().W - EI->GetPreferedSize().W;
 
           ContentSize = 0;
 
@@ -460,7 +514,7 @@ namespace ui
           {
             isize2 ChildSize;
 
-            if (Child->ParentMaxGrowDelta < GrowDelta)
+            if (Child->ParentMaxGrowDelta < DeltaSize)
               ChildSize = {Child->GetMaxSize().W, InnerSize.H};
             else
               ChildSize = {Child->GetPreferedSize().W + (UsedFlexGrowSum == 0 ? 0 : ((INT)(Child->Flex.Grow / UsedFlexGrowSum * RealGrowDelta))), InnerSize.H};
@@ -469,19 +523,36 @@ namespace ui
             Child->Reform({Offset, 0}, ChildSize);
             Offset += ChildSize.W;
             ContentSize.W += ChildSize.W;
-            ContentSize.H  = std::max(ContentSize.H, ChildSize.H);
+            ContentSize.H = std::max(ContentSize.H, ChildSize.H);
           }
         }
         else
         {
-          // Compress
-          INT RestW = InnerSize.W - PreferedSizeWSum;
+
+          FLT UsedFlexShrinkSum = 0;
+          INT RealShrinkDelta = DeltaSize;
+
+          // Calculating usable flex grow sum and real grow delta without frozen entities
+          for (entity *EI : Children)
+            if (EI->ParentMaxShrinkDelta <= DeltaSize)
+              UsedFlexShrinkSum += EI->Flex.Shrink;
+            else
+              RealShrinkDelta -= EI->GetMinSize().W - EI->GetPreferedSize().W;
+
+          // Children will be compressed
           INT Offset = 0;
 
           ContentSize = 0;
           for (entity *Child : Children)
           {
-            isize2 ChildSize = {Child->GetPreferedSize().W + (FlexShrinkSum == 0 ? 0 : ((INT)(Child->Flex.Shrink / FlexShrinkSum * RestW))), InnerSize.H};
+            isize2 ChildSize;
+
+            if (Child->ParentMaxShrinkDelta > DeltaSize)
+              ChildSize = {Child->GetMinSize().W, InnerSize.H};
+            else
+              ChildSize = {Child->GetPreferedSize().W + (UsedFlexShrinkSum == 0 ? 0 : ((INT)(Child->Flex.Shrink / UsedFlexShrinkSum * RealShrinkDelta))), InnerSize.H};
+
+
             Child->Reform({Offset, 0}, ChildSize);
             Offset += ChildSize.W;
             ContentSize.W += ChildSize.W;
@@ -616,6 +687,8 @@ namespace ui
 #ifdef ENABLE_PATH_LOG
       Log(std::format("Entity {} - update min [{}, {}], max [{}, {}] content", Id, MinContent.W, MinContent.H, MaxContent.W, MaxContent.H));
 #endif // ENABLE_PATH_LOG
+
+      UpdateChildrenLayoutValues();
 
       if (Parent != nullptr)
         Parent->OnUpdateContent();
