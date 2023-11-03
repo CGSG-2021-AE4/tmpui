@@ -152,8 +152,35 @@ public:
     Render2d(NewRender2d),
     Canvas(NewRender2d, 0, Size, ::ui::layout_type::eFlexRow, {})
   {
-    std::vector<::ui::entity *> ListDivs;
+    Canvas.GetRoot()->AddChildren({
+      Create<cs::div, ::ui::entity_props<BYTE, cs::div_style>>({
+        .Id = "Main bar",
+        .MaxSize = {5000},
+        .LayoutType = ::ui::layout_type::eFlexRow,
+        .Flex = { .Grow = 1 },
+        .BoxProps = StdDivBoxProps,
+        .Style = StdDivStyle
+      }, {
+        Create<cs::div, ::ui::entity_props<BYTE, cs::div_style>>({
+          .Id = "First list",
+          .MaxSize = {500},
+          .LayoutType = ::ui::layout_type::eFlexColumn,
+          .Flex = { .Basis = ::ui::flex_basis_type::eFixed, .Grow = 1 },
+          .BoxProps = StdDivBoxProps,
+          .Style = StdDivStyle,
+        }),
+        Create<cs::div, ::ui::entity_props<BYTE, cs::div_style>>({
+          .Id = "Second list",
+          .MaxSize = {500},
+          .LayoutType = ::ui::layout_type::eFlexColumn,
+          .Flex = { .Basis = ::ui::flex_basis_type::eFixed, .Grow = 2 },
+          .BoxProps = StdDivBoxProps,
+          .Style = StdDivStyle,
+        }),
+      }),
+    });
 
+    /*
     std::vector<::ui::entity *> Values;
 
     for (UINT i = 0; i < 30; i++)
@@ -173,13 +200,13 @@ public:
           .Id = "Value list",
           .LayoutType = ::ui::layout_type::eFlexColumn,
           .Overflow = ::ui::overflow_type::eScroll,
-          .Flex = { .Grow = 2 },
+          .Flex = { .Grow = 2, .Shrink = 1 },
           .BoxProps = StdDivBoxProps,
           .Style = StdDivStyle,
         }, Values),
         Create<cs::text, ::ui::entity_props<cs::text_props, cs::text_style>>({
           .Id = "Text2",
-          .Flex = { .Grow = 1, .Shrink = 1 },
+          .Flex = { .Grow = 1 },
           .BoxProps = StdDivBoxProps,
           .Props = {
             .Str = "Some text" //"I pounder of something great, my lungs will fill and then deflate. They fill with fire, exhale desire, I know it's dire my time today."
@@ -238,6 +265,8 @@ public:
         }), // Button bar
       }), // Main bar
     });
+
+    */
   } /* End of 'test' function */
 
   VOID Init( VOID )

@@ -98,6 +98,9 @@ namespace ui
       VOID OnDraw( VOID ) override
       {
         Canvas->Render2d.PutBar(GlobalPos, Size, ToRGB(Style.BorderColor), ToRGB(Style.SpaceColor), BoxProps.BorderW, SelfDrawMask);
+
+        Canvas->Render2d.PutBar(GlobalPos, GetPreferedSize(), (DWORD)RGB(0, 255, 0), SelfDrawMask);
+        Canvas->Render2d.PutBar(GlobalPos, GetMaxSize(), (DWORD)RGB(0, 0, 255), SelfDrawMask);
       } /* End of 'OnDraw' function */
 
     }; /* End of 'div' class */

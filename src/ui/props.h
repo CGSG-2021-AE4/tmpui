@@ -53,7 +53,10 @@ namespace ui
     {
       std::string Id {""};
       ivec2 Pos {0};
-      isize2 Size {0};
+      isize2
+        Size {0},
+        MinSize {0},
+        MaxSize {0};
       layout_type LayoutType = layout_type::eBlock;
       overflow_type Overflow = overflow_type::eHidden;
       flex_props Flex {};
