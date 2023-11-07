@@ -15,6 +15,28 @@ namespace ui
         BorderColor;
     }; /* End of 'div_style' struct */
 
+    class div;
+  }
+
+  template<>
+    struct entity_props<controls::div>
+    {
+      std::string Id {""};
+      ivec2 Pos {0};
+      isize2
+        Size {0},
+        MinSize {0},
+        MaxSize {10000};
+      layout_type LayoutType = layout_type::eBlock;
+      overflow_type Overflow = overflow_type::eHidden;
+      flex_props Flex {};
+      box_props BoxProps {};
+
+      controls::div_style Style {};
+    };
+
+  namespace controls
+  {
     /* Div class */
     class div : public entity
     {
@@ -23,7 +45,7 @@ namespace ui
     public:
   
       /* Contsructor function */
-      div( const entity_props<BYTE, div_style> &NewProps ) :
+      div( const entity_props<div> &NewProps ) :
         entity(NewProps),
         Style(NewProps.Style)
       {
@@ -99,9 +121,9 @@ namespace ui
       {
         Canvas->Render2d.PutBar(GlobalPos, Size, ToRGB(Style.BorderColor), ToRGB(Style.SpaceColor), BoxProps.BorderW, SelfDrawMask);
 
-        Canvas->Render2d.PutBar(GlobalPos, GetPreferedSize(), (DWORD)RGB(0, 255, 0), SelfDrawMask);
-        Canvas->Render2d.PutBar(GlobalPos, GetMinSize(), (DWORD)RGB(255, 0, 0), SelfDrawMask);
-        Canvas->Render2d.PutBar(GlobalPos, GetMaxSize(), (DWORD)RGB(0, 0, 255), SelfDrawMask);
+        // Canvas->Render2d.PutBar(GlobalPos, GetPreferedSize(), (DWORD)RGB(0, 255, 0), SelfDrawMask);
+        // Canvas->Render2d.PutBar(GlobalPos, GetMinSize(), (DWORD)RGB(255, 0, 0), SelfDrawMask);
+        // Canvas->Render2d.PutBar(GlobalPos, GetMaxSize(), (DWORD)RGB(0, 0, 255), SelfDrawMask);
       } /* End of 'OnDraw' function */
 
     }; /* End of 'div' class */

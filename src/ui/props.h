@@ -48,7 +48,7 @@ namespace ui
   }; /* End of 'flex_props' struct */
 
   /* Entity props structure */
-  template<typename additional_props_type, typename style_props_type>
+  template<typename entity_type>
     struct entity_props
     {
       std::string Id {""};
@@ -61,9 +61,6 @@ namespace ui
       overflow_type Overflow = overflow_type::eHidden;
       flex_props Flex {};
       box_props BoxProps {};
-
-      additional_props_type Props {};
-      style_props_type Style {};
     }; /* End of 'entity_props' struct */
 
   /* Different states styles */

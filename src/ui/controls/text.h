@@ -4,6 +4,7 @@
 #define __ui_controls_text_h_
 
 #include "../entity.h"
+#include "../frame_render.h"
 
 namespace ui
 {
@@ -24,6 +25,30 @@ namespace ui
       std::string Str {""};
     }; /* End of 'div_props' struct */
 
+    class text;
+
+  } /* end of 'button_style' namespace */
+
+  template<>
+    struct entity_props<controls::text>
+    {
+      std::string Id {""};
+      ivec2 Pos {0};
+      isize2
+        Size {10},
+        MinSize {0},
+        MaxSize {10000};
+      layout_type LayoutType = layout_type::eBlock;
+      overflow_type Overflow = overflow_type::eHidden;
+      flex_props Flex {};
+      box_props BoxProps {};
+
+      controls::text_props Props {};
+      controls::text_style Style {};
+    }; /* End of 'entity_props' struct */
+
+  namespace controls
+  {
     /* Text class */
     class text : public entity
     {
@@ -35,7 +60,7 @@ namespace ui
     public:
   
       /* Contsructor function */
-      text( const entity_props<text_props, text_style> &NewProps ) :
+      text( const entity_props<text> &NewProps ) :
         entity(NewProps),
         Props(NewProps.Props),
         Style(NewProps.Style),

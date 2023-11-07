@@ -29,14 +29,36 @@ namespace ui
 
     class button;
 
-    /* Button props struct */
     struct button_props
     {
       BOOL IsPress = 0;
-      std::function<VOID ( button *Button )> OnClickCallBack {[]( button *Button ){}};
-      std::function<VOID ( button *Button )> OnChangeCallBack {[]( button *Button ){}};
-    }; /* End of 'div_props' struct */
 
+      std::function<VOID ( button *Button )> OnClickCallBack {[](button *Button ){}};
+      std::function<VOID ( button *Button )> OnChangeCallBack {[](button *Button ){}};
+    };
+
+  } /* end of 'button_style' namespace */
+
+  template<>
+    struct entity_props<controls::button>
+    {
+      std::string Id {""};
+      ivec2 Pos {0};
+      isize2
+        Size {10},
+        MinSize {0},
+        MaxSize {10000};
+      layout_type LayoutType = layout_type::eBlock;
+      overflow_type Overflow = overflow_type::eHidden;
+      flex_props Flex {};
+      box_props BoxProps {};
+
+      controls::button_style Style {};
+      controls::button_props Props {};
+    }; /* End of 'entity_props' struct */
+
+  namespace controls
+  {
     /* Button class */
     class button : public entity
     {
@@ -47,7 +69,7 @@ namespace ui
     public:
   
       /* Contsructor function */
-      button( const entity_props<button_props, button_style> &NewProps ) :
+      button( const entity_props<button> &NewProps ) :
         entity(NewProps),
         Style(NewProps.Style),
         Props(NewProps.Props)

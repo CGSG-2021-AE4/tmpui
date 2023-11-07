@@ -144,6 +144,11 @@ namespace tmp
       StdScene.OnWheel(Z);
     }
 
+    BOOL OnEraseBkgnd( HDC hDC ) override
+    {
+      return 1;
+    }
+
     /* WM_SIZE window message handle function.
      * ARGUMENTS:
      *   - sizing flag (see SIZE_***, like SIZE_MAXIMIZED)

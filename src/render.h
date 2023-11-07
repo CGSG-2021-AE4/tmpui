@@ -32,16 +32,16 @@
 #include "./ui/canvas.h"
 #include "./ui/controls/div.h"
 #include "./ui/controls/button.h"
-#include "./ui/controls/slider.h"
+// #include "./ui/controls/slider.h"
 #include "./ui/controls/text.h"
-#include "./ui/controls/range.h"
+// #include "./ui/controls/range.h"
 
 #include <iostream>
 
 namespace cs = ::ui::controls;
 
-template<typename entity_type, typename props_type>
-  ::ui::entity * Create( const props_type &Props, const std::vector<::ui::entity *> &NewChildren = {}, ::ui::entity *NewParent = nullptr )
+template<typename entity_type>
+  ::ui::entity * Create( const ::ui::entity_props<entity_type> &Props, const std::vector<::ui::entity *> &NewChildren = {}, ::ui::entity *NewParent = nullptr )
   {
     ::ui::entity * NewE = new entity_type(Props);
 
@@ -55,7 +55,7 @@ class test
 {
 public:
   
-  //::ui::box_style StdDivStyle { .Space = { .DefColor = 0.35 }, .Border = { .DefColor = 0.75 } };
+  // ::ui::box_style StdDivStyle { .Space = { .DefColor = 0.35 }, .Border = { .DefColor = 0.75 } };
 
   ::ui::box_props StdDivBoxProps = ::ui::box_props({ .MarginW = 4, .BorderW = 2, .PaddingW = 2 });
   ::ui::box_props StdMarginBoxProps = ::ui::box_props({ .MarginW = 2, .BorderW = 0, .PaddingW = 0 });
@@ -71,77 +71,26 @@ public:
     std::string Prefix = std::format("Value {} ", Name);
 
     return
-      Create<cs::div, ::ui::entity_props<BYTE, cs::div_style>>({
+      Create<cs::div>({
         .Id = Prefix + "main bar",
-        .LayoutType = ::ui::layout_type::eFlexColumn,
+        .LayoutType = ::ui::layout_type::eFlexRow,
         .BoxProps = StdDivBoxProps,
         .Style = StdDivStyle
       }, {
-        Create<cs::div, ::ui::entity_props<BYTE, cs::div_style>>({
-          .Id = Prefix + "first slider bar",
-          .LayoutType = ::ui::layout_type::eFlexRow,
-          .BoxProps = StdMarginBoxProps,
-          .Style = StdDivStyle,
-        }, {
-          Create<cs::text, ::ui::entity_props<cs::text_props, cs::text_style>>({
-            .Id = Prefix + "first slider bar text",
-            .Flex = { .Grow = 1 },
-            .BoxProps = StdDivBoxProps,
-            .Props = { .Str = "First slider" },
-            .Style = { .Color = ::ui::vec3(1) }
-          }),
-          Create<cs::slider, cs::slider_props>({
-            .Id = Prefix + "first slider bar slider",
-            .Size = {200, 30},
-            .Style = {
-              .Track = { .Space = { .DefColor = ::ui::vec3::Rnd0() }, .Border = { .DefColor = ::ui::vec3::Rnd0() } },
-              .Thumb = { .Space = { .DefColor = ::ui::vec3::Rnd0() }, .Border = { .DefColor = ::ui::vec3::Rnd0() } }
-            },
-          }),
-        }), // First slider bar
-        Create<cs::div, ::ui::entity_props<BYTE, cs::div_style>>({
-          .Id = Prefix + "second button bar",
-          .LayoutType = ::ui::layout_type::eFlexRow,
-          .BoxProps = StdMarginBoxProps,
-          .Style = StdDivStyle,
-        }, {
-          Create<cs::text, ::ui::entity_props<cs::text_props, cs::text_style>>({
-            .Id = Prefix + "second button bar text",
-            .Flex = { .Grow = 1 },
-            .BoxProps = StdDivBoxProps,
-            .Props = { .Str = "Second button" },
-            .Style = { .Color = ::ui::vec3(1) }
-          }),
-          Create<cs::button, ::ui::entity_props<cs::button_props, cs::button_style>>({
-            .Id = "second button bar button",
-            .Size = 30, 
-            .Flex = { .Basis = ::ui::flex_basis_type::eFixed },
-            .BoxProps = StdDivBoxProps,
-            .Props = { .IsPress = true, .OnChangeCallBack = []( cs::button *Button ){ ::ui::Log(std::format("New value: {}", Button->GetValue() )); } },
-          }),
-        }), // Second button bar
-        Create<cs::div, ::ui::entity_props<BYTE, cs::div_style>>({
-          .Id = Prefix + "third range bar",
-          .LayoutType = ::ui::layout_type::eFlexRow,
-          .BoxProps = StdMarginBoxProps,
-          .Style = StdDivStyle,
-        }, {
-          Create<cs::text, ::ui::entity_props<cs::text_props, cs::text_style>>({
-            .Id = Prefix + "third range bar text",
-            .Flex = { .Grow = 1 },
-            .BoxProps = StdDivBoxProps,
-            .Props = { .Str = "Third range" },
-            .Style = { .Color = ::ui::vec3(1) }
-          }),
-          Create<cs::range, cs::range_props>({
-            .Id = Prefix + "third range bar range",
-            .Size = {200, 30},
-            .Style = {
-              .Left  = { .Space = { .DefColor = ::ui::vec3::Rnd0() } },
-              .Right = { .Space = { .DefColor = ::ui::vec3::Rnd0() } }
-            },
-          }),
-        }), // Third bar
+        Create<cs::text>({
+          .Id = Prefix + "second button bar text",
+          .Flex = { .Grow = 1 },
+          .BoxProps = StdDivBoxProps,
+          .Props = { .Str = "Button of value " + Name },
+          .Style = { .Color = ::ui::vec3(1) }
+        }),
+        Create<cs::button>({
+          .Id = "second button bar button",
+          .Size = 30, 
+          .Flex = { .Basis = ::ui::flex_basis_type::eFixed },
+          .BoxProps = StdDivBoxProps,
+          .Props = { .IsPress = true, .OnChangeCallBack = []( cs::button *Button ){ ::ui::Log(std::format("New value: {}", Button->GetValue() )); } },
+        }),
       }); // Main bar
   } /* End of 'CreateValue' function */
 
@@ -152,8 +101,13 @@ public:
     Render2d(NewRender2d),
     Canvas(NewRender2d, 0, Size, ::ui::layout_type::eFlexRow, {})
   {
+    std::vector<::ui::entity *> Values;
+    
+    for (UINT i = 0; i < 30; i++)
+      Values.push_back(CreateValue(std::format("{}", i)));
+
     Canvas.GetRoot()->AddChildren({
-      Create<cs::div, ::ui::entity_props<BYTE, cs::div_style>>({
+      Create<cs::div>({
         .Id = "Main bar",
         .MaxSize = {5000},
         .LayoutType = ::ui::layout_type::eFlexRow,
@@ -161,20 +115,42 @@ public:
         .BoxProps = StdDivBoxProps,
         .Style = StdDivStyle
       }, {
-        Create<cs::div, ::ui::entity_props<BYTE, cs::div_style>>({
+        Create<cs::div>({
+          .Id = "Box 1",
           .Size = {300},
-          .MinSize = {200},
-          .MaxSize = {400},
+          //.MinSize = {200},
+          .MaxSize = {1000},
           .LayoutType = ::ui::layout_type::eFlexColumn,
           .Flex = { .Basis = ::ui::flex_basis_type::eFixed, .Grow = 1, .Shrink = 1 },
           .BoxProps = StdDivBoxProps,
           .Style = StdDivStyle,
+        }, {
+          Create<cs::div>({
+            .Id = "Box 1.1",
+            .Size = {300},
+            .MinSize = {270},
+            .MaxSize = {500},
+            .Flex = { .Basis = ::ui::flex_basis_type::eFixed, .Grow = 1, .Shrink = 1 },
+            .BoxProps = StdDivBoxProps,
+            .Style = StdDivStyle,
+          }),
+          Create<cs::div>({
+            .Id = "Box 1.1",
+            .Size = {300},
+            //.MinSize = {270},
+            .MaxSize = {500},
+            .LayoutType = ::ui::layout_type::eFlexColumn,
+            .Overflow = ::ui::overflow_type::eScroll,
+            .Flex = { .Basis = ::ui::flex_basis_type::eFixed, .Grow = 1, .Shrink = 1 },
+            .BoxProps = StdDivBoxProps,
+            .Style = StdDivStyle,
+          }, Values),
         }),
-        Create<cs::div, ::ui::entity_props<BYTE, cs::div_style>>({
-          .Id = "Second list",
+        Create<cs::div>({
+          .Id = "Box 2",
           .Size = {300},
           .MinSize = {270},
-          .MaxSize = {400},
+          .MaxSize = {600},
           .LayoutType = ::ui::layout_type::eFlexColumn,
           .Flex = { .Basis = ::ui::flex_basis_type::eFixed, .Grow = 2, .Shrink = 2 },
           .BoxProps = StdDivBoxProps,
