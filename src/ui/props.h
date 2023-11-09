@@ -35,6 +35,7 @@ namespace ui
   enum struct flex_basis_type
   {
     eFixed,      // Uses initial size
+    eMinContent, // Uses min content
     eMaxContent, // Uses max content
   }; /* End of 'flex_basis_type' enum struct */
 
@@ -46,22 +47,6 @@ namespace ui
       Grow = 0,
       Shrink = 0;
   }; /* End of 'flex_props' struct */
-
-  /* Entity props structure */
-  template<typename entity_type>
-    struct entity_props
-    {
-      std::string Id {""};
-      ivec2 Pos {0};
-      isize2
-        Size {0},
-        MinSize {0},
-        MaxSize {0};
-      layout_type LayoutType = layout_type::eBlock;
-      overflow_type Overflow = overflow_type::eHidden;
-      flex_props Flex {};
-      box_props BoxProps {};
-    }; /* End of 'entity_props' struct */
 
   /* Different states styles */
   struct state_style

@@ -32,9 +32,9 @@
 #include "./ui/canvas.h"
 #include "./ui/controls/div.h"
 #include "./ui/controls/button.h"
-// #include "./ui/controls/slider.h"
+#include "./ui/controls/slider.h"
 #include "./ui/controls/text.h"
-// #include "./ui/controls/range.h"
+#include "./ui/controls/range.h"
 
 #include <iostream>
 
@@ -73,24 +73,93 @@ public:
     return
       Create<cs::div>({
         .Id = Prefix + "main bar",
-        .LayoutType = ::ui::layout_type::eFlexRow,
+        .MinSize = ::ui::min_size_ref::eMinContent,
+        .LayoutType = ::ui::layout_type::eFlexColumn,
         .BoxProps = StdDivBoxProps,
         .Style = StdDivStyle
       }, {
-        Create<cs::text>({
-          .Id = Prefix + "second button bar text",
-          .Flex = { .Grow = 1 },
-          .BoxProps = StdDivBoxProps,
-          .Props = { .Str = "Button of value " + Name },
-          .Style = { .Color = ::ui::vec3(1) }
+        Create<cs::div>({
+          .Id = Prefix + "slider bar",
+          .MinSize = ::ui::min_size_ref::eMinContent,
+          .LayoutType = ::ui::layout_type::eFlexRow,
+          .BoxProps = StdMarginBoxProps,
+          .Style = StdDivStyle
+        }, {
+          Create<cs::text>({
+            .Id = Prefix + " slider bar text",
+            .Flex = { .Grow = 1 },
+            .BoxProps = StdDivBoxProps,
+            .Props = { .Str = "Button of value " + Name },
+            .Style = { .Color = ::ui::vec3(1) }
+          }),
+          Create<cs::slider>({
+            .Id = "slider bar slider",
+            .Size = 30, 
+            .MinSize = ::ui::min_size_ref::eMinContent,
+            .Flex = { .Basis = ::ui::flex_basis_type::eMaxContent, .Grow = 1 },
+            .BoxProps = StdDivBoxProps,
+            .Style = {
+              .Track = { .Space = { .DefColor = ::ui::vec3::Rnd0() }, .Border = { .DefColor = ::ui::vec3::Rnd0() } },
+              .Thumb = { .Space = { .DefColor = ::ui::vec3::Rnd0() }, .Border = { .DefColor = ::ui::vec3::Rnd0() } }
+            }
+          }),
         }),
-        Create<cs::button>({
-          .Id = "second button bar button",
-          .Size = 30, 
-          .Flex = { .Basis = ::ui::flex_basis_type::eFixed },
-          .BoxProps = StdDivBoxProps,
-          .Props = { .IsPress = true, .OnChangeCallBack = []( cs::button *Button ){ ::ui::Log(std::format("New value: {}", Button->GetValue() )); } },
+        Create<cs::div>({
+          .Id = Prefix + "range bar",
+          .MinSize = ::ui::min_size_ref::eMinContent,
+          .LayoutType = ::ui::layout_type::eFlexRow,
+          .BoxProps = StdMarginBoxProps,
+          .Style = StdDivStyle
+        }, {
+          Create<cs::text>({
+            .Id = Prefix + " range bar text",
+            .Flex = { .Grow = 1 },
+            .BoxProps = StdDivBoxProps,
+            .Props = { .Str = "Button of value " + Name },
+            .Style = { .Color = ::ui::vec3(1) }
+          }),
+          Create<cs::range>({
+            .Id = "range bar range",
+            .Size = 30, 
+            .MinSize = ::ui::min_size_ref::eMinContent,
+            .Flex = { .Basis = ::ui::flex_basis_type::eMaxContent, .Grow = 1 },
+            .BoxProps = StdDivBoxProps,
+            .Style = {
+              .Left = { .Space = { .DefColor = ::ui::vec3::Rnd0() }, .Border = { .DefColor = ::ui::vec3::Rnd0() } },
+              .Right = { .Space = { .DefColor = ::ui::vec3::Rnd0() }, .Border = { .DefColor = ::ui::vec3::Rnd0() } }
+            }
+          }),
         }),
+        Create<cs::div>({
+          .Id = Prefix + "button bar",
+          .MinSize = ::ui::min_size_ref::eMinContent,
+          .LayoutType = ::ui::layout_type::eFlexRow,
+          .BoxProps = StdMarginBoxProps,
+          .Style = StdDivStyle
+        }, {
+          Create<cs::text>({
+            .Id = Prefix + " button bar text",
+            .Flex = { .Grow = 1 },
+            .BoxProps = StdDivBoxProps,
+            .Props = { .Str = "Button of value " + Name },
+            .Style = { .Color = ::ui::vec3(1) }
+          }),
+          Create<cs::button>({
+            .Id = "second button bar button",
+            //.Flex = { .Grow = 1 },
+            .BoxProps = StdDivBoxProps,
+            .Props = { .IsPress = true, .Str = "Click", .OnChangeCallBack = []( cs::button *Button ){ ::ui::Log(std::format("New value: {}", Button->GetValue() )); } },
+          }),
+        }),
+        // Create<cs::button>({
+        //   .Id = "second button bar button",
+        //   .Size = 30, 
+        //   .MinSize = 30,
+        //   .Flex = { .Basis = ::ui::flex_basis_type::eFixed },
+        //   .BoxProps = StdDivBoxProps,
+        //   .Props = { .IsPress = true, .OnChangeCallBack = []( cs::button *Button ){ ::ui::Log(std::format("New value: {}", Button->GetValue() )); } },
+        // }),
+        
       }); // Main bar
   } /* End of 'CreateValue' function */
 
@@ -109,7 +178,8 @@ public:
     Canvas.GetRoot()->AddChildren({
       Create<cs::div>({
         .Id = "Main bar",
-        .MaxSize = {5000},
+        .MinSize = {0},
+        //.MaxSize = {5000},
         .LayoutType = ::ui::layout_type::eFlexRow,
         .Flex = { .Grow = 1, .Shrink = 1 },
         .BoxProps = StdDivBoxProps,
@@ -118,7 +188,7 @@ public:
         Create<cs::div>({
           .Id = "Box 1",
           .Size = {300},
-          //.MinSize = {200},
+          .MinSize = {200},
           .MaxSize = {1000},
           .LayoutType = ::ui::layout_type::eFlexColumn,
           .Flex = { .Basis = ::ui::flex_basis_type::eFixed, .Grow = 1, .Shrink = 1 },
@@ -128,7 +198,6 @@ public:
           Create<cs::div>({
             .Id = "Box 1.1",
             .Size = {300},
-            .MinSize = {270},
             .MaxSize = {500},
             .Flex = { .Basis = ::ui::flex_basis_type::eFixed, .Grow = 1, .Shrink = 1 },
             .BoxProps = StdDivBoxProps,
@@ -137,7 +206,6 @@ public:
           Create<cs::div>({
             .Id = "Box 1.1",
             .Size = {300},
-            //.MinSize = {270},
             .MaxSize = {500},
             .LayoutType = ::ui::layout_type::eFlexColumn,
             .Overflow = ::ui::overflow_type::eScroll,

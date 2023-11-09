@@ -46,6 +46,7 @@ namespace ui
             if constexpr (DrawE)
             {
               E->Draw();
+              Log("Draw entity " + E->Id);
             }
             return;
           }

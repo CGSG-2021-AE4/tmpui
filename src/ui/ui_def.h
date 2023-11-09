@@ -52,6 +52,20 @@ namespace ui
     return Size;
   } /* End of 'Clamp' function */
 
+  /* Min size function */
+  inline isize2 Min( const isize2 &SizeA, const isize2 &SizeB )
+  {
+    return {std::min(SizeA.W, SizeB.W),
+            std::min(SizeA.H, SizeB.H)};
+  } /* End of 'Min' function */
+
+  /* Max size function */
+  inline isize2 Max( const isize2 &SizeA, const isize2 &SizeB )
+  {
+    return {std::max(SizeA.W, SizeB.W),
+            std::max(SizeA.H, SizeB.H)};
+  } /* End of 'Max' function */
+
   /* Mask class */
   class mask
   {

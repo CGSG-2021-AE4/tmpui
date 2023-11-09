@@ -32,22 +32,23 @@ namespace ui
     struct button_props
     {
       BOOL IsPress = 0;
+      std::string Str;
 
       std::function<VOID ( button *Button )> OnClickCallBack {[](button *Button ){}};
       std::function<VOID ( button *Button )> OnChangeCallBack {[](button *Button ){}};
-    };
+    }; /* Ebd if 'button_props' struct */
 
-  } /* end of 'button_style' namespace */
+  } /* end of 'controls' namespace */
 
   template<>
     struct entity_props<controls::button>
     {
       std::string Id {""};
       ivec2 Pos {0};
-      isize2
-        Size {10},
-        MinSize {0},
-        MaxSize {10000};
+      isize2 Size {10};
+      min_size_type MinSize {min_size_ref::eMinContent};
+      isize2 MaxSize {10000};
+
       layout_type LayoutType = layout_type::eBlock;
       overflow_type Overflow = overflow_type::eHidden;
       flex_props Flex {};
@@ -76,11 +77,22 @@ namespace ui
       {
       } /* End of 'button' function */
 
+      isize2 GetMaxContent( VOID ) override
+      {
+        return {render_2d::FontW * (INT)Props.Str.size(), render_2d::FontH};
+      } /* End of 'GetMaxContent' function */
+
       /* Value getter function */
       BOOL GetValue( VOID ) const
       {
         return Value;
       } /* End of 'GetValue' function */
+
+      BOOL SetStr( const std::string &NewStr )
+      {
+        Props.Str = NewStr;
+        OnUpdateContent();
+      } /* End of 'SetStr' function */
 
       BOOL OnClick( const ivec2 &LocalMousePos ) override
       {
@@ -118,6 +130,7 @@ namespace ui
         else
           Canvas->Render2d.PutBar(GlobalPos, Size, ToRGB(Value ? Style.PressedBColor : Style.DefBColor), ToRGB(Value ? Style.PressedColor : Style.DefColor), BoxProps.BorderW, SelfDrawMask);
 
+        Canvas->Render2d.PutStr(Props.Str, GlobalPos, Size, 0, (DWORD)render_2d::vert_align::eCenter | (DWORD)render_2d::hor_align::eCenter, 0, ContentDrawMask);
       } /* End of 'OnDraw' function */
 
       /* On hover event function */

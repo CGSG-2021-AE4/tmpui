@@ -21,28 +21,36 @@ namespace ui
     /* Slider props struct */
     struct slider_props
     {
-      // Entity part
-      std::string Id {"Slider"};
-      ivec2 Pos {};
-      isize2 Size {60, 30};
-      
-      // Slider part
       FLT
         Min = 0,
         Max = 1,
         Value = 0.5;
-      slider_style Style {};
     }; /* End of 'slidre_props' struct */
 
-    struct full_slider_props : slider_props
+    class slider;
+
+  } /* end of 'controls' namespace */
+
+  template<>
+    struct entity_props<controls::slider>
     {
+      std::string Id {""};
+      ivec2 Pos {0};
+      isize2 Size {10};
+      min_size_type MinSize {min_size_ref::eMinContent};
+      isize2 MaxSize {10000};
+
       layout_type LayoutType = layout_type::eBlock;
       overflow_type Overflow = overflow_type::eHidden;
-      flex_props Flex = { .Basis = flex_basis_type::eFixed };
+      flex_props Flex {};
+      box_props BoxProps {};
 
-      box_props BoxProps { .MarginW = 2, .BorderW = 2 };
-    }; /* End of 'full_slider_props' struct */
+      controls::slider_style Style {};
+      controls::slider_props Props {};
+    }; /* End of 'entity_props' struct */
 
+  namespace controls
+  {
     /* Slider class */
     class slider : public entity
     {
@@ -55,14 +63,24 @@ namespace ui
     public:
   
       /* Contsructor function */
-      slider( const slider_props &NewProps ) :
-        entity(full_slider_props(NewProps)),
+      slider( const entity_props<slider> &NewProps ) :
+        entity(NewProps),
         Style(NewProps.Style),
-        Min(NewProps.Min),
-        Max(NewProps.Max),
-        Value(NewProps.Value)
+        Min(NewProps.Props.Min),
+        Max(NewProps.Props.Max),
+        Value(NewProps.Props.Value)
       {
       } /* End of 'slider' function */
+
+      isize2 GetMinContent( VOID ) override
+      {
+        return {render_2d::FontW * 13, render_2d::FontH}; // Len of 'Value: *.***'
+      } /* End of 'GetMaxContent' function */
+
+      isize2 GetMaxContent( VOID ) override
+      {
+        return {render_2d::FontW * 13, render_2d::FontH}; // Len of 'Value: *.***'
+      } /* End of 'GetMaxContent' function */
 
       VOID UpdateValue( const ivec2 &LocalMousePos )
       {
@@ -105,7 +123,7 @@ namespace ui
         Str.precision(3);
         Str << "Value: " << Value;
 
-        Canvas->Render2d.PutStr(Str.str(), GlobalPos, Size, {8, 0}, (DWORD)render_2d::vert_align::eCenter | (DWORD)render_2d::hor_align::eLeft, 0, SelfDrawMask);
+        Canvas->Render2d.PutStr(Str.str(), GlobalPos, Size, {8, 0}, (DWORD)render_2d::vert_align::eCenter | (DWORD)render_2d::hor_align::eLeft, 0, ContentDrawMask);
         // if (State > entity_state::eDef)
         //   if (State > entity_state::eHovered)
         //   {

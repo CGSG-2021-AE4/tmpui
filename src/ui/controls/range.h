@@ -21,53 +21,67 @@ namespace ui
     /* Range props struct */
     struct range_props
     {
-      // Entity part
-      std::string Id {"Slider"};
-      ivec2 Pos {};
-      isize2 Size {60, 30};
-      
       // Slider part
       FLT
         Min = 0,
         Max = 1,
         Value = 0.5;
-      range_style Style {};
     }; /* End of 'range_props' struct */
 
-    struct full_range_props : range_props
+    class range;
+
+  } /* end of 'controls' namespace */
+
+  template<>
+    struct entity_props<controls::range>
     {
+      std::string Id {""};
+      ivec2 Pos {0};
+      isize2 Size {10};
+      min_size_type MinSize {min_size_ref::eMinContent};
+      isize2 MaxSize {10000};
+
       layout_type LayoutType = layout_type::eBlock;
       overflow_type Overflow = overflow_type::eHidden;
-      flex_props Flex = { .Basis = flex_basis_type::eFixed };
+      flex_props Flex {};
+      box_props BoxProps {};
 
-      box_props BoxProps { .MarginW = 2, .BorderW = 2 };
-    }; /* End of 'full_range_props' struct */
+      controls::range_style Style {};
+      controls::range_props Props {};
+    }; /* End of 'entity_props' struct */
 
+  namespace controls
+  {
     /* Range class */
     class range : public entity
     {
-      FLT
-        Min = 0,
-        Max = 1,
-        Value = 0.5;
+      range_props Props {};
       range_style Style {};
 
     public:
   
       /* Contsructor function */
-      range( const range_props &NewProps ) :
-        entity(full_range_props(NewProps)),
+      range( const entity_props<range> &NewProps ) :
+        entity(NewProps),
         Style(NewProps.Style),
-        Min(NewProps.Min),
-        Max(NewProps.Max),
-        Value(NewProps.Value)
+        Props(NewProps.Props)
       {
       } /* End of 'slider' function */
 
+      isize2 GetMinContent( VOID ) override
+      {
+        return {render_2d::FontW * 13, render_2d::FontH}; // Len of 'Value: *.***'
+      } /* End of 'GetMaxContent' function */
+
+      isize2 GetMaxContent( VOID ) override
+      {
+        return {render_2d::FontW * 13, render_2d::FontH}; // Len of 'Value: *.***'
+      } /* End of 'GetMaxContent' function */
+
       VOID UpdateValue( const ivec2 &LocalMousePos )
       {
-        Value = Min + ((FLT)LocalMousePos.X - BoxProps.BorderW) / BorderSize.W * (Max - Min);
-        Value = std::clamp(Value, Min, Max);
+        Props.Value = Props.Min + ((FLT)LocalMousePos.X - BoxProps.BorderW) / BorderSize.W * (Props.Max - Props.Min);
+        Props.Value = std::clamp(Props.Value, Props.Min, Props.Max);
       }
       
       virtual BOOL OnDrag( const ivec3 &Delta, const ivec2 &LocalMousePos )
@@ -91,7 +105,7 @@ namespace ui
       /* On draw event function */
       VOID OnDraw( VOID ) override
       {
-        FLT SeparationLineX = (Value - Min) / (Max - Min) * BorderSize.W + BoxProps.BorderW;
+        FLT SeparationLineX = (Props.Value - Props.Min) / (Props.Max - Props.Min) * BorderSize.W + BoxProps.BorderW;
         // Left
         Canvas->Render2d.FillBar(GlobalPos, isize2(SeparationLineX, Size.H), ToRGB(Style.Left.Space.DefColor), SelfDrawMask);
         // Right
@@ -103,7 +117,7 @@ namespace ui
 
         Str.width(6);
         Str.precision(3);
-        Str << "Value: " << Value;
+        Str << "Value: " << Props.Value;
 
         Canvas->Render2d.PutStr(Str.str(), GlobalPos, Size, {8, 0}, (DWORD)render_2d::vert_align::eCenter | (DWORD)render_2d::hor_align::eLeft, 0, SelfDrawMask);
         // if (State > entity_state::eDef)
@@ -136,7 +150,7 @@ namespace ui
 
       VOID SetValue( FLT NewValue )
       {
-        Value = std::clamp(NewValue, Min, Max);
+        Props.Value = std::clamp(NewValue, Props.Min, Props.Max);
         Redraw();
       } /* End of 'SetValue' function */
 

@@ -27,17 +27,16 @@ namespace ui
 
     class text;
 
-  } /* end of 'button_style' namespace */
+  } /* end of 'controls' namespace */
 
   template<>
     struct entity_props<controls::text>
     {
       std::string Id {""};
       ivec2 Pos {0};
-      isize2
-        Size {10},
-        MinSize {0},
-        MaxSize {10000};
+      isize2 Size {10};
+      min_size_type MinSize {min_size_ref::eMinContent};
+      isize2 MaxSize {10000};
       layout_type LayoutType = layout_type::eBlock;
       overflow_type Overflow = overflow_type::eHidden;
       flex_props Flex {};
@@ -136,7 +135,7 @@ namespace ui
         }
       } /* End of 'UpdateLines' function */
 
-      virtual VOID OnResize( VOID )
+      VOID OnResize( VOID ) override
       {
         UpdateLines();
       } /* End of 'OnResize' function */

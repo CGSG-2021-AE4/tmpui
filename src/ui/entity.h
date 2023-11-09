@@ -1,5 +1,5 @@
 #include <algorithm>
-
+#include <variant>
 #include "ui_def.h"
 
 #ifndef __entity_h_
@@ -25,6 +25,31 @@ namespace ui
     eFocused = 2,
     eActive  = 3,
   }; /* End of 'entity_state' enum struct */
+
+  /* Min size usage type struct */
+  enum struct min_size_ref
+  {
+    eNone,
+    eMinContent,
+  }; /* End of 'min_size_type' enum struct */
+
+  typedef std::variant<isize2, min_size_ref> min_size_type;
+
+  /* Entity props structure */
+  template<typename entity_type>
+    struct entity_props
+    {
+      std::string Id {""};
+      ivec2 Pos {0};
+      isize2
+        Size {0},
+        MaxSize {0};
+      min_size_type MinSize {min_size_ref::eMinContent};
+      layout_type LayoutType = layout_type::eBlock;
+      overflow_type Overflow = overflow_type::eHidden;
+      flex_props Flex {};
+      box_props BoxProps {};
+    }; /* End of 'entity_props' struct */
 
   /* UI entity class */
   class entity
@@ -54,9 +79,11 @@ namespace ui
       OuterSize {0},                       // Margin size
       ContentSize {0},                     // Computed content size
       MaxSize {0},
-      MinSize {0},
       MaxContent,
       MinContent;
+
+    min_size_type MinSize {min_size_ref::eMinContent};
+
 
     // Masks
 
@@ -115,7 +142,7 @@ namespace ui
     /* Is point over entity function */
     BOOL IsOver( const ivec2 &GlobalPoint )
     {
-      return SelfMask(GlobalPoint);
+      return SelfDrawMask(GlobalPoint);
     } /* End of 'IsOver' function */
 
     /******* Virtual event functions for overriding by user *******/
@@ -371,6 +398,8 @@ namespace ui
       {
       case flex_basis_type::eFixed:
         return InitialSize + isize2(BoxProps.MarginW) * 2;
+      case flex_basis_type::eMinContent:
+        return MinContent + isize2(BoxProps.PaddingW + BoxProps.BorderW + BoxProps.MarginW) * 2;
       case flex_basis_type::eMaxContent:
         return MaxContent + isize2(BoxProps.PaddingW + BoxProps.BorderW + BoxProps.MarginW) * 2;
       }
@@ -386,7 +415,27 @@ namespace ui
     /* Get min outer size function */
     isize2 GetMinSize( VOID )
     {
-      return MinSize + isize2(BoxProps.MarginW) * 2;
+      isize2 OutMinSize;
+
+      if (std::holds_alternative<min_size_ref>(MinSize))
+        switch (std::get<min_size_ref>(MinSize))
+        {
+        case min_size_ref::eNone:
+          OutMinSize = 0;
+          break;
+        case min_size_ref::eMinContent:
+          OutMinSize = MinContent;
+          break;
+        }
+      else
+        OutMinSize = std::get<isize2>(MinSize);
+
+      OutMinSize += isize2(BoxProps.MarginW) * 2;
+
+      if (Flex.Shrink == 0)
+        OutMinSize = Max(OutMinSize, GetPreferedSize());
+
+      return OutMinSize;
     } /* End of 'GetMinSize' function */
 
   private:

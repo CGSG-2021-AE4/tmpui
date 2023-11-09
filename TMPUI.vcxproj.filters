@@ -113,10 +113,10 @@
     <ClInclude Include="src\ui\controls\text.h">
       <Filter>Source Files\UI\Controls</Filter>
     </ClInclude>
-    <ClInclude Include="src\ui\controls\range.h">
+    <ClInclude Include="src\ui\controls\slider.h">
       <Filter>Source Files\UI\Controls</Filter>
     </ClInclude>
-    <ClInclude Include="src\ui\controls\slider.h">
+    <ClInclude Include="src\ui\controls\range.h">
       <Filter>Source Files\UI\Controls</Filter>
     </ClInclude>
   </ItemGroup>

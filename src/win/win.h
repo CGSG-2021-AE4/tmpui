@@ -8,7 +8,7 @@
  *               Windows dependent handle module.
  * PROGRAMMER  : CGSG-SummerCamp'2022.
  *               Andrey Egorov.
- * LAST UPDATE : 23.07.2022.
+ * LAST UPDATE : 07.11.2023 (from 2022).
  * NOTE        : Module namespace 'tmp'.
  *
  * No part of this file may be changed without agreement of
@@ -146,7 +146,7 @@ namespace tmp
 
     BOOL OnEraseBkgnd( HDC hDC ) override
     {
-      return 1;
+      return TRUE;
     }
 
     /* WM_SIZE window message handle function.
@@ -175,6 +175,8 @@ namespace tmp
       StdScene.Render2d.Resize(size(W, H));
       StdScene.Resize(W, H);
       ResizeFlag = 1;
+      StdScene.Render(Fr);
+      //Fr.Display(hMemDC, hBm);
     } /* End of 'win::OnSize' function */
 
     /* WM_PAINT window message handle function.
