@@ -7,7 +7,7 @@
 
 #include "props.h"
 
-//#define ENABLE_PATH_LOG
+// #define ENABLE_PATH_LOG
 
 // Some real kal
 using namespace tmp;
@@ -95,14 +95,15 @@ namespace ui
     
     // Neighbours pointers
 
-    entity *Parent {nullptr};               // Parent pointer
+    entity *Parent {nullptr};              // Parent pointer
     canvas *Canvas {nullptr};              // Canvas pointer
-    std::vector<entity *> Children;         // Children pointers
+    std::vector<entity *> Children;        // Children pointers
 
     // Dynamic state
 
     entity_state
       State{ entity_state::eDef };         // State of entity
+    BOOL IsFocused {false};
 
     // Style stuff
 
@@ -194,6 +195,11 @@ namespace ui
       return false;
     } /* End of 'OnChange' function */
 
+    virtual BOOL OnInput( UINT Key )
+    {
+      return false;
+    } /* End of 'OnInput' function */
+
     virtual VOID OnResize( VOID )
     {
     } /* End of 'OnResize' function */
@@ -201,6 +207,16 @@ namespace ui
     virtual VOID OnMove( VOID )
     {
     } /* End of 'OnResize' function */
+
+    virtual BOOL OnFocus( VOID )
+    {
+      return false;
+    } /* End of 'OnFocus' function */
+
+    virtual BOOL OnUnfocus( VOID )
+    {
+      return false;
+    } /* End of 'OnUnfocus' function */
 
     /* User mask functions */
 
@@ -311,6 +327,12 @@ namespace ui
       return OnChange() ? this : nullptr;
     } /* End of 'OnChangeEvent' function */
 
+    inline entity * OnInputEvent( UINT Key )
+    {
+      //Log(std::format("Entity {} OnChange event.", Id));
+      return OnInput(Key) ? this : nullptr;
+    } /* End of 'OnInputEvent' function */
+
     inline VOID OnResizeEvent( VOID )
     {
       //Log(std::format("Entity {} OnResize event.", Id));
@@ -322,6 +344,22 @@ namespace ui
       //Log(std::format("Entity {} OnMove event.", Id));
       OnMove();
     } /* End of 'OnResizeEvent' function */
+
+    inline entity * OnFocusEvent( VOID )
+    {
+      //Log(std::format("Entity {} OnResize event.", Id));
+      IsFocused = true;
+      //if (!IsFocused)
+      return OnFocus() ? this : nullptr;
+
+    } /* End of 'OnFocusEvent' function */
+
+    inline entity * OnUnfocusEvent( VOID )
+    {
+      //Log(std::format("Entity {} OnMove event.", Id));
+      IsFocused = false;
+      return OnUnfocus() ? this : nullptr;
+    } /* End of 'OnUnfocusEvent' function */
     
   protected:
   public: // !!! TMP DEBUG SHIT

@@ -147,40 +147,27 @@ namespace ui
       eRight  = 0x00000200,
     }; /* End of 'hor_align' enum struct */
 
-    inline VOID PutStr( const std::string &Str, const ivec2 &Pos, const isize2 Size, const ivec2 &Padding, DWORD LayoutFlags, const vec3 &Color, const mask &Mask )
+    static ivec2 GetOffset( const std::string_view &Str, const ivec2 &Padding, const isize2 &Size, const isize2 &CharSize, DWORD LayoutFlags )
     {
-      ivec2 OutPos = Pos + Padding; // Vertical align - top, Horizontal align - left
-
+      ivec2 OutPos;
       // Check vertical align flags
       if (LayoutFlags & (DWORD)vert_align::eCenter)
-        OutPos.Y = (INT)(Pos.Y + (Size.H - CharSize.H) / 2.0);
+        OutPos.Y = (INT)((Size.H - CharSize.H) / 2.0);
       if (LayoutFlags & (DWORD)vert_align::eBottom)
-        OutPos.Y = Pos.Y + Size.H - Padding.Y - CharSize.H;
+        OutPos.Y = Size.H - Padding.Y - CharSize.H;
 
       // Check horizontal align flags
       if (LayoutFlags & (DWORD)hor_align::eCenter)
-        OutPos.X = (INT)(Pos.X + (Size.W - CharSize.W * (INT)Str.size()) / 2.0);
+        OutPos.X = (INT)((Size.W - CharSize.W * (INT)Str.size()) / 2.0);
       if (LayoutFlags & (DWORD)hor_align::eRight)
-        OutPos.X = Pos.X + Size.W - Padding.X - CharSize.W * (INT)Str.size();
+        OutPos.X = Size.W - Padding.X - CharSize.W * (INT)Str.size();
 
-      PutStr(Str, OutPos, Color, Mask);
-    } /* End of 'PutStr' function */
+      return OutPos;
+    } /* End of 'GetOffset' function */
 
     inline VOID PutStr( const std::string_view &Str, const ivec2 &Pos, const isize2 Size, const ivec2 &Padding, DWORD LayoutFlags, const vec3 &Color, const mask &Mask )
     {
-      ivec2 OutPos = Pos + Padding; // Vertical align - top, Horizontal align - left
-
-      // Check vertical align flags
-      if (LayoutFlags & (DWORD)vert_align::eCenter)
-        OutPos.Y = (INT)(Pos.Y + (Size.H - CharSize.H) / 2.0);
-      if (LayoutFlags & (DWORD)vert_align::eBottom)
-        OutPos.Y = Pos.Y + Size.H - Padding.Y - CharSize.H;
-
-      // Check horizontal align flags
-      if (LayoutFlags & (DWORD)hor_align::eCenter)
-        OutPos.X = (INT)(Pos.X + (Size.W - CharSize.W * (INT)Str.size()) / 2.0);
-      if (LayoutFlags & (DWORD)hor_align::eRight)
-        OutPos.X = Pos.X + Size.W - Padding.X - CharSize.W * (INT)Str.size();
+      ivec2 OutPos = Pos + Padding + GetOffset(Str, Padding, Size, CharSize, LayoutFlags);
 
       PutStr(Str, OutPos, Color, Mask);
     } /* End of 'PutStr' function */

@@ -22,6 +22,7 @@ namespace ui
     struct text_props
     {
       BOOL IsSingleLine {false};
+      BOOL IsEmptyBack {false};
       std::string Str {""};
     }; /* End of 'div_props' struct */
 
@@ -53,110 +54,63 @@ namespace ui
     {
       text_style Style;
       text_props Props;
-      std::string Str;
-      std::vector<std::string_view> Lines; // Isn't used if text is a single line
-
+      complex_text Str;
+      
     public:
   
       /* Contsructor function */
       text( const entity_props<text> &NewProps ) :
         entity(NewProps),
         Props(NewProps.Props),
-        Style(NewProps.Style),
-        Str(Props.Str)
+        Style(NewProps.Style)
       {
         IsBackgroundTransparent = true;
+        if (Props.IsSingleLine)
+          Str.Single(Props.Str);
+        else
+        {
+          Str.Parse(Props.Str);
+          Str.Wrap(InnerSize.W);
+        }
       } /* End of 'text' function */
 
       isize2 GetMaxContent( VOID ) override
       {
-        return {(INT)Str.size() * render_2d::FontW + Style.Padding.X, render_2d::FontH};
+        if (Props.IsSingleLine)
+          return {(INT)Str.WholeStr.size() * render_2d::FontW + Style.Padding.X, render_2d::FontH};
+        return {(INT)Str.MaxLineLen * render_2d::FontW + Style.Padding.X, render_2d::FontH};
       } /* End of 'UpdateMinMaxContent' function */
 
-      VOID UpdateLines( VOID )
+      isize2 GetMinContent( VOID ) override
       {
-        INT CharsPerLine = (INT)((Size.W - Style.Padding.X * 2) / render_2d::FontW);
-
-        if (Props.IsSingleLine || CharsPerLine <= 0)
-        {
-          Lines = {Str};
-          return;
-        }
-
-        Lines.clear();
-
-        INT PrevWordStart = -1, PrevWordEnd = -1;
-
-        for (INT LineStartOffset = 0; LineStartOffset < (INT)Str.size();)
-        {
-          INT Offset = LineStartOffset;
-          BOOL IsPrevCSpace = 1;
-
-          while (Offset < (INT)Str.size() && Offset - LineStartOffset < CharsPerLine && Str[Offset] != '\n')
-          {
-            BOOL IsSpace = !isalpha(Str[Offset]);
-            
-            if (IsPrevCSpace && !IsSpace)
-              PrevWordStart = Offset;
-            else if (!IsPrevCSpace && IsSpace)
-              PrevWordEnd = Offset;
-
-            IsPrevCSpace = IsSpace;
-            Offset++;
-          }
-
-          if (Offset < (INT)Str.size())
-          {
-            if (Str[Offset] == '\n')
-            {
-              Lines.push_back(std::string_view(Str).substr(LineStartOffset, Offset - LineStartOffset));
-              LineStartOffset = Offset + 1;
-            }
-            else if (PrevWordEnd > PrevWordStart) // We are out of a word
-            {
-              Lines.push_back(std::string_view(Str).substr(LineStartOffset, PrevWordEnd - LineStartOffset));
-              LineStartOffset = Offset;
-            }
-            else if (PrevWordEnd < PrevWordStart) // We are in a word
-            {
-              Lines.push_back(std::string_view(Str).substr(LineStartOffset, PrevWordEnd - LineStartOffset));
-
-              if (PrevWordStart <= LineStartOffset)
-                LineStartOffset = Offset;
-              else
-                LineStartOffset = PrevWordStart;
-            }
-          }
-          else
-          {
-            Lines.push_back(std::string_view(Str).substr(LineStartOffset, Offset - LineStartOffset));
-            LineStartOffset = Offset;
-          }
-        }
-      } /* End of 'UpdateLines' function */
+        return {(INT)Str.MaxWordLen * render_2d::FontW + Style.Padding.X, render_2d::FontH};
+      } /* End of 'UpdateMinMaxContent' function */
 
       VOID OnResize( VOID ) override
       {
-        UpdateLines();
+        if (!Props.IsSingleLine)
+          Str.Wrap(InnerSize.W);
       } /* End of 'OnResize' function */
       
       /* On draw event function */
       VOID OnDraw( VOID ) override
       {
-        Canvas->Render2d.PutBar(GlobalPos, Size, ToRGB(vec3(0.8)), ToRGB(vec3(0.6)), BoxProps.BorderW, SelfDrawMask);
+        if (!Props.IsEmptyBack)
+          Canvas->Render2d.PutBar(GlobalPos, Size, ToRGB(vec3(0.8)), ToRGB(vec3(0.6)), BoxProps.BorderW, SelfDrawMask);
 
-        for (INT Line = 0; Line < (INT)Lines.size(); Line++)
-          Canvas->Render2d.PutStr(Lines[Line], GlobalContentPos + ivec2(0, Line * render_2d::FontH), InnerSize, Style.Padding, Style.LayoutFlags, 0, SelfDrawMask);
+        if (Props.IsSingleLine)
+          Canvas->Render2d.PutStr(Str.WholeStr, GlobalContentPos, InnerSize, Style.Padding, Style.LayoutFlags, 0, SelfDrawMask);
+        else
+          for (INT Line = 0; Line < (INT)Str.WrappedLines.size(); Line++)
+            Canvas->Render2d.PutStr(Str.WrappedLines[Line], GlobalContentPos + ivec2(0, Line * render_2d::FontH), InnerSize, Style.Padding, Style.LayoutFlags, 0, SelfDrawMask);
       } /* End of 'OnDraw' function */
 
       /* Set text function */
       VOID SetStr( const std::string &NewStr )
       {
-        Str = NewStr;
-        OnResize();
-        //UpdateMinMaxContentRec();
+        Str.Parse(NewStr);
+        Str.Wrap(InnerSize.W);
         OnUpdateContent();
-        //Redraw();
       } /* End of 'SetStr' function */
 
     }; /* End of 'text' class */

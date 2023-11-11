@@ -34,6 +34,7 @@
 #include "./ui/controls/button.h"
 #include "./ui/controls/slider.h"
 #include "./ui/controls/text.h"
+#include "./ui/controls/text_editor.h"
 #include "./ui/controls/range.h"
 
 #include <iostream>
@@ -89,7 +90,7 @@ public:
             .Id = Prefix + " slider bar text",
             .Flex = { .Grow = 1 },
             .BoxProps = StdDivBoxProps,
-            .Props = { .Str = "Button of value " + Name },
+            .Props = { .IsSingleLine = true, .Str = "Button of value " + Name },
             .Style = { .Color = ::ui::vec3(1) }
           }),
           Create<cs::slider>({
@@ -115,7 +116,7 @@ public:
             .Id = Prefix + " range bar text",
             .Flex = { .Grow = 1 },
             .BoxProps = StdDivBoxProps,
-            .Props = { .Str = "Button of value " + Name },
+            .Props = { .IsSingleLine = true, .Str = "Button of value " + Name },
             .Style = { .Color = ::ui::vec3(1) }
           }),
           Create<cs::range>({
@@ -141,7 +142,7 @@ public:
             .Id = Prefix + " button bar text",
             .Flex = { .Grow = 1 },
             .BoxProps = StdDivBoxProps,
-            .Props = { .Str = "Button of value " + Name },
+            .Props = { .IsSingleLine = true, .Str = "Button of value " + Name },
             .Style = { .Color = ::ui::vec3(1) }
           }),
           Create<cs::button>({
@@ -170,6 +171,11 @@ public:
     Render2d(NewRender2d),
     Canvas(NewRender2d, 0, Size, ::ui::layout_type::eFlexRow, {})
   {
+    ui::complex_text Text;
+
+    Text.Parse("I pounder of something great,\nmy lungs will fill and then deflate.\nThey fill with fire, exhale desire,\nI know it's dire my time today.");
+    Text.Wrap(200);
+
     std::vector<::ui::entity *> Values;
     
     for (UINT i = 0; i < 30; i++)
@@ -199,9 +205,18 @@ public:
             .Id = "Box 1.1",
             .Size = {300},
             .MaxSize = {500},
+            .LayoutType = ::ui::layout_type::eFlexColumn,
             .Flex = { .Basis = ::ui::flex_basis_type::eFixed, .Grow = 1, .Shrink = 1 },
             .BoxProps = StdDivBoxProps,
             .Style = StdDivStyle,
+          }, {
+            Create<cs::text>({
+              .Id = "True text",
+              .Flex = { .Grow = 1, .Shrink = 1 },
+              .BoxProps = StdDivBoxProps,
+              .Props = { .Str = "I pounder of something great,\nmy lungs will fill and then deflate.\nThey fill with fire, exhale desire,\nI know it's dire my time today."},
+              .Style = { .Color = ::ui::vec3(1) }
+            }),
           }),
           Create<cs::div>({
             .Id = "Box 1.1",
@@ -223,97 +238,19 @@ public:
           .Flex = { .Basis = ::ui::flex_basis_type::eFixed, .Grow = 2, .Shrink = 2 },
           .BoxProps = StdDivBoxProps,
           .Style = StdDivStyle,
+        }, {
+          Create<cs::line_editor>({
+            .Id = "Line editor",
+            .MaxSize = {10000},
+            .Flex = { .Grow = 0 },
+            .BoxProps = StdDivBoxProps,
+            .Props = { .Str = "Some text" },
+            .Style = { .Color = ::ui::vec3(1) }
+          }),
         }),
       }),
     });
 
-    /*
-    std::vector<::ui::entity *> Values;
-
-    for (UINT i = 0; i < 30; i++)
-      Values.push_back(CreateValue(std::format("{}", i)));
-
-    Canvas.GetRoot()->AddChildren({
-      Create<cs::div, ::ui::entity_props<BYTE, cs::div_style>>({
-        .Id = "Main bar",
-        .Pos = {100},
-        .Size = {300, 200},
-        .LayoutType = ::ui::layout_type::eFlexRow,
-        .Flex = { .Grow = 1, .Shrink = 1 },
-        .BoxProps = StdDivBoxProps,
-        .Style = StdDivStyle
-      }, {
-        Create<cs::div, ::ui::entity_props<BYTE, cs::div_style>>({
-          .Id = "Value list",
-          .LayoutType = ::ui::layout_type::eFlexColumn,
-          .Overflow = ::ui::overflow_type::eScroll,
-          .Flex = { .Grow = 2, .Shrink = 1 },
-          .BoxProps = StdDivBoxProps,
-          .Style = StdDivStyle,
-        }, Values),
-        Create<cs::text, ::ui::entity_props<cs::text_props, cs::text_style>>({
-          .Id = "Text2",
-          .Flex = { .Grow = 1 },
-          .BoxProps = StdDivBoxProps,
-          .Props = {
-            .Str = "Some text" //"I pounder of something great, my lungs will fill and then deflate. They fill with fire, exhale desire, I know it's dire my time today."
-          },
-          .Style = { .Color = ::ui::vec3(1) } }),
-        Create<cs::div, ::ui::entity_props<BYTE, cs::div_style>>({
-          .Id = "Button bar",
-          .LayoutType = ::ui::layout_type::eFlexColumn,
-          .Overflow = ::ui::overflow_type::eScroll,
-          .BoxProps = StdDivBoxProps,
-          .Style = StdDivStyle,
-        }, {
-          Create<cs::div, ::ui::entity_props<BYTE, cs::div_style>>({
-            .Id = "Button bar 1",
-            .LayoutType = ::ui::layout_type::eFlexRow,
-            .BoxProps = StdDivBoxProps,
-            .Style = StdDivStyle,
-          }, {
-            Create<cs::button, ::ui::entity_props<cs::button_props, cs::button_style>>({
-              .Id = "Button 1.1",
-              .Size = 30, 
-              .Flex = { .Basis = ::ui::flex_basis_type::eFixed },
-              .BoxProps = StdDivBoxProps,
-              .Props = { .IsPress = true, .OnChangeCallBack = []( cs::button *Button ){ ::ui::Log(std::format("New value: {}", Button->GetValue() )); } },
-            }),
-            Create<cs::button, ::ui::entity_props<cs::button_props, cs::button_style>>({
-              .Id = "Button 1.2",
-              .Size = 30, 
-              .Flex = { .Basis = ::ui::flex_basis_type::eFixed },
-              .BoxProps = StdDivBoxProps,
-              .Props = { .IsPress = true, .OnChangeCallBack = []( cs::button *Button ){ ::ui::Log(std::format("New value: {}", Button->GetValue() )); } },
-            }),
-          }),
-          Create<cs::button, ::ui::entity_props<cs::button_props, cs::button_style>>({
-            .Id = "Button 1",
-            .Size = 30, 
-            .Flex = { .Basis = ::ui::flex_basis_type::eFixed },
-            .BoxProps = StdDivBoxProps,
-            .Props = { .IsPress = true, .OnChangeCallBack = []( cs::button *Button ){ ::ui::Log(std::format("New value: {}", Button->GetValue() )); } },
-            }),
-          Create<cs::button, ::ui::entity_props<cs::button_props, cs::button_style>>({
-            .Id = "Button 2",
-            .Size = 30,
-            .Flex = { .Basis = ::ui::flex_basis_type::eFixed },
-            .BoxProps = StdDivBoxProps,
-            .Props = { .IsPress = true, .OnChangeCallBack = []( cs::button *Button ){ ::ui::Log(std::format("New value: {}", Button->GetValue() )); } },
-          }),
-          Create<cs::slider, cs::slider_props>({
-            .Id = "Slider 1",
-            .Size = {200, 30},
-            .Style = {
-              .Track = { .Space = { .DefColor = ::ui::vec3::Rnd0() }, .Border = { .DefColor = ::ui::vec3::Rnd0() } },
-              .Thumb = { .Space = { .DefColor = ::ui::vec3::Rnd0() }, .Border = { .DefColor = ::ui::vec3::Rnd0() } }
-            },
-          }),
-        }), // Button bar
-      }), // Main bar
-    });
-
-    */
   } /* End of 'test' function */
 
   VOID Init( VOID )

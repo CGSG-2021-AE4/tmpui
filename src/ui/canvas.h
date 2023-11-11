@@ -135,9 +135,10 @@ namespace ui
 
     // Entries' values
     entity
-      *Root        {nullptr}, // Root entity - root is an entity with canvas size
-      *FocusEntity  {nullptr}, // Current focused entity
-      *HoverEntity  {nullptr}; // Current hovered entity
+      *Root        {nullptr},   // Root entity - root is an entity with canvas size
+      *FocusEntity  {nullptr},  // Current focused entity
+      *ActiveEntity  {nullptr}, // Current active entity
+      *HoverEntity  {nullptr};  // Current hovered entity
 
     std::stack<entity *> DrawStack;
     draw_manager DrawManager;
@@ -236,45 +237,60 @@ namespace ui
 
       // On mouse move event
       if (HoverEntity != nullptr)
-        PushToDraw(HoverEntity->OnMouseMoveEvent(Delta, GlobalMousePos - HoverEntity->GlobalPos));
+        DrawE(HoverEntity->OnMouseMoveEvent(Delta, GlobalMousePos - HoverEntity->GlobalPos));
       if (NewHoverEntity != nullptr)
-        PushToDraw(NewHoverEntity->OnMouseMoveEvent(Delta, GlobalMousePos - NewHoverEntity->GlobalPos));
+        DrawE(NewHoverEntity->OnMouseMoveEvent(Delta, GlobalMousePos - NewHoverEntity->GlobalPos));
 
       // On hover/unhover event
       if (NewHoverEntity != HoverEntity)
       {
         if (HoverEntity != nullptr)
-          PushToDraw(HoverEntity->OnUnhoverEvent(GlobalMousePos - HoverEntity->GlobalPos));
+          DrawE(HoverEntity->OnUnhoverEvent(GlobalMousePos - HoverEntity->GlobalPos));
         if (NewHoverEntity != nullptr)
-          PushToDraw(NewHoverEntity->OnHoverEvent(GlobalMousePos - NewHoverEntity->GlobalPos));
+          DrawE(NewHoverEntity->OnHoverEvent(GlobalMousePos - NewHoverEntity->GlobalPos));
         HoverEntity = NewHoverEntity;
       }
 
       // On drag event
-      if (FocusEntity != nullptr)
-        PushToDraw(FocusEntity->OnDragEvent(Delta, GlobalMousePos - FocusEntity->GlobalPos));
+      if (ActiveEntity != nullptr)
+        DrawE(ActiveEntity->OnDragEvent(Delta, GlobalMousePos - ActiveEntity->GlobalPos));
     
     } /* End of 'OnMouseMove' function */
 
     VOID OnMouseDown( const ivec2 &MousePos )
     {
       if (HoverEntity != nullptr)
-        PushToDraw(HoverEntity->OnMouseDownEvent(MousePos - HoverEntity->GlobalPos));
+        DrawE(HoverEntity->OnMouseDownEvent(MousePos - HoverEntity->GlobalPos));
 
-      FocusEntity = HoverEntity;
+      ActiveEntity = HoverEntity;
+      if (FocusEntity != ActiveEntity)
+      {
+        if (FocusEntity != nullptr)
+          DrawE(FocusEntity->OnUnfocusEvent());
+      }
+      FocusEntity = ActiveEntity;
+      if (FocusEntity != nullptr)
+        DrawE(FocusEntity->OnFocusEvent());
     } /* End of 'OnMouseDown' function */
   
     VOID OnMouseUp( const ivec2 &MousePos )
     {
-      if (FocusEntity != nullptr)
+      if (ActiveEntity != nullptr)
       {
-        PushToDraw(FocusEntity->OnMouseUpEvent(MousePos - FocusEntity->GlobalPos));
-        if (FocusEntity == HoverEntity)
-          PushToDraw(FocusEntity->OnClickEvent(MousePos - FocusEntity->GlobalPos));
+        DrawE(ActiveEntity->OnMouseUpEvent(MousePos - ActiveEntity->GlobalPos));
+        if (ActiveEntity == HoverEntity)
+          DrawE(ActiveEntity->OnClickEvent(MousePos - ActiveEntity->GlobalPos));
       }
 
-      FocusEntity = nullptr;
+      ActiveEntity = nullptr;
     } /* End of 'OnMouseUp' function */
+
+    /* On input event function */
+    VOID OnInput( UINT Key )
+    {
+      if (FocusEntity != nullptr)
+        DrawE(FocusEntity->OnInputEvent(Key));
+    } /* End of 'OnInput' function */
 
     /* Draw stack functions */
 
@@ -284,6 +300,13 @@ namespace ui
       if (e != nullptr)
         DrawManager.PushToDraw(e);
     } /* End of 'PushToDraw' function */
+
+    /* Draw draw stack function */
+    VOID DrawE( entity *e )
+    {
+      if (e != nullptr)
+        e->Redraw();
+    } /* End of 'DrawE' function */
 
     /* Draw draw stack function */
     VOID Draw( VOID )
@@ -298,6 +321,113 @@ namespace ui
     } /* End of 'Redraw' function */
 
   }; /* End of 'canvas' class */
+
+  /* Parse text class */
+  class complex_text
+  {
+  public:
+
+    std::string WholeStr;
+    std::string_view WholeStrView;
+    std::vector<std::string_view>
+      Lines,
+      WrappedLines;
+
+    INT
+      MaxWordLen = 0,
+      MaxLineLen = 0;
+
+    /* Setup as single line */
+    VOID Single( const std::string &Str )
+    {
+      WholeStr = Str;
+      WholeStrView = std::string_view(WholeStr);
+    } /* End of 'Single' function */
+
+    /* Parse string function */
+    VOID Parse( const std::string &InStr )
+    {
+      WholeStr = InStr;
+      WholeStrView = std::string_view(WholeStr);
+      Lines.clear();
+
+      // Parse '\n'
+
+      std::string_view::iterator LineStart = WholeStrView.begin();
+      
+      for (std::string_view::iterator C = LineStart; C != WholeStrView.end(); C++)
+      {
+        if (*C == '\n')
+        {
+          // New line
+          MaxLineLen = std::max(MaxLineLen, (INT)(C - LineStart));
+          Lines.push_back({LineStart, C});
+          LineStart = ++C;
+        }
+      }
+      if (LineStart != WholeStrView.end())
+        Lines.push_back({LineStart, WholeStrView.end()});
+    } /* End of 'Parse' function */
+
+    VOID Wrap( const INT &Width )
+    {
+      INT CharsPerLine = (INT)((Width) / render_2d::FontW);
+      WrappedLines.clear();
+
+      for (auto Line : Lines)
+        for (std::string_view::iterator C = Line.begin(); C < Line.end();)
+        {
+          while (C != Line.end() && *C == ' ') // Skip all spaces
+            C++;
+
+          std::string_view::iterator NextStrStart, LineStart, PrevWordStart, PrevWordEnd;
+
+          LineStart = PrevWordEnd = PrevWordStart = C;
+          NextStrStart = (Line.size() > CharsPerLine && LineStart <= Line.end() - CharsPerLine) ? LineStart + CharsPerLine : Line.end();
+
+          while (C != Line.end() && (C < NextStrStart || PrevWordEnd == PrevWordStart)) // Run over line
+          {
+            if (*C != ' ')
+            {
+              if (PrevWordStart < PrevWordEnd) // Out of the word
+              {
+                MaxWordLen = std::max(MaxWordLen, (INT)(PrevWordEnd - PrevWordStart));
+                PrevWordStart = C;
+              }
+            }
+            else
+              if (PrevWordStart >= PrevWordEnd) // In the word
+                PrevWordEnd = C;
+            C++;
+          }
+
+          if (C != Line.end())
+          {
+            if (PrevWordStart > PrevWordEnd) // In the word
+            {
+              WrappedLines.push_back({LineStart, PrevWordEnd});
+              C = PrevWordStart;
+            }
+            else
+              WrappedLines.push_back({LineStart, PrevWordEnd});
+          }
+          else
+            WrappedLines.push_back({LineStart, C});
+        }
+    } /* End of 'Wrap' function */
+
+    /* Constructor function */
+    complex_text( const std::string &InText )
+    {
+      Parse(InText);
+    } /* End if 'complex_text' function */
+
+    /* Default constructor function */
+    complex_text( VOID )
+    {
+    } /* End if 'complex_text' function */
+
+  }; /* End of 'complex_text' class */
 } /* end of 'ui' namespace */
 
 #endif // __canvas_h_

@@ -222,28 +222,30 @@ namespace tmp
       switch (Keys)
       {
         //Flip full screen
-      case 'F':
+      case VK_F11:
         FlipFullScreen();
         break;
-      case VK_ESCAPE:
+      case VK_F10:
         DestroyWindow(hWnd);
         break;
 
-      case 'C':
-      Fr.Save("Shoot");
-      break;
-      case 'X':
-        if (1)
-        {
-          POINT P;
-          GetCursorPos(&P);
-          INT
-            x = P.x,
-            y = P.y;
-          x = y;
-        }
-        break;
+      //case 'C':
+      //Fr.Save("Shoot");
+      //break;
+      //case 'X':
+      //  if (1)
+      //  {
+      //    POINT P;
+      //    GetCursorPos(&P);
+      //    INT
+      //      x = P.x,
+      //      y = P.y;
+      //    x = y;
+      //  }
+      //  break;
       }
+      StdScene.Test.Canvas.OnInput(Keys);
+
     } /* End of 'OnKeyDown' function */
   };
 }

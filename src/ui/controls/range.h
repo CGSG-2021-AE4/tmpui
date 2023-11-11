@@ -120,20 +120,6 @@ namespace ui
         Str << "Value: " << Props.Value;
 
         Canvas->Render2d.PutStr(Str.str(), GlobalPos, Size, {8, 0}, (DWORD)render_2d::vert_align::eCenter | (DWORD)render_2d::hor_align::eLeft, 0, SelfDrawMask);
-        // if (State > entity_state::eDef)
-        //   if (State > entity_state::eHovered)
-        //   {
-        //     // Track
-        //     Canvas->Render2d.PutBar(GlobalPos + TrackRelativePos, {Size.W - TrackRelativePos.X * 2, Style.TrackW}, ToRGB(Style.Track.Border.DefColor), ToRGB(Style.Track.Space.DefColor), BoxProps.BorderW, SelfDrawMask);
-        //     // Thumb
-        //     Canvas->Render2d.PutBar(GlobalPos + ThumbRelativePos, Style.ThumbSize, ToRGB(Style.Thumb.Border.DefColor), ToRGB(Style.Thumb.Space.DefColor), BoxProps.BorderW, SelfDrawMask);
-        //   }
-        //   else
-        //   {
-        //   }
-        // else
-        //   ;// Canvas->Render2d.PutBar(GlobalPos, Size, ToRGB(Value ? Style.PressedBColor : Style.DefBColor), ToRGB(Value ? Style.PressedColor : Style.DefColor), BoxProps.BorderW, SelfDrawMask);
-
       } /* End of 'OnDraw' function */
 
       /* On hover event function */

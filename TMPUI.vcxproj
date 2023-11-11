@@ -176,6 +176,7 @@
     <ClInclude Include="src\ui\controls\range.h" />
     <ClInclude Include="src\ui\controls\slider.h" />
     <ClInclude Include="src\ui\controls\text.h" />
+    <ClInclude Include="src\ui\controls\text_editor.h" />
     <ClInclude Include="src\ui\entity.h" />
     <ClInclude Include="src\ui\frame_render.h" />
     <ClInclude Include="src\ui\props.h" />
