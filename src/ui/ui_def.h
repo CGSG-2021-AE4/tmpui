@@ -115,6 +115,18 @@ namespace ui
       return X0 <= X1;
     } /* End of 'operator()' function */
 
+    /* Is equal operator function */
+    BOOL operator==( const mask &Mask ) const
+    {
+      return Pos0 == Mask.Pos0 && Pos1 == Mask.Pos1;  
+    } /* End of '==' operator function */
+
+    /* Is not equal operator function */
+    BOOL operator!=( const mask &Mask ) const
+    {
+      return Pos0 != Mask.Pos0 || Pos1 != Mask.Pos1;  
+    } /* End of '!=' operator function */
+
     BOOL IsExist( VOID ) const
     {
       return Pos1.Y >= Pos0.Y && Pos1.X >= Pos0.X;

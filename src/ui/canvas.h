@@ -102,7 +102,7 @@ namespace ui
       /* Push to entity to draw function */
       VOID PushToDraw( entity *Entity )
       {
-        // Making Path
+        // Making path
         std::stack<entity *> Path;
         for (entity *e = Entity; e != nullptr; e = e->Parent)
           Path.push(e);
@@ -371,6 +371,8 @@ namespace ui
 
     VOID Wrap( const INT &Width )
     {
+      // Log("Wrap str: " + WholeStr + " To width " + std::to_string(Width) + "\n"); TODO - there are several wraps of one str during init - may we should prevent it???
+
       INT CharsPerLine = (INT)((Width) / render_2d::FontW);
       WrappedLines.clear();
 

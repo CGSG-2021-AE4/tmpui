@@ -36,7 +36,7 @@ namespace ui
       std::string Id {""};
       ivec2 Pos {0};
       isize2 Size {10};
-      min_size_type MinSize {min_size_ref::eMinContent};
+      size_type MinSize {size_ref::eMinContent};
       isize2 MaxSize {10000};
       layout_type LayoutType = layout_type::eBlock;
       overflow_type Overflow = overflow_type::eHidden;
@@ -54,10 +54,11 @@ namespace ui
     {
       text_style Style;
       text_props Props;
+
+    public:
+
       complex_text Str;
       
-    public:
-  
       /* Contsructor function */
       text( const entity_props<text> &NewProps ) :
         entity(NewProps),

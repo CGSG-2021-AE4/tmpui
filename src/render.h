@@ -30,6 +30,9 @@
 
 #include "./ui/frame_render.h"
 #include "./ui/canvas.h"
+
+// Controls
+
 #include "./ui/controls/div.h"
 #include "./ui/controls/button.h"
 #include "./ui/controls/slider.h"
@@ -37,19 +40,12 @@
 #include "./ui/controls/text_editor.h"
 #include "./ui/controls/range.h"
 
+// Components
+#include "./ui/components/text_test.h"
+
 #include <iostream>
 
 namespace cs = ::ui::controls;
-
-template<typename entity_type>
-  ::ui::entity * Create( const ::ui::entity_props<entity_type> &Props, const std::vector<::ui::entity *> &NewChildren = {}, ::ui::entity *NewParent = nullptr )
-  {
-    ::ui::entity * NewE = new entity_type(Props);
-
-    NewE->AddChildren(NewChildren);
-    NewE->SetParent(NewParent);
-    return NewE;
-  } /* End of 'Create' function */
 
 /* Test class */
 class test
@@ -72,31 +68,31 @@ public:
     std::string Prefix = std::format("Value {} ", Name);
 
     return
-      Create<cs::div>({
+      ::ui::Create<cs::div>({
         .Id = Prefix + "main bar",
-        .MinSize = ::ui::min_size_ref::eMinContent,
+        .MinSize = ::ui::size_ref::eMinContent,
         .LayoutType = ::ui::layout_type::eFlexColumn,
         .BoxProps = StdDivBoxProps,
         .Style = StdDivStyle
       }, {
-        Create<cs::div>({
+        ::ui::Create<cs::div>({
           .Id = Prefix + "slider bar",
-          .MinSize = ::ui::min_size_ref::eMinContent,
+          .MinSize = ::ui::size_ref::eMinContent,
           .LayoutType = ::ui::layout_type::eFlexRow,
           .BoxProps = StdMarginBoxProps,
           .Style = StdDivStyle
         }, {
-          Create<cs::text>({
+          ::ui::Create<cs::text>({
             .Id = Prefix + " slider bar text",
             .Flex = { .Grow = 1 },
             .BoxProps = StdDivBoxProps,
             .Props = { .IsSingleLine = true, .Str = "Button of value " + Name },
             .Style = { .Color = ::ui::vec3(1) }
           }),
-          Create<cs::slider>({
+          ::ui::Create<cs::slider>({
             .Id = "slider bar slider",
             .Size = 30, 
-            .MinSize = ::ui::min_size_ref::eMinContent,
+            .MinSize = ::ui::size_ref::eMinContent,
             .Flex = { .Basis = ::ui::flex_basis_type::eMaxContent, .Grow = 1 },
             .BoxProps = StdDivBoxProps,
             .Style = {
@@ -105,24 +101,24 @@ public:
             }
           }),
         }),
-        Create<cs::div>({
+        ::ui::Create<cs::div>({
           .Id = Prefix + "range bar",
-          .MinSize = ::ui::min_size_ref::eMinContent,
+          .MinSize = ::ui::size_ref::eMinContent,
           .LayoutType = ::ui::layout_type::eFlexRow,
           .BoxProps = StdMarginBoxProps,
           .Style = StdDivStyle
         }, {
-          Create<cs::text>({
+          ::ui::Create<cs::text>({
             .Id = Prefix + " range bar text",
             .Flex = { .Grow = 1 },
             .BoxProps = StdDivBoxProps,
             .Props = { .IsSingleLine = true, .Str = "Button of value " + Name },
             .Style = { .Color = ::ui::vec3(1) }
           }),
-          Create<cs::range>({
+          ::ui::Create<cs::range>({
             .Id = "range bar range",
             .Size = 30, 
-            .MinSize = ::ui::min_size_ref::eMinContent,
+            .MinSize = ::ui::size_ref::eMinContent,
             .Flex = { .Basis = ::ui::flex_basis_type::eMaxContent, .Grow = 1 },
             .BoxProps = StdDivBoxProps,
             .Style = {
@@ -131,21 +127,21 @@ public:
             }
           }),
         }),
-        Create<cs::div>({
+        ::ui::Create<cs::div>({
           .Id = Prefix + "button bar",
-          .MinSize = ::ui::min_size_ref::eMinContent,
+          .MinSize = ::ui::size_ref::eMinContent,
           .LayoutType = ::ui::layout_type::eFlexRow,
           .BoxProps = StdMarginBoxProps,
           .Style = StdDivStyle
         }, {
-          Create<cs::text>({
+          ::ui::Create<cs::text>({
             .Id = Prefix + " button bar text",
             .Flex = { .Grow = 1 },
             .BoxProps = StdDivBoxProps,
             .Props = { .IsSingleLine = true, .Str = "Button of value " + Name },
             .Style = { .Color = ::ui::vec3(1) }
           }),
-          Create<cs::button>({
+          ::ui::Create<cs::button>({
             .Id = "second button bar button",
             //.Flex = { .Grow = 1 },
             .BoxProps = StdDivBoxProps,
@@ -170,19 +166,14 @@ public:
   test( ::ui::render_2d &NewRender2d, const ::ui::isize2 &Size ) :
     Render2d(NewRender2d),
     Canvas(NewRender2d, 0, Size, ::ui::layout_type::eFlexRow, {})
-  {
-    ui::complex_text Text;
-
-    Text.Parse("I pounder of something great,\nmy lungs will fill and then deflate.\nThey fill with fire, exhale desire,\nI know it's dire my time today.");
-    Text.Wrap(200);
-
+  { 
     std::vector<::ui::entity *> Values;
     
-    for (UINT i = 0; i < 30; i++)
+    for (UINT i = 0; i < 5; i++)
       Values.push_back(CreateValue(std::format("{}", i)));
 
     Canvas.GetRoot()->AddChildren({
-      Create<cs::div>({
+      ::ui::Create<cs::div>({
         .Id = "Main bar",
         .MinSize = {0},
         //.MaxSize = {5000},
@@ -191,7 +182,7 @@ public:
         .BoxProps = StdDivBoxProps,
         .Style = StdDivStyle
       }, {
-        Create<cs::div>({
+        ::ui::Create<cs::div>({
           .Id = "Box 1",
           .Size = {300},
           .MinSize = {200},
@@ -201,7 +192,7 @@ public:
           .BoxProps = StdDivBoxProps,
           .Style = StdDivStyle,
         }, {
-          Create<cs::div>({
+          ::ui::Create<cs::div>({
             .Id = "Box 1.1",
             .Size = {300},
             .MaxSize = {500},
@@ -210,7 +201,7 @@ public:
             .BoxProps = StdDivBoxProps,
             .Style = StdDivStyle,
           }, {
-            Create<cs::text>({
+            ::ui::Create<cs::text>({
               .Id = "True text",
               .Flex = { .Grow = 1, .Shrink = 1 },
               .BoxProps = StdDivBoxProps,
@@ -218,7 +209,7 @@ public:
               .Style = { .Color = ::ui::vec3(1) }
             }),
           }),
-          Create<cs::div>({
+          ::ui::Create<cs::div>({
             .Id = "Box 1.1",
             .Size = {300},
             .MaxSize = {500},
@@ -229,24 +220,28 @@ public:
             .Style = StdDivStyle,
           }, Values),
         }),
-        Create<cs::div>({
+        ::ui::Create<cs::div>({
           .Id = "Box 2",
           .Size = {300},
           .MinSize = {270},
-          .MaxSize = {600},
+          .MaxSize = {1000},
           .LayoutType = ::ui::layout_type::eFlexColumn,
           .Flex = { .Basis = ::ui::flex_basis_type::eFixed, .Grow = 2, .Shrink = 2 },
           .BoxProps = StdDivBoxProps,
           .Style = StdDivStyle,
         }, {
-          Create<cs::line_editor>({
-            .Id = "Line editor",
-            .MaxSize = {10000},
-            .Flex = { .Grow = 0 },
-            .BoxProps = StdDivBoxProps,
-            .Props = { .Str = "Some text" },
-            .Style = { .Color = ::ui::vec3(1) }
+          ::ui::Create<::ui::components::text_test>({
+            .Id = "ComponetBox",
+            .Flex = { .Grow = 1, .Shrink = 1 },
           }),
+          // ::ui::Create<cs::line_editor>({
+          //   .Id = "Line editor",
+          //   .MaxSize = {10000},
+          //   .Flex = { .Grow = 0 },
+          //   .BoxProps = StdDivBoxProps,
+          //   .Props = { .Str = "Some text" },
+          //   .Style = { .Color = ::ui::vec3(1) }
+          // }),
         }),
       }),
     });

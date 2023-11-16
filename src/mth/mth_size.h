@@ -178,6 +178,30 @@ namespace mth
 
     } /* End of '+=' operator function */
 
+    /* Is equal operator function.
+     * ARGUMENTS:
+     *   - other size:
+     *       const size &Size;
+     * RETURNS:
+     *   (BOOL) - result.
+     */
+    BOOL operator==( const size &Size )
+    {
+      return W == Size.W && H == Size.H;
+    } /* End of '==' operator function */
+
+    /* Is not equal operator function.
+     * ARGUMENTS:
+     *   - other size:
+     *       const size &Size;
+     * RETURNS:
+     *   (BOOL) - result.
+     */
+    BOOL operator!=( const size &Size )
+    {
+      return W != Size.W || H != Size.H;
+    } /* End of '!=' operator function */
+
     /* Subtract equncy operator function.
      * ARGUMENTS:
      *   - adding Size:
@@ -237,16 +261,16 @@ namespace mth
      * RETURNS:
      *   (Type &) - Size component.
      */
-    Type & operator[]( const int &Id ) const
+    Type & operator[]( const int &Id )
     {
       switch (Id)
       {
       case 0:
-        return (Type &)W;
+        return W;
       case 1:
-        return (Type &)H;
+        return H;
       default:
-        return (Type &)W;
+        return W;
       }
     } /* End of 'Length2' operator function */
   };

@@ -31,6 +31,9 @@
     <Filter Include="Source Files\UI\Controls">
       <UniqueIdentifier>{b803c82f-ebd3-4094-8670-8cee50ddafad}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source Files\UI\Components">
+      <UniqueIdentifier>{83a39bb3-670d-41ce-9d11-5e724c51e210}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\win\win.cpp">
@@ -121,6 +124,9 @@
     </ClInclude>
     <ClInclude Include="src\ui\controls\text_editor.h">
       <Filter>Source Files\UI\Controls</Filter>
+    </ClInclude>
+    <ClInclude Include="src\ui\components\text_test.h">
+      <Filter>Source Files\UI\Components</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

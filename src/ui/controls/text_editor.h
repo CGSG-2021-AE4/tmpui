@@ -20,6 +20,7 @@ namespace ui
     struct text_editor_props
     {
       std::string Str {""};
+      INT WidthChars;
     }; /* End of 'div_editor_props' struct */
 
     class line_editor;
@@ -32,7 +33,7 @@ namespace ui
       std::string Id {""};
       ivec2 Pos {0};
       isize2 Size {10};
-      min_size_type MinSize {min_size_ref::eMinContent};
+      size_type MinSize {size_ref::eMinContent};
       isize2 MaxSize {10000};
       layout_type LayoutType = layout_type::eBlock;
       overflow_type Overflow = overflow_type::eHidden;
@@ -72,7 +73,7 @@ namespace ui
 
       isize2 GetMaxContent( VOID ) override
       {
-        return {0, render_2d::FontH};
+        return {render_2d::FontW * Props.WidthChars, render_2d::FontH};
       } /* End of 'UpdateMinMaxContent' function */
       
       isize2 GetMinContent( VOID ) override
@@ -94,7 +95,6 @@ namespace ui
           Canvas->Render2d.PutBar(GlobalPos, Size, ToRGB(vec3(0.7)), BoxProps.BorderW, SelfDrawMask);
         else
           Canvas->Render2d.PutBar(GlobalPos, Size, ToRGB(vec3(0.4)), BoxProps.BorderW, SelfDrawMask);
-
 
         Canvas->Render2d.PutStr(Str, GlobalContentPos - ivec2(Offset * render_2d::FontW, 0), InnerSize, 0, 0, 0, ContentDrawMask);
         if (IsCursorSet)
@@ -209,6 +209,9 @@ namespace ui
         case VK_CAPITAL:
         case VK_TAB:
           break;
+        case VK_ESCAPE:
+          IsCursorSet = FALSE;
+          break;
         case VK_HOME:
           MoveCursor(0);
           break;
@@ -242,7 +245,7 @@ namespace ui
         return true;
       } /* End of 'OnUnfocus' function */
 
-      BOOL OnClick( const ivec2 &LocalMousePos ) override
+      BOOL OnMouseDown( const ivec2 &LocalMousePos ) override
       {
         if (IsCursorSet)
           MoveCursor((FLT)(LocalMousePos - BoxProps.BorderW - BoxProps.PaddingW).X / render_2d::FontW + Offset);
@@ -252,7 +255,14 @@ namespace ui
         IsCursorSet = true;
         
         return true;
-      } /* End of 'OnClick' function */
+      } /* End of 'OnMouseDown' function */
+
+      virtual BOOL OnDrag( const ivec3 &Delta, const ivec2 &LocalMousePos )
+      {
+        SetSelectCursorPos((FLT)(LocalMousePos - BoxProps.BorderW - BoxProps.PaddingW).X / render_2d::FontW + Offset);
+
+        return true;
+      } /* End of 'OnDrag' function */
 
       VOID OnResize( VOID ) override
       {

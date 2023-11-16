@@ -215,7 +215,7 @@ namespace mth
      * RETURNS:
      *   (BOOL) - is equal.
      */
-    BOOL operator==( const vec2<Type> &V )
+    BOOL operator==( const vec2<Type> &V ) const
     {
       return X == V.X && Y == V.Y;
     } /* End of '==' operator function */
@@ -227,7 +227,7 @@ namespace mth
      * RETURNS:
      *   (BOOL) - is not equal.
      */
-    BOOL operator!=( const vec2<Type> &V )
+    BOOL operator!=( const vec2<Type> &V ) const
     {
       return X != V.X || Y != V.Y;
     } /* End of '!=' operator function */
@@ -326,7 +326,7 @@ namespace mth
      * RETURNS:
      *   (Type) - vector component.
      */
-    Type operator[]( const INT &Id ) const
+    Type & operator[]( const INT &Id )
     {
       switch (Id)
       {
@@ -335,7 +335,7 @@ namespace mth
       case 1:
         return Y;
       default:
-        return 0;
+        return X;
       }
     } /* End of 'Length2' operator function */
 

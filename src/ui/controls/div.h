@@ -24,7 +24,7 @@ namespace ui
       std::string Id {""};
       ivec2 Pos {0};
       isize2 Size {0};
-      min_size_type MinSize {min_size_ref::eNone};
+      size_type MinSize {size_ref::eNone};
       isize2 MaxSize {10000};
 
       layout_type LayoutType = layout_type::eBlock;

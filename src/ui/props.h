@@ -65,6 +65,8 @@ namespace ui
       Border; // Border style
   }; /* End of 'box_style' struct */
 
+
+
 } /* end of 'ui' namespace */
 
 #endif // __ui_props_h_
