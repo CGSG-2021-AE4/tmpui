@@ -7,7 +7,7 @@
 
 #include "props.h"
 
-#define ENABLE_PATH_LOG
+//#define ENABLE_PATH_LOG
 
 // Some real kal
 using namespace tmp;
@@ -34,7 +34,15 @@ namespace ui
     eMaxContent,
   }; /* End of 'size_ref' enum struct */
 
-  typedef std::variant<isize2, size_ref> size_type;
+  /* Advanced size with references to other vars struct */
+  struct size_type : public std::variant<isize2, size_ref>
+  {
+    /* Is size none function */
+    inline BOOL IsNone( VOID ) const
+    {
+      return std::holds_alternative<size_ref>(*this) && std::get<size_ref>(*this) == size_ref::eNone;
+    } /* End of 'IsNone' function */
+  }; /* End of 'size_type' struct */
 
   /* Entity props structure */
   template<typename entity_type>
@@ -119,6 +127,7 @@ namespace ui
   private:
 
     // Values for flex sizing
+
     INT
       ParentMaxGrowDelta = 0,
       ParentMaxShrinkDelta = 0;
@@ -129,8 +138,6 @@ namespace ui
       ShrinkShift = 0; // Are needed only for layout values calculating
     INT
       ChildrenPreferedSizeSum = 0;
-      // ChildrenMinSizeSum = 0,
-      // ChildrenMaxSizeSum = 0;
 
     /* Events */
 
@@ -455,11 +462,7 @@ namespace ui
         switch (std::get<size_ref>(MaxSize))
         {
         case size_ref::eNone:
-          if (Flex.Grow == 0)
-            return GetPreferedSize();
-          else
-            return -1;
-          break;
+          return -1;
         case size_ref::eMinContent:
           OutMaxSize = MinContent;
           break;
@@ -470,9 +473,6 @@ namespace ui
         OutMaxSize = std::get<isize2>(MaxSize);
 
       OutMaxSize += isize2(BoxProps.MarginW) * 2;
-
-      //if (Flex.Grow == 0)
-      //  OutMaxSize = Min(OutMaxSize, GetPreferedSize());
 
       return OutMaxSize;
     } /* End of 'GetMaxSize' function */
@@ -499,55 +499,34 @@ namespace ui
 
       OutMinSize += isize2(BoxProps.MarginW) * 2;
 
-      if (Flex.Shrink == 0)
-        OutMinSize = Max(OutMinSize, GetPreferedSize());
-
       return OutMinSize;
     } /* End of 'GetMinSize' function */
 
-  private:
-    /* Get the value of flex direction from size value function */
-    INT GetFlexDir( const isize2 &ValueSize )
-    {
-      switch (LayoutType)
-      {
-      case layout_type::eFlexRow:
-        return ValueSize.W;
-      case layout_type::eFlexColumn:
-        return ValueSize.H;
-      default:
-        return 0;
-      }
-    } /* End of 'GetFlexDir' function */
-
-    /* Get not flex direction component of size value function */
-    INT GetNotFlexDir( const isize2 &ValueSize )
-    {
-      switch (LayoutType)
-      {
-      case layout_type::eFlexRow:
-        return ValueSize.W;
-      case layout_type::eFlexColumn:
-        return ValueSize.H;
-      default:
-        return 0;
-      }
-    } /* End of 'GetFlexDir' function */
-
-  public:
 
     // UpdateChildrenLayoutValues support functions
 
     FLT GetMaxGrowDelta( INT ValueIndex )
     {
-      return (Flex.Grow > 0) ? (GetMaxSize()[ValueIndex] - GetPreferedSize()[ValueIndex] - GrowShift) / Flex.Grow : 0;
+      const INT MaxSize = GetMaxSize()[ValueIndex];
+
+      if (MaxSize == -1)
+        return -1;
+
+      return (Flex.Grow > 0) ? (MaxSize - GetPreferedSize()[ValueIndex] - GrowShift) / Flex.Grow : 0;
     } /* End of 'GetMaxGrowDelta' function */
 
     FLT GetMaxShrinkDelta( INT ValueIndex )
     {
-      return (Flex.Shrink > 0) ? (GetMinSize()[ValueIndex] - GetPreferedSize()[ValueIndex] - ShrinkShift) / Flex.Shrink : 0;
+      const INT MinSize = GetMinSize()[ValueIndex];
+
+      if (MinSize == -1)
+        return -1;
+
+      return (Flex.Shrink > 0) ? (MinSize - GetPreferedSize()[ValueIndex] - ShrinkShift) / Flex.Shrink : 0;
     } /* End of 'GetMaxGrowDelta' function */
 
+  public:
+    
     /* Update layout values function - calls in UpdateContent event, values are constant during resizes */
     VOID UpdateChildrenLayoutValues( VOID )
     {
@@ -599,18 +578,17 @@ namespace ui
         {
           FLT EjMaxGrowDelta = (*Ej)->GetMaxGrowDelta(FI) * FlexGrowSumI;
           
-          if (EjMaxGrowDelta < MinMaxGrowDelta)
+          if ((EjMaxGrowDelta < MinMaxGrowDelta && !(*Ej)->MaxSize.IsNone()) || (*MinMaxGrowDeltaE)->MaxSize.IsNone())
           {
             MinMaxGrowDeltaE = Ej;
             MinMaxGrowDelta = EjMaxGrowDelta;
           }
         }
 
-        (*MinMaxGrowDeltaE)->ParentMaxGrowDelta = (INT)MinMaxGrowDelta;
-
+        (*MinMaxGrowDeltaE)->ParentMaxGrowDelta = std::max((INT)MinMaxGrowDelta, -1);
+        FLT NewFlexGrowSumI = FlexGrowSumI - (*MinMaxGrowDeltaE)->Flex.Grow;
+        
         std::iter_swap(MinMaxGrowDeltaE, Ei);
-
-        FLT NewFlexGrowSumI = FlexGrowSumI - (*Ei)->Flex.Grow;
 
         for (std::vector<entity *>::iterator Ej = Ei + 1; Ej != SortedChildren.end(); Ej++)
         {
@@ -671,7 +649,6 @@ namespace ui
       case layout_type::eBlock:
         for (entity *Child : Children)
         {
-          //Child->OnUpdateShape();
           Child->UpdateGlobalPosRec();
           Child->UpdateMasksRec();
         }
@@ -696,7 +673,7 @@ namespace ui
 
         // Calculating usable flex grow sum and real grow delta without frozen entities
         for (entity *EI : Children)
-          if (EI->ParentMaxGrowDelta >= DeltaSize)
+          if (EI->ParentMaxGrowDelta < 0 || EI->ParentMaxGrowDelta >= DeltaSize)
             UsedFlexGrowSum += EI->Flex.Grow;
           else
             RealGrowDelta -= EI->Flex.Grow != 0 ? EI->GetMaxSize()[FD] - EI->GetPreferedSize()[FD] : 0;
@@ -709,16 +686,22 @@ namespace ui
         {
           isize2 ChildSize;
 
-          if (Child->ParentMaxGrowDelta < DeltaSize)
+          if (Child->ParentMaxGrowDelta >= 0 && Child->ParentMaxGrowDelta < DeltaSize)
           {
+            // The child is over it's max size
+            
             ChildSize[FD] = Child->Flex.Grow > 0 ? Child->GetMaxSize()[FD] : Child->GetPreferedSize()[FD];
             ChildSize[NFD] = InnerSize[NFD];
             ChildSize = Clamp(ChildSize, Child->GetMinSize(), Child->GetMaxSize());
           }
           else
           {
+            // The child is between it's prefered and max size
             ChildSize[FD] = Child->GetPreferedSize()[FD] + (UsedFlexGrowSum == 0 ? 0 : ((INT)(Child->Flex.Grow / UsedFlexGrowSum * RealGrowDelta)));
-            ChildSize[NFD] = std::clamp(InnerSize[NFD], Child->GetMinSize()[NFD], Child->GetMaxSize()[NFD]);
+            if (Child->MaxSize.IsNone())
+              ChildSize[NFD] = std::max(InnerSize[NFD], Child->GetMinSize()[NFD]);
+            else
+              ChildSize[NFD] = std::clamp(InnerSize[NFD], Child->GetMinSize()[NFD], Child->GetMaxSize()[NFD]);
           }
 
           Child->Reform(Offset, ChildSize);
@@ -751,12 +734,18 @@ namespace ui
           {
             ChildSize[FD] = Child->Flex.Shrink > 0 ? Child->GetMinSize()[FD] : Child->GetPreferedSize()[FD];
             ChildSize[NFD] = InnerSize[NFD];
-            ChildSize = Clamp(ChildSize, Child->GetMinSize(), Child->GetMaxSize());
+            if (Child->MaxSize.IsNone())
+              ChildSize = Max(ChildSize, Child->GetMinSize());
+            else
+              ChildSize = Clamp(ChildSize, Child->GetMinSize(), Child->GetMaxSize());
           }
           else
           {
             ChildSize[FD] = Child->GetPreferedSize()[FD] + (UsedFlexShrinkSum == 0 ? 0 : ((INT)(Child->Flex.Shrink / UsedFlexShrinkSum * RealShrinkDelta)));
-            ChildSize[NFD] = std::clamp(InnerSize[NFD], Child->GetMinSize()[NFD], Child->GetMaxSize()[NFD]);
+            if (Child->MaxSize.IsNone())
+              ChildSize[NFD] = std::max(InnerSize[NFD], Child->GetMinSize()[NFD]);
+            else
+              ChildSize[NFD] = std::clamp(InnerSize[NFD], Child->GetMinSize()[NFD], Child->GetMaxSize()[NFD]);
           }
 
           Child->Reform(Offset, ChildSize);

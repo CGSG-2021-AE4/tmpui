@@ -39,7 +39,7 @@ namespace ui
       ivec2 Pos {0};
       isize2 Size {10};
       size_type MinSize {size_ref::eMinContent};
-      isize2 MaxSize {10000};
+      size_type MaxSize {size_ref::eNone};
 
       layout_type LayoutType = layout_type::eBlock;
       overflow_type Overflow = overflow_type::eHidden;
