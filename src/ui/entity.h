@@ -255,43 +255,50 @@ namespace ui
      * Functions return (entity *) - pointer to entity to redraw or nullptr. It could be the upper level entity because of event bubbling. The pointer to entity may be used later for draw.
      */
 
-    inline entity * OnHoverEvent( const ivec2 &LocalMousePos )
+    inline VOID OnHoverEvent( const ivec2 &LocalMousePos )
     {
       //Log(std::format("Entity {} OnHover event.", Id));
       if (State == entity_state::eDef)
         State = entity_state::eHovered;
-      return OnHover(LocalMousePos) ? this : nullptr;
+      if (OnHover(LocalMousePos))
+        Redraw();
     } /* End of 'OnHoverEvent' function */
 
-    inline entity * OnUnhoverEvent( const ivec2 &LocalMousePos )
+    inline VOID OnUnhoverEvent( const ivec2 &LocalMousePos )
     {
       //Log(std::format("Entity {} OnUnhover event.", Id));
       if (State == entity_state::eHovered)
         State = entity_state::eDef;
-      return OnUnhover(LocalMousePos) ? this : nullptr;
+      if (OnUnhover(LocalMousePos))
+        Redraw();
     } /* End of 'OnUnhoverEvent' function */
 
-    inline entity * OnClickEvent( const ivec2 &LocalMousePos )
+    inline VOID OnClickEvent( const ivec2 &LocalMousePos )
     {
       Log(std::format("Entity {} OnClick event.", Id));
-      return OnClick(LocalMousePos) ? this : Parent != nullptr ? Parent->OnClickEvent(LocalMousePos + LocalPos) : nullptr;
+      if (OnClick(LocalMousePos))
+        Redraw();
+      else if (Parent != nullptr) // Bubbling
+        Parent->OnClickEvent(LocalMousePos + LocalPos);
     } /* End of 'OnClickEvent' function */
 
-    inline entity * OnMouseDownEvent( const ivec2 &LocalMousePos )
+    inline VOID OnMouseDownEvent( const ivec2 &LocalMousePos )
     {
       //Log(std::format("Entity {} OnMouseDown event.", Id));
       State = entity_state::eActive;
-      return OnMouseDown(LocalMousePos) ? this : nullptr;
+      if (OnMouseDown(LocalMousePos))
+        Redraw();
     } /* End of 'OnMouseDownEvent' function */
 
-    inline entity * OnMouseUpEvent( const ivec2 &LocalMousePos )
+    inline VOID OnMouseUpEvent( const ivec2 &LocalMousePos )
     {
       //Log(std::format("Entity {} OnMouseUp event.", Id));
       State = entity_state::eHovered;
-      return OnMouseUp(LocalMousePos) ? this : nullptr;
+      if (OnMouseUp(LocalMousePos))
+        Redraw();
     } /* End of 'OnMouseUpEvent' function */
 
-    inline entity * OnMouseMoveEvent( const ivec3 &Delta, const ivec2 &LocalMousePos )
+    inline VOID OnMouseMoveEvent( const ivec3 &Delta, const ivec2 &LocalMousePos )
     {
       //Log(std::format("${} OnMouseMove event.", Id));
       if (Overflow == overflow_type::eScroll && Delta.Z != 0) // May be later I'l add a check with the content mask
@@ -311,35 +318,44 @@ namespace ui
                          std::clamp(ContentOffset.Y, std::min(InnerSize.H - ContentSize.H, 0), 0)};
         
         if (OldContentOffset == ContentOffset)
-          return nullptr;
+          return;
         
         for (auto *c : Children)
         {
           c->UpdateGlobalPosRec();
           c->UpdateMasksRec();
         }
-        return this;
+        Redraw();
+        return;
       }
 
-      return OnMouseMove(Delta, LocalMousePos) ? this : Parent != nullptr ? Parent->OnMouseMoveEvent(Delta, LocalMousePos + LocalPos) : nullptr;
+      if (OnMouseMove(Delta, LocalMousePos))
+        Redraw();
+      else if (Parent != nullptr)
+        Parent->OnMouseMoveEvent(Delta, LocalMousePos + LocalPos);
     } /* End of 'OnMouseMoveEvent' function */
 
-    inline entity * OnDragEvent( const ivec3 &Delta, const ivec2 &LocalMousePos )
+    inline VOID OnDragEvent( const ivec3 &Delta, const ivec2 &LocalMousePos )
     {
       //Log(std::format("Entity {} OnDrag event.", Id));
-      return OnDrag(Delta, LocalMousePos) ? this : Parent != nullptr ? Parent->OnDragEvent(Delta, LocalMousePos + LocalPos) : nullptr;
+      if (OnDrag(Delta, LocalMousePos))
+        Redraw();
+      else if (Parent != nullptr)
+        Parent->OnDragEvent(Delta, LocalMousePos + LocalPos);
     } /* End of 'OnDragEvent' function */
 
-    inline entity * OnChangeEvent( VOID )
+    inline VOID OnChangeEvent( VOID )
     {
       //Log(std::format("Entity {} OnChange event.", Id));
-      return OnChange() ? this : nullptr;
+      if (OnChange())
+        Redraw();
     } /* End of 'OnChangeEvent' function */
 
-    inline entity * OnInputEvent( UINT Key )
+    inline VOID OnInputEvent( UINT Key )
     {
       //Log(std::format("Entity {} OnChange event.", Id));
-      return OnInput(Key) ? this : nullptr;
+      if (OnInput(Key))
+        Redraw();     
     } /* End of 'OnInputEvent' function */
 
     inline VOID OnResizeEvent( VOID )
@@ -354,20 +370,22 @@ namespace ui
       OnMove();
     } /* End of 'OnResizeEvent' function */
 
-    inline entity * OnFocusEvent( VOID )
+    inline VOID OnFocusEvent( VOID )
     {
       //Log(std::format("Entity {} OnResize event.", Id));
       IsFocused = true;
-      //if (!IsFocused)
-      return OnFocus() ? this : nullptr;
 
+      if (OnFocus())
+        Redraw();
     } /* End of 'OnFocusEvent' function */
 
-    inline entity * OnUnfocusEvent( VOID )
+    inline VOID OnUnfocusEvent( VOID )
     {
       //Log(std::format("Entity {} OnMove event.", Id));
       IsFocused = false;
-      return OnUnfocus() ? this : nullptr;
+
+      if (OnUnfocus())
+        Redraw();
     } /* End of 'OnUnfocusEvent' function */
     
   protected:
@@ -638,126 +656,127 @@ namespace ui
     } /* End of 'UpdateChildrenLayoutValues' function */
 
     /* Update children layout function */
-    VOID UpdateChildrenLayout( VOID )
-    {
-      INT
-        FD = 0,  // Flex direction index
-        NFD = 0; // NOT flex direction index
-
-      switch (LayoutType)
+    template<BOOL RedrawCheck, BOOL ForceChildrenUpdate>
+      VOID UpdateChildrenLayout( VOID )
       {
-      case layout_type::eBlock:
-        for (entity *Child : Children)
+        INT
+          FD = 0,  // Flex direction index
+          NFD = 0; // NOT flex direction index
+
+        switch (LayoutType)
         {
-          Child->UpdateGlobalPosRec();
-          Child->UpdateMasksRec();
+        case layout_type::eBlock:
+          for (entity *Child : Children)
+          {
+            Child->UpdateGlobalPosRec();
+            Child->UpdateMasksRec();
+          }
+          return;
+        case layout_type::eFlexRow:
+          FD = 0;  // W
+          NFD = 1; // H
+          break;
+        case layout_type::eFlexColumn:
+          FD = 1;  // H
+          NFD = 0; // W
+          break;
         }
-        return;
-      case layout_type::eFlexRow:
-        FD = 0;  // W
-        NFD = 1; // H
-        break;
-      case layout_type::eFlexColumn:
-        FD = 1;  // H
-        NFD = 0; // W
-        break;
-      }
 
-      INT DeltaSize = InnerSize[FD] - ChildrenPreferedSizeSum;
-      
-      if (DeltaSize > 0)
-      {
-        // Children will grow 
-        FLT UsedFlexGrowSum = 0;
-        INT RealGrowDelta = DeltaSize;
-
-        // Calculating usable flex grow sum and real grow delta without frozen entities
-        for (entity *EI : Children)
-          if (EI->ParentMaxGrowDelta < 0 || EI->ParentMaxGrowDelta >= DeltaSize)
-            UsedFlexGrowSum += EI->Flex.Grow;
-          else
-            RealGrowDelta -= EI->Flex.Grow != 0 ? EI->GetMaxSize()[FD] - EI->GetPreferedSize()[FD] : 0;
-
-        ContentSize = 0;
+        INT DeltaSize = InnerSize[FD] - ChildrenPreferedSizeSum;
         
-        ivec2 Offset = 0;
-
-        for (entity *Child : Children)
+        if (DeltaSize > 0)
         {
-          isize2 ChildSize;
+          // Children will grow 
+          FLT UsedFlexGrowSum = 0;
+          INT RealGrowDelta = DeltaSize;
 
-          if (Child->ParentMaxGrowDelta >= 0 && Child->ParentMaxGrowDelta < DeltaSize)
-          {
-            // The child is over it's max size
-            
-            ChildSize[FD] = Child->Flex.Grow > 0 ? Child->GetMaxSize()[FD] : Child->GetPreferedSize()[FD];
-            ChildSize[NFD] = InnerSize[NFD];
-            ChildSize = Clamp(ChildSize, Child->GetMinSize(), Child->GetMaxSize());
-          }
-          else
-          {
-            // The child is between it's prefered and max size
-            ChildSize[FD] = Child->GetPreferedSize()[FD] + (UsedFlexGrowSum == 0 ? 0 : ((INT)(Child->Flex.Grow / UsedFlexGrowSum * RealGrowDelta)));
-            if (Child->MaxSize.IsNone())
-              ChildSize[NFD] = std::max(InnerSize[NFD], Child->GetMinSize()[NFD]);
+          // Calculating usable flex grow sum and real grow delta without frozen entities
+          for (entity *EI : Children)
+            if (EI->ParentMaxGrowDelta < 0 || EI->ParentMaxGrowDelta >= DeltaSize)
+              UsedFlexGrowSum += EI->Flex.Grow;
             else
-              ChildSize[NFD] = std::clamp(InnerSize[NFD], Child->GetMinSize()[NFD], Child->GetMaxSize()[NFD]);
-          }
+              RealGrowDelta -= EI->Flex.Grow != 0 ? EI->GetMaxSize()[FD] - EI->GetPreferedSize()[FD] : 0;
 
-          Child->Reform(Offset, ChildSize);
-          Offset[FD] += ChildSize[FD];
-          ContentSize[FD] += ChildSize[FD];
-          ContentSize[NFD] = std::max(ContentSize[NFD], ChildSize[NFD]);
-        }
-      }
-      else
-      {
-        FLT UsedFlexShrinkSum = 0;
-        INT RealShrinkDelta = DeltaSize;
+          ContentSize = 0;
+          
+          ivec2 Offset = 0;
 
-        // Calculating usable flex grow sum and real grow delta without frozen entities
-        for (entity *EI : Children)
-          if (EI->ParentMaxShrinkDelta <= DeltaSize)
-            UsedFlexShrinkSum += EI->Flex.Shrink;
-          else
-            RealShrinkDelta -= EI->Flex.Shrink != 0 ? EI->GetMinSize()[FD] - EI->GetPreferedSize()[FD] : 0;
-
-        // Children will be compressed
-        ivec2 Offset = 0;
-
-        ContentSize = 0;
-        for (entity *Child : Children)
-        {
-          isize2 ChildSize;
-
-          if (Child->ParentMaxShrinkDelta > DeltaSize)
+          for (entity *Child : Children)
           {
-            ChildSize[FD] = Child->Flex.Shrink > 0 ? Child->GetMinSize()[FD] : Child->GetPreferedSize()[FD];
-            ChildSize[NFD] = InnerSize[NFD];
-            if (Child->MaxSize.IsNone())
-              ChildSize = Max(ChildSize, Child->GetMinSize());
-            else
+            isize2 ChildSize;
+
+            if (Child->ParentMaxGrowDelta >= 0 && Child->ParentMaxGrowDelta < DeltaSize)
+            {
+              // The child is over it's max size
+              
+              ChildSize[FD] = Child->Flex.Grow > 0 ? Child->GetMaxSize()[FD] : Child->GetPreferedSize()[FD];
+              ChildSize[NFD] = InnerSize[NFD];
               ChildSize = Clamp(ChildSize, Child->GetMinSize(), Child->GetMaxSize());
-          }
-          else
-          {
-            ChildSize[FD] = Child->GetPreferedSize()[FD] + (UsedFlexShrinkSum == 0 ? 0 : ((INT)(Child->Flex.Shrink / UsedFlexShrinkSum * RealShrinkDelta)));
-            if (Child->MaxSize.IsNone())
-              ChildSize[NFD] = std::max(InnerSize[NFD], Child->GetMinSize()[NFD]);
+            }
             else
-              ChildSize[NFD] = std::clamp(InnerSize[NFD], Child->GetMinSize()[NFD], Child->GetMaxSize()[NFD]);
-          }
+            {
+              // The child is between it's prefered and max size
+              ChildSize[FD] = Child->GetPreferedSize()[FD] + (UsedFlexGrowSum == 0 ? 0 : ((INT)(Child->Flex.Grow / UsedFlexGrowSum * RealGrowDelta)));
+              if (Child->MaxSize.IsNone())
+                ChildSize[NFD] = std::max(InnerSize[NFD], Child->GetMinSize()[NFD]);
+              else
+                ChildSize[NFD] = std::clamp(InnerSize[NFD], Child->GetMinSize()[NFD], Child->GetMaxSize()[NFD]);
+            }
 
-          Child->Reform(Offset, ChildSize);
-          Offset[FD] += ChildSize[FD];
-          ContentSize[FD] += ChildSize[FD];
-          ContentSize[NFD]  = std::max(ContentSize[NFD], ChildSize[NFD]);
+            Child->Reform<RedrawCheck, ForceChildrenUpdate>(Offset, ChildSize);
+            Offset[FD] += ChildSize[FD];
+            ContentSize[FD] += ChildSize[FD];
+            ContentSize[NFD] = std::max(ContentSize[NFD], ChildSize[NFD]);
+          }
         }
-      }
-      
-      ContentOffset = {std::clamp(ContentOffset.X, std::min(InnerSize.W - ContentSize.W, 0), 0),
-                       std::clamp(ContentOffset.Y, std::min(InnerSize.H - ContentSize.H, 0), 0)};
-    } /* End of 'UpdateChildrenLayout' function */
+        else
+        {
+          FLT UsedFlexShrinkSum = 0;
+          INT RealShrinkDelta = DeltaSize;
+
+          // Calculating usable flex grow sum and real grow delta without frozen entities
+          for (entity *EI : Children)
+            if (EI->ParentMaxShrinkDelta <= DeltaSize)
+              UsedFlexShrinkSum += EI->Flex.Shrink;
+            else
+              RealShrinkDelta -= EI->Flex.Shrink != 0 ? EI->GetMinSize()[FD] - EI->GetPreferedSize()[FD] : 0;
+
+          // Children will be compressed
+          ivec2 Offset = 0;
+
+          ContentSize = 0;
+          for (entity *Child : Children)
+          {
+            isize2 ChildSize;
+
+            if (Child->ParentMaxShrinkDelta > DeltaSize)
+            {
+              ChildSize[FD] = Child->Flex.Shrink > 0 ? Child->GetMinSize()[FD] : Child->GetPreferedSize()[FD];
+              ChildSize[NFD] = InnerSize[NFD];
+              if (Child->MaxSize.IsNone())
+                ChildSize = Max(ChildSize, Child->GetMinSize());
+              else
+                ChildSize = Clamp(ChildSize, Child->GetMinSize(), Child->GetMaxSize());
+            }
+            else
+            {
+              ChildSize[FD] = Child->GetPreferedSize()[FD] + (UsedFlexShrinkSum == 0 ? 0 : ((INT)(Child->Flex.Shrink / UsedFlexShrinkSum * RealShrinkDelta)));
+              if (Child->MaxSize.IsNone())
+                ChildSize[NFD] = std::max(InnerSize[NFD], Child->GetMinSize()[NFD]);
+              else
+                ChildSize[NFD] = std::clamp(InnerSize[NFD], Child->GetMinSize()[NFD], Child->GetMaxSize()[NFD]);
+            }
+
+            Child->Reform<RedrawCheck, ForceChildrenUpdate>(Offset, ChildSize);
+            Offset[FD] += ChildSize[FD];
+            ContentSize[FD] += ChildSize[FD];
+            ContentSize[NFD]  = std::max(ContentSize[NFD], ChildSize[NFD]);
+          }
+        }
+        
+        ContentOffset = {std::clamp(ContentOffset.X, std::min(InnerSize.W - ContentSize.W, 0), 0),
+                         std::clamp(ContentOffset.Y, std::min(InnerSize.H - ContentSize.H, 0), 0)};
+      } /* End of 'UpdateChildrenLayout' function */
 
     /* Update self and content masks function.
      * ARGUMENTS: None.
@@ -780,6 +799,13 @@ namespace ui
     } /* End of 'UpdateDrawMask' function */
 
     /* Update self and childrens masks function (recursive) */
+    VOID UpdateChildrenMasks( VOID )
+    {
+      for (entity *c : Children)
+        c->UpdateMasksRec();
+    } /* End of 'UpdateChildrenMasks' function */
+
+    /* Update self and childrens masks function (recursive) */
     VOID UpdateMasksRec( VOID )
     {
       mask OldSelfDrawMask = SelfDrawMask;
@@ -787,12 +813,17 @@ namespace ui
       UpdateMasks();
 
       if (OldSelfDrawMask != SelfDrawMask)
-        for (entity *c : Children)
-          c->UpdateMasksRec();
+        UpdateChildrenMasks();
     } /* End of 'UpdateMasksRec' function */
 
     /* Update entity global pos function */
     VOID UpdateGlobalPos( VOID );
+
+    VOID UpdateChildrenGlobalPos( VOID )
+    {
+      for (entity *c : Children)
+        c->UpdateGlobalPosRec();
+    } /* End of 'UpdateGlobalPos' function */
 
     /* Update entity global pos recursive function (+ update children) */
     VOID UpdateGlobalPosRec( VOID )
@@ -801,8 +832,7 @@ namespace ui
 
       UpdateGlobalPos();
       if (OldGlobalPos != GlobalPos)
-        for (entity *c : Children)
-          c->UpdateGlobalPosRec();
+        UpdateChildrenGlobalPos();
     } /* End of 'UpdateGlobalPos' function */
 
     /* Update shape function */
@@ -814,7 +844,7 @@ namespace ui
 
       UpdateGlobalPos();
       UpdateMasks();
-      UpdateChildrenLayout();
+      UpdateChildrenLayout<true, true>();
     } /* End of 'OnUpdateShape' function */
 
     /* On Update content function */
@@ -835,7 +865,7 @@ namespace ui
       else // We reached the top so now we will go down with shape update
       {
         OnUpdateShape();
-        Redraw();
+        //Redraw();
       }
     } /* End of 'OnUpdateContent' function */
 
@@ -862,30 +892,52 @@ namespace ui
      *       const isize2 &NewSize;
      * RETURNS: None.
      */
-    VOID Resize( const isize2 &NewSize )
-    {
+    template<BOOL RedrawCheck, BOOL ForceChildrenUpdate>
+      VOID Resize( const isize2 &NewSize )
+      {
 #ifdef ENABLE_PATH_LOG
       Log(std::format("Entity {} Resize.", Id));
 #endif // ENABLE_PATH_LOG
 
-      const isize2 OldSize = Size;
-
-      SetSize(NewSize);
-
-      // Update sizes
-      if (Size != OldSize)
-      {
+        const isize2 OldSize = Size;
+        const mask OldSelfDrawMask = SelfDrawMask;
+  
+        SetSize(NewSize);
         UpdateGlobalPos();
         UpdateMasks();
-        UpdateChildrenLayout();
-        OnResize();
-      }
-      else
-      {
-        UpdateGlobalPosRec();
-        UpdateMasksRec();
-      }
-    } /* End of 'Resize' function */
+
+        if (Size != OldSize)
+        {
+          if constexpr (RedrawCheck)
+            Redraw();
+          UpdateChildrenLayout<false, ForceChildrenUpdate>();
+          OnMove();
+          OnResize();
+        }
+        else
+        {
+          if (ForceChildrenUpdate)
+            if (RedrawCheck && OldSelfDrawMask != SelfDrawMask)
+            {
+              Redraw();
+              UpdateChildrenLayout<false, ForceChildrenUpdate>();
+            }
+            else
+              UpdateChildrenLayout<RedrawCheck, ForceChildrenUpdate>();
+          else
+          {
+            UpdateChildrenGlobalPos();
+  
+            if (OldSelfDrawMask != SelfDrawMask)
+            {
+              UpdateChildrenMasks();
+              if constexpr (RedrawCheck)
+                Redraw();
+            }
+          }
+          OnMove();
+        }
+      } /* End of 'Resize' function */
 
     /* Move function.
      * ARGUMENTS:
@@ -893,18 +945,41 @@ namespace ui
      *       const ivec2 &NewLocalPos;
      * RETURNS: None.
      */
-    VOID Move( const ivec2 &NewLocalPos )
-    {
+    template<BOOL RedrawCheck, BOOL ForceChildrenUpdate>
+      VOID Move( const ivec2 &NewLocalPos )
+      {
 #ifdef ENABLE_PATH_LOG
-      Log(std::format("Entity {} Move.", Id));
+        Log(std::format("Entity {} Move.", Id));
 
 #endif // ENABLE_PATH_LOG
+        SetPos(NewLocalPos);
+
+        const mask OldSelfDrawMask = SelfDrawMask;
       
-      SetPos(NewLocalPos);
-      UpdateGlobalPosRec();
-      UpdateMasksRec();
-      OnMove();
-    } /* End of 'Move' function */
+        UpdateGlobalPos();
+        UpdateMasks();
+
+        if (ForceChildrenUpdate)
+          if (RedrawCheck && OldSelfDrawMask != SelfDrawMask)
+          {
+            Redraw();
+            UpdateChildrenLayout<false, ForceChildrenUpdate>();
+          }
+          else
+            UpdateChildrenLayout<RedrawCheck, ForceChildrenUpdate>();
+        else
+        {
+          UpdateChildrenGlobalPos();
+
+          if (OldSelfDrawMask != SelfDrawMask)
+          {
+            UpdateChildrenMasks();
+            if constexpr (RedrawCheck)
+              Redraw();
+          }
+        }
+        OnMove();
+      } /* End of 'Move' function */
 
     /* Combined move and resize function.
      * ARGUMENTS:
@@ -914,35 +989,53 @@ namespace ui
      *       const isize2 &NewSize;
      * RETURNS: None.
      */
-    VOID Reform( const ivec2 &NewLocalPos, const isize2 &NewSize )
-    {
-#ifdef ENABLE_PATH_LOG
-      Log(std::format("Entity {} Reform.", Id));
-#endif // ENABLE_PATH_LOG
-
-      const isize2 OldSize = Size;
-
-      SetPos(NewLocalPos);
-      SetSize(NewSize);
-
-      //UpdateGlobalPos();
-      //UpdateMasks();
-
-      if (Size != OldSize)
+    template<BOOL RedrawCheck, BOOL ForceChildrenUpdate>
+      VOID Reform( const ivec2 &NewLocalPos, const isize2 &NewSize )
       {
+#ifdef ENABLE_PATH_LOG
+        Log(std::format("Entity {} Reform.", Id));
+#endif // ENABLE_PATH_LOG
+  
+        const isize2 OldSize = Size;
+        const mask OldSelfDrawMask = SelfDrawMask;
+  
+        SetPos(NewLocalPos);
+        SetSize(NewSize);
         UpdateGlobalPos();
         UpdateMasks();
-        UpdateChildrenLayout();
-        OnMove();
-        OnResize();
-      }
-      else
-      {
-        UpdateGlobalPosRec();
-        UpdateMasksRec();
-        OnMove();
-      }
-    } /* End of 'Reform' function */
+
+        if (Size != OldSize)
+        {
+          if constexpr (RedrawCheck)
+            Redraw();
+          UpdateChildrenLayout<false, ForceChildrenUpdate>();
+          OnMove();
+          OnResize();
+        }
+        else
+        {
+          if (ForceChildrenUpdate)
+            if (RedrawCheck && OldSelfDrawMask != SelfDrawMask)
+            {
+              Redraw();
+              UpdateChildrenLayout<false, ForceChildrenUpdate>();
+            }
+            else
+              UpdateChildrenLayout<RedrawCheck, ForceChildrenUpdate>();
+          else
+          {
+            UpdateChildrenGlobalPos();
+  
+            if (OldSelfDrawMask != SelfDrawMask)
+            {
+              UpdateChildrenMasks();
+              if constexpr (RedrawCheck)
+                Redraw();
+            }
+          }
+          OnMove();
+        }
+      } /* End of 'Reform' function */
 
     /* Draw entity's children function */
     VOID DrawChildren( VOID )

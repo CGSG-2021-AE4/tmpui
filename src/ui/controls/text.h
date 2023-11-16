@@ -112,6 +112,7 @@ namespace ui
         Str.Parse(NewStr);
         Str.Wrap(InnerSize.W);
         OnUpdateContent();
+        Redraw();
       } /* End of 'SetStr' function */
 
     }; /* End of 'text' class */

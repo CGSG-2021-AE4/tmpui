@@ -105,7 +105,7 @@ namespace ui
       VOID SetStr( const std::string &NewStr )
       {
         Str = NewStr;
-        //OnUpdateContent();
+        OnUpdateContent();
         Redraw();
       } /* End of 'SetStr' function */
 

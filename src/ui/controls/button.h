@@ -87,7 +87,7 @@ namespace ui
       {
         return Value;
       } /* End of 'GetValue' function */
-
+       
       BOOL SetStr( const std::string &NewStr )
       {
         Props.Str = NewStr;

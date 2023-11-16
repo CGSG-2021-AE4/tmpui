@@ -176,8 +176,8 @@ namespace ui
       Size = NewSize;
       Mask = {Pos, Size};
 
-      Root->Resize(Size);
-      Redraw();
+      Root->Resize<true, false>(Size);
+      //Redraw();
     } /* End of 'Resize' function */
 
     VOID Move( const ivec2 &NewPos )
@@ -185,8 +185,8 @@ namespace ui
       Pos = NewPos;
       Mask = {Pos, Size};
 
-      Root->Move(Pos);
-      Redraw();
+      Root->Move<true, false>(Pos);
+      //Redraw();
     } /* End of 'Move' function */
 
     /* Input events */
@@ -237,49 +237,49 @@ namespace ui
 
       // On mouse move event
       if (HoverEntity != nullptr)
-        DrawE(HoverEntity->OnMouseMoveEvent(Delta, GlobalMousePos - HoverEntity->GlobalPos));
+        HoverEntity->OnMouseMoveEvent(Delta, GlobalMousePos - HoverEntity->GlobalPos);
       if (NewHoverEntity != nullptr)
-        DrawE(NewHoverEntity->OnMouseMoveEvent(Delta, GlobalMousePos - NewHoverEntity->GlobalPos));
+        NewHoverEntity->OnMouseMoveEvent(Delta, GlobalMousePos - NewHoverEntity->GlobalPos);
 
       // On hover/unhover event
       if (NewHoverEntity != HoverEntity)
       {
         if (HoverEntity != nullptr)
-          DrawE(HoverEntity->OnUnhoverEvent(GlobalMousePos - HoverEntity->GlobalPos));
+          HoverEntity->OnUnhoverEvent(GlobalMousePos - HoverEntity->GlobalPos);
         if (NewHoverEntity != nullptr)
-          DrawE(NewHoverEntity->OnHoverEvent(GlobalMousePos - NewHoverEntity->GlobalPos));
+          NewHoverEntity->OnHoverEvent(GlobalMousePos - NewHoverEntity->GlobalPos);
         HoverEntity = NewHoverEntity;
       }
 
       // On drag event
       if (ActiveEntity != nullptr)
-        DrawE(ActiveEntity->OnDragEvent(Delta, GlobalMousePos - ActiveEntity->GlobalPos));
+        ActiveEntity->OnDragEvent(Delta, GlobalMousePos - ActiveEntity->GlobalPos);
     
     } /* End of 'OnMouseMove' function */
 
     VOID OnMouseDown( const ivec2 &MousePos )
     {
       if (HoverEntity != nullptr)
-        DrawE(HoverEntity->OnMouseDownEvent(MousePos - HoverEntity->GlobalPos));
+        HoverEntity->OnMouseDownEvent(MousePos - HoverEntity->GlobalPos);
 
       ActiveEntity = HoverEntity;
       if (FocusEntity != ActiveEntity)
       {
         if (FocusEntity != nullptr)
-          DrawE(FocusEntity->OnUnfocusEvent());
+          FocusEntity->OnUnfocusEvent();
       }
       FocusEntity = ActiveEntity;
       if (FocusEntity != nullptr)
-        DrawE(FocusEntity->OnFocusEvent());
+        FocusEntity->OnFocusEvent();
     } /* End of 'OnMouseDown' function */
   
     VOID OnMouseUp( const ivec2 &MousePos )
     {
       if (ActiveEntity != nullptr)
       {
-        DrawE(ActiveEntity->OnMouseUpEvent(MousePos - ActiveEntity->GlobalPos));
+        ActiveEntity->OnMouseUpEvent(MousePos - ActiveEntity->GlobalPos);
         if (ActiveEntity == HoverEntity)
-          DrawE(ActiveEntity->OnClickEvent(MousePos - ActiveEntity->GlobalPos));
+          ActiveEntity->OnClickEvent(MousePos - ActiveEntity->GlobalPos);
       }
 
       ActiveEntity = nullptr;
@@ -289,7 +289,7 @@ namespace ui
     VOID OnInput( UINT Key )
     {
       if (FocusEntity != nullptr)
-        DrawE(FocusEntity->OnInputEvent(Key));
+        FocusEntity->OnInputEvent(Key);
     } /* End of 'OnInput' function */
 
     /* Draw stack functions */
@@ -300,13 +300,6 @@ namespace ui
       if (e != nullptr)
         DrawManager.PushToDraw(e);
     } /* End of 'PushToDraw' function */
-
-    /* Draw draw stack function */
-    VOID DrawE( entity *e )
-    {
-      if (e != nullptr)
-        e->Redraw();
-    } /* End of 'DrawE' function */
 
     /* Draw draw stack function */
     VOID Draw( VOID )
