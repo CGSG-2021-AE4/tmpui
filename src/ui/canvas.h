@@ -355,7 +355,7 @@ namespace ui
           // New line
           MaxLineLen = std::max(MaxLineLen, (INT)(C - LineStart));
           Lines.push_back({LineStart, C});
-          LineStart = ++C;
+          LineStart = C + 1;
         }
       }
       if (LineStart != WholeStrView.end())

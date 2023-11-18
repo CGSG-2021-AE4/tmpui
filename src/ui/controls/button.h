@@ -31,7 +31,7 @@ namespace ui
 
     struct button_props
     {
-      BOOL IsPress = 0;
+      BOOL IsPress {0};
       std::string Str;
 
       std::function<VOID ( button *Button )> OnClickCallBack {[](button *Button ){}};
@@ -54,6 +54,8 @@ namespace ui
       flex_props Flex {};
       box_props BoxProps {};
 
+      BOOL Value {0};
+
       controls::button_style Style {};
       controls::button_props Props {};
     }; /* End of 'entity_props' struct */
@@ -73,7 +75,8 @@ namespace ui
       button( const entity_props<button> &NewProps ) :
         entity(NewProps),
         Style(NewProps.Style),
-        Props(NewProps.Props)
+        Props(NewProps.Props),
+        Value(NewProps.Value)
       {
       } /* End of 'button' function */
 
@@ -87,6 +90,13 @@ namespace ui
       {
         return Value;
       } /* End of 'GetValue' function */
+
+      /* Value setter function */
+      VOID SetValue( BOOL NewValue )
+      {
+        Value = NewValue;
+        Redraw();
+      } /* End of 'SetValue' function */
        
       BOOL SetStr( const std::string &NewStr )
       {
@@ -99,6 +109,8 @@ namespace ui
         if (Props.IsPress)
         {
           Value = !Value;
+          if (Value)
+            Props.OnClickCallBack(this);
           Props.OnChangeCallBack(this);
         }
         else

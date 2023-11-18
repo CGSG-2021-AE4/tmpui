@@ -29,6 +29,7 @@ namespace ui
 
       layout_type LayoutType = layout_type::eBlock;
       overflow_type Overflow = overflow_type::eHidden;
+      dir_type ScrollDir {dir_type::eVertical};
       flex_props Flex {};
       box_props BoxProps {};
 
@@ -62,6 +63,8 @@ namespace ui
         case layout_type::eFlexRow:
           for (entity *Child : Children)
           {
+            if (!Child->IsVisible)
+              continue;
             NewMinContent.W += Child->MinContent.W;
             NewMinContent.H = std::max(NewMinContent.H, Child->MinContent.H);
           }
@@ -69,6 +72,9 @@ namespace ui
         case layout_type::eFlexColumn:
           for (entity *Child : Children)
           {
+            if (!Child->IsVisible)
+              continue;
+
             isize2 ChildMaxContent = Child->GetPreferedSize();
 
             NewMinContent.W = std::max(NewMinContent.W, ChildMaxContent.W);
@@ -88,6 +94,9 @@ namespace ui
         case layout_type::eBlock:
           for (entity *Child : Children)
           {
+            if (!Child->IsVisible)
+              continue;
+
             isize2 ChildMaxContent = Child->GetPreferedSize();
 
             NewMaxContent = {std::max(NewMaxContent.W, Child->LocalPos.X + ChildMaxContent.W),
@@ -97,6 +106,9 @@ namespace ui
         case layout_type::eFlexRow:
           for (entity *Child : Children)
           {
+            if (!Child->IsVisible)
+              continue;
+
             isize2 ChildMaxContent = Child->GetPreferedSize();
 
             NewMaxContent.W += ChildMaxContent.W;
@@ -106,6 +118,9 @@ namespace ui
         case layout_type::eFlexColumn:
           for (entity *Child : Children)
           {
+            if (!Child->IsVisible)
+              continue;
+
             isize2 ChildMaxContent = Child->GetPreferedSize();
 
             NewMaxContent.W = std::max(NewMaxContent.W, ChildMaxContent.W);

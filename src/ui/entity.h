@@ -7,7 +7,7 @@
 
 #include "props.h"
 
-//#define ENABLE_PATH_LOG
+// #define ENABLE_PATH_LOG
 
 // Some real kal
 using namespace tmp;
@@ -33,6 +33,13 @@ namespace ui
     eMinContent,
     eMaxContent,
   }; /* End of 'size_ref' enum struct */
+
+  /* Direction enum struct */
+  enum struct dir_type
+  {
+    eHorizontal,
+    eVertical,
+  }; /* End of 'dir_type' enum struct */
 
   /* Advanced size with references to other vars struct */
   struct size_type : public std::variant<isize2, size_ref>
@@ -120,6 +127,7 @@ namespace ui
 
     layout_type LayoutType {layout_type::eBlock};
     overflow_type Overflow {overflow_type::eHidden};
+    dir_type ScrollDir {dir_type::eVertical};
     flex_props Flex {};
     box_props BoxProps {};                 // Props of entity's box
     BOOL IsBackgroundTransparent = 0;      // If the background is transparent entity's parent should also be redrawn 
@@ -152,7 +160,7 @@ namespace ui
     /* Is point over entity function */
     BOOL IsOver( const ivec2 &GlobalPoint )
     {
-      return SelfDrawMask(GlobalPoint);
+      return IsVisible && SelfDrawMask(GlobalPoint);
     } /* End of 'IsOver' function */
 
     /******* Virtual event functions for overriding by user *******/
@@ -304,7 +312,16 @@ namespace ui
       if (Overflow == overflow_type::eScroll && Delta.Z != 0) // May be later I'l add a check with the content mask
       {
         // Scroll response
-        ivec2 DeltaMove = {0, Delta.Z}; // Some temp shit
+        ivec2 DeltaMove;
+        switch (ScrollDir)
+        {
+        case dir_type::eHorizontal:
+          DeltaMove = {Delta.Z, 0};
+          break;
+        case dir_type::eVertical:
+          DeltaMove = {0, Delta.Z};
+          break;
+        }
 
         // Clamping
         auto OldContentOffset = ContentOffset;
@@ -322,6 +339,8 @@ namespace ui
         
         for (auto *c : Children)
         {
+          if (!c->IsVisible)
+            continue;
           c->UpdateGlobalPosRec();
           c->UpdateMasksRec();
         }
@@ -427,6 +446,8 @@ namespace ui
           LayoutType = Props.LayoutType;
         if constexpr (requires { Props.Overflow; })
           Overflow = Props.Overflow;
+        if constexpr (requires { Props.ScrollDir; })
+          ScrollDir = Props.ScrollDir;
         if constexpr (requires { Props.Flex; })
           Flex = Props.Flex;
         if constexpr (requires { Props.BoxProps; })
@@ -572,6 +593,8 @@ namespace ui
       
       for (entity *E : Children)
       {
+        if (!E->IsVisible)
+          continue;
         ChildrenFlexGrowSum += E->Flex.Grow;
         ChildrenFlexShrinkSum += E->Flex.Shrink;
         ChildrenPreferedSizeSum += E->GetPreferedSize()[FI];
@@ -587,6 +610,8 @@ namespace ui
       // Code below isn't optimised, it is readable version. It will be optimised later.
       for (std::vector<entity *>::iterator Ei = SortedChildren.begin(); Ei != SortedChildren.end(); Ei++)
       {
+        if (!(*Ei)->IsVisible)
+          continue;
         // Search min
 
         std::vector<entity *>::iterator MinMaxGrowDeltaE = Ei;
@@ -594,6 +619,8 @@ namespace ui
 
         for (std::vector<entity *>::iterator Ej = Ei + 1; Ej != SortedChildren.end(); Ej++)
         {
+          if (!(*Ej)->IsVisible)
+            continue;
           FLT EjMaxGrowDelta = (*Ej)->GetMaxGrowDelta(FI) * FlexGrowSumI;
           
           if ((EjMaxGrowDelta < MinMaxGrowDelta && !(*Ej)->MaxSize.IsNone()) || (*MinMaxGrowDeltaE)->MaxSize.IsNone())
@@ -610,6 +637,8 @@ namespace ui
 
         for (std::vector<entity *>::iterator Ej = Ei + 1; Ej != SortedChildren.end(); Ej++)
         {
+          if (!(*Ej)->IsVisible)
+            continue;
           FLT Grow = (*Ej)->Flex.Grow / FlexGrowSumI * (*Ei)->ParentMaxGrowDelta + (*Ej)->GrowShift;
           (*Ej)->GrowShift = Grow - (*Ej)->Flex.Grow / NewFlexGrowSumI * (*Ei)->ParentMaxGrowDelta;
         }
@@ -623,6 +652,9 @@ namespace ui
       // Code below isn't optimised, it is readable version. It will be optimised later.
       for (std::vector<entity *>::iterator Ei = SortedChildren.begin(); Ei != SortedChildren.end(); Ei++)
       {
+        if (!(*Ei)->IsVisible)
+          continue;
+
         // Search min
 
         std::vector<entity *>::iterator MinMaxShrinkDeltaE = Ei;
@@ -630,6 +662,9 @@ namespace ui
 
         for (std::vector<entity *>::iterator Ej = Ei + 1; Ej != SortedChildren.end(); Ej++)
         {
+          if (!(*Ej)->IsVisible)
+            continue;
+
           FLT EjMaxShrinkDelta = (*Ej)->GetMaxShrinkDelta(FI) * FlexShrinkSumI;
           
           if (EjMaxShrinkDelta > MinMaxShrinkDelta)
@@ -647,6 +682,9 @@ namespace ui
 
         for (std::vector<entity *>::iterator Ej = Ei + 1; Ej != SortedChildren.end(); Ej++)
         {
+          if (!(*Ej)->IsVisible)
+            continue;
+
           FLT Shrink = (*Ej)->Flex.Shrink / FlexShrinkSumI * (*Ei)->ParentMaxShrinkDelta + (*Ej)->ShrinkShift;
           (*Ej)->ShrinkShift = Shrink - (*Ej)->Flex.Shrink / NewFlexShrinkSumI * (*Ei)->ParentMaxShrinkDelta;
         }
@@ -668,6 +706,8 @@ namespace ui
         case layout_type::eBlock:
           for (entity *Child : Children)
           {
+            if (!Child->IsVisible)
+              continue;
             Child->UpdateGlobalPosRec();
             Child->UpdateMasksRec();
           }
@@ -691,11 +731,16 @@ namespace ui
           INT RealGrowDelta = DeltaSize;
 
           // Calculating usable flex grow sum and real grow delta without frozen entities
-          for (entity *EI : Children)
-            if (EI->ParentMaxGrowDelta < 0 || EI->ParentMaxGrowDelta >= DeltaSize)
-              UsedFlexGrowSum += EI->Flex.Grow;
+          for (entity *Ei : Children)
+          {
+            if (!Ei->IsVisible)
+              continue;
+
+            if (Ei->ParentMaxGrowDelta < 0 || Ei->ParentMaxGrowDelta >= DeltaSize)
+              UsedFlexGrowSum += Ei->Flex.Grow;
             else
-              RealGrowDelta -= EI->Flex.Grow != 0 ? EI->GetMaxSize()[FD] - EI->GetPreferedSize()[FD] : 0;
+              RealGrowDelta -= Ei->Flex.Grow != 0 ? Ei->GetMaxSize()[FD] - Ei->GetPreferedSize()[FD] : 0;
+          }
 
           ContentSize = 0;
           
@@ -703,6 +748,9 @@ namespace ui
 
           for (entity *Child : Children)
           {
+            if (!Child->IsVisible)
+              continue;
+
             isize2 ChildSize;
 
             if (Child->ParentMaxGrowDelta >= 0 && Child->ParentMaxGrowDelta < DeltaSize)
@@ -735,11 +783,16 @@ namespace ui
           INT RealShrinkDelta = DeltaSize;
 
           // Calculating usable flex grow sum and real grow delta without frozen entities
-          for (entity *EI : Children)
-            if (EI->ParentMaxShrinkDelta <= DeltaSize)
-              UsedFlexShrinkSum += EI->Flex.Shrink;
+          for (entity *Ei : Children)
+          {
+            if (!Ei->IsVisible)
+              continue;
+
+            if (Ei->ParentMaxShrinkDelta <= DeltaSize)
+              UsedFlexShrinkSum += Ei->Flex.Shrink;
             else
-              RealShrinkDelta -= EI->Flex.Shrink != 0 ? EI->GetMinSize()[FD] - EI->GetPreferedSize()[FD] : 0;
+              RealShrinkDelta -= Ei->Flex.Shrink != 0 ? Ei->GetMinSize()[FD] - Ei->GetPreferedSize()[FD] : 0;
+          }
 
           // Children will be compressed
           ivec2 Offset = 0;
@@ -747,10 +800,14 @@ namespace ui
           ContentSize = 0;
           for (entity *Child : Children)
           {
+            if (!Child->IsVisible)
+              continue;
+
             isize2 ChildSize;
 
             if (Child->ParentMaxShrinkDelta > DeltaSize)
             {
+              // The child size delta is less than min
               ChildSize[FD] = Child->Flex.Shrink > 0 ? Child->GetMinSize()[FD] : Child->GetPreferedSize()[FD];
               ChildSize[NFD] = InnerSize[NFD];
               if (Child->MaxSize.IsNone())
@@ -760,6 +817,7 @@ namespace ui
             }
             else
             {
+              // The child size delta is between min and prefered
               ChildSize[FD] = Child->GetPreferedSize()[FD] + (UsedFlexShrinkSum == 0 ? 0 : ((INT)(Child->Flex.Shrink / UsedFlexShrinkSum * RealShrinkDelta)));
               if (Child->MaxSize.IsNone())
                 ChildSize[NFD] = std::max(InnerSize[NFD], Child->GetMinSize()[NFD]);
@@ -802,7 +860,8 @@ namespace ui
     VOID UpdateChildrenMasks( VOID )
     {
       for (entity *c : Children)
-        c->UpdateMasksRec();
+        if (c->IsVisible)
+          c->UpdateMasksRec();
     } /* End of 'UpdateChildrenMasks' function */
 
     /* Update self and childrens masks function (recursive) */
@@ -822,7 +881,8 @@ namespace ui
     VOID UpdateChildrenGlobalPos( VOID )
     {
       for (entity *c : Children)
-        c->UpdateGlobalPosRec();
+        if (c->IsVisible)
+          c->UpdateGlobalPosRec();
     } /* End of 'UpdateGlobalPos' function */
 
     /* Update entity global pos recursive function (+ update children) */

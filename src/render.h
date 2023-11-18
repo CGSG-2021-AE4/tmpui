@@ -42,6 +42,7 @@
 
 // Components
 #include "./ui/components/text_test.h"
+#include "./ui/components/tabs.h"
 
 #include <iostream>
 
@@ -176,7 +177,6 @@ public:
       ::ui::Create<cs::div>({
         .Id = "Main bar",
         .MinSize = {0},
-        //.MaxSize = {5000},
         .LayoutType = ::ui::layout_type::eFlexRow,
         .Flex = { .Grow = 1, .Shrink = 1 },
         .BoxProps = StdDivBoxProps,
@@ -185,8 +185,6 @@ public:
         ::ui::Create<cs::div>({
           .Id = "Box 1",
           .Size = {300},
-          .MinSize = {200},
-          //.MaxSize = {500},
           .LayoutType = ::ui::layout_type::eFlexColumn,
           .Flex = { .Basis = ::ui::flex_basis_type::eFixed, .Grow = 1, .Shrink = 1 },
           .BoxProps = StdDivBoxProps,
@@ -195,7 +193,6 @@ public:
           ::ui::Create<cs::div>({
             .Id = "Box 1.1",
             .Size = {300},
-            .MaxSize = {500},
             .LayoutType = ::ui::layout_type::eFlexColumn,
             .Flex = { .Basis = ::ui::flex_basis_type::eFixed, .Grow = 1, .Shrink = 1 },
             .BoxProps = StdDivBoxProps,
@@ -230,9 +227,53 @@ public:
           .BoxProps = StdDivBoxProps,
           .Style = StdDivStyle,
         }, {
-          ::ui::Create<::ui::components::text_test>({
-            .Id = "ComponetBox",
+          ::ui::Create<::ui::components::tabs>({
+            .Id = "TabsBox",
             .Flex = { .Grow = 1, .Shrink = 1 },
+            .Tabs = {
+              {"Car radio",
+                ::ui::Create<cs::text>({
+                  .Id = "True text",
+                  .Flex = { .Grow = 1, .Shrink = 1 },
+                  .BoxProps = { .MarginW = 4, .BorderW = 2, .PaddingW = 2 },
+                  .Props = { .Str = "I pounder of something great,\nmy lungs will fill and then deflate.\nThey fill with fire, exhale desire,\nI know it's dire my time today."},
+                  .Style = { .Color = ::ui::vec3(1) }
+                }),
+              },
+              {"Small description",
+                ::ui::Create<::ui::components::tabs>({
+                  .Id = "TabsBox",
+                  .Flex = { .Grow = 1, .Shrink = 1 },
+                  .TabsDir = ::ui::dir_type::eVertical,
+                  .Tabs = {
+                    {"Authors",
+                      ::ui::Create<cs::text>({
+                        .Id = "Authors tab",
+                        .Flex = { .Grow = 1, .Shrink = 1 },
+                        .BoxProps = { .MarginW = 4, .BorderW = 2, .PaddingW = 2 },
+                        .Props = { .Str = "Fedor Borodulin\nElizaveta Sopina\nDiana Lvova\nAndrey Egorov\nTihon Chudakov\n"},
+                        .Style = { .Color = ::ui::vec3(1) }
+                      }),
+                    },
+                    {"Other text",
+                      ::ui::Create<cs::text>({
+                        .Id = "Other text tab",
+                        .Flex = { .Grow = 1, .Shrink = 1 },
+                        .BoxProps = { .MarginW = 4, .BorderW = 2, .PaddingW = 2 },
+                        .Props = { .Str = "Some text"},
+                        .Style = { .Color = ::ui::vec3(1) }
+                      }),
+                    },
+                  },
+                }),
+              },
+              {"Text test",
+                ::ui::Create<::ui::components::text_test>({
+                  .Id = "ComponetBox",
+                  .Flex = { .Grow = 1, .Shrink = 1 },
+                }),
+              }
+            },
           }),
           // ::ui::Create<cs::line_editor>({
           //   .Id = "Line editor",

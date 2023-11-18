@@ -128,5 +128,8 @@
     <ClInclude Include="src\ui\components\text_test.h">
       <Filter>Source Files\UI\Components</Filter>
     </ClInclude>
+    <ClInclude Include="src\ui\components\tabs.h">
+      <Filter>Source Files\UI\Components</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

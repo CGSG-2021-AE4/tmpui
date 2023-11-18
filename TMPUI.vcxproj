@@ -171,6 +171,7 @@
     <ClInclude Include="src\mth\mth_vec4.h" />
     <ClInclude Include="src\render.h" />
     <ClInclude Include="src\ui\canvas.h" />
+    <ClInclude Include="src\ui\components\tabs.h" />
     <ClInclude Include="src\ui\components\text_test.h" />
     <ClInclude Include="src\ui\controls\button.h" />
     <ClInclude Include="src\ui\controls\div.h" />

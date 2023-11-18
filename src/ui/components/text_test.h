@@ -48,7 +48,7 @@ namespace ui
       {
         AddChildren({
           Create<controls::text>({
-            .Id = "True text",
+            .Id = "Text test main bar",
             //.MaxSize = {100},
             //.Flex = { .Grow = 1 },
             .MaxSize = {5000},
@@ -75,18 +75,21 @@ namespace ui
               .Style = { .Color = ::ui::vec3(1) }
             }),
             Create<controls::button>({
-              .Id = "second button bar button",
+              .Id = "Text test push button",
               //.Flex = { .Grow = 1 },
               .BoxProps = { .MarginW = 4, .BorderW = 2, .PaddingW = 2 },
               .Props = { .IsPress = true, .Str = "Push", .OnChangeCallBack = [&]( controls::button *Button ){
                 //::ui::Log(std::format("New value: {}", Button->GetValue() ));
-                WholeText->SetStr(WholeText->Str.WholeStr + "\n" + InputLine->GetStr());
-                InputLine->SetStr("");
+                if (!InputLine->GetStr().empty())
+                {
+                  WholeText->SetStr(WholeText->Str.WholeStr + "\n" + InputLine->GetStr());
+                  InputLine->SetStr("");
+                }
               } },
             }),
           }),
           Create<controls::div>({
-            .Id = "Box 1.1",
+            .Id = "Text test out div",
             //.Size = {300},
             .MaxSize = {5000},
             .LayoutType = ::ui::layout_type::eFlexColumn,
@@ -95,7 +98,7 @@ namespace ui
             .Style = { .SpaceColor = {0.35}, .BorderColor = {0.75} },
           }, {
             WholeText = Create<controls::text>({
-              .Id = "True text",
+              .Id = "Text test out box",
               .Flex = { .Grow = 1, .Shrink = 1 },
               .BoxProps = { .MarginW = 4, .BorderW = 2, .PaddingW = 2 },
               .Props = { .Str = "I pounder of something great,\nmy lungs will fill and then deflate.\nThey fill with fire, exhale desire,\nI know it's dire my time today."},
