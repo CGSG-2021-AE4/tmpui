@@ -152,6 +152,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="src\main.cpp" />
+    <ClCompile Include="src\socket\sl.cpp" />
     <ClCompile Include="src\ui\entity.cpp" />
     <ClCompile Include="src\win\win.cpp" />
     <ClCompile Include="src\win\win_msg.cpp" />
@@ -170,6 +171,7 @@
     <ClInclude Include="src\mth\mth_vec3.h" />
     <ClInclude Include="src\mth\mth_vec4.h" />
     <ClInclude Include="src\render.h" />
+    <ClInclude Include="src\socket\sl.h" />
     <ClInclude Include="src\ui\canvas.h" />
     <ClInclude Include="src\ui\components\tabs.h" />
     <ClInclude Include="src\ui\components\text_test.h" />
@@ -180,6 +182,8 @@
     <ClInclude Include="src\ui\controls\text.h" />
     <ClInclude Include="src\ui\controls\text_editor.h" />
     <ClInclude Include="src\ui\entity.h" />
+    <ClInclude Include="src\ui\examples\chat.h" />
+    <ClInclude Include="src\ui\examples\chat_server.h" />
     <ClInclude Include="src\ui\frame_render.h" />
     <ClInclude Include="src\ui\props.h" />
     <ClInclude Include="src\ui\ui_def.h" />

@@ -17,7 +17,7 @@
 
 #ifndef __def_h_
 #define __def_h_
-
+#define _WINSOCKAPI_
 #include <windows.h>
 
 #undef max

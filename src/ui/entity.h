@@ -1265,11 +1265,15 @@ namespace ui
 
   }; /* End of 'entity' class */
 
+  // static UINT EntityCounter {0};
+
   /* Temp create entity function */
   template<typename entity_type>
     entity_type * Create( const entity_props<entity_type> &Props, const std::vector<entity *> &NewChildren = {}, entity *NewParent = nullptr )
     {
       entity_type * NewE = new entity_type(Props);
+
+      // Log(std::format("{}", EntityCounter++));
 
       NewE->AddChildren(NewChildren);
       NewE->SetParent(NewParent);

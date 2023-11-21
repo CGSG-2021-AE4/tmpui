@@ -34,10 +34,10 @@
 INT WINAPI WinMain( _In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance,
                     _In_ CHAR *CmdLine, _In_ INT ShowCmd )
 {
-  AllocConsole();
-  freopen("conin$","r",stdin);
-  freopen("conout$","w",stdout);
-  freopen("conout$","w",stderr);
+  // AllocConsole();
+  // freopen("conin$","r",stdin);
+  // freopen("conout$","w",stdout);
+  // freopen("conout$","w",stderr);
 
   tmp::rtwin myw(hInstance);
 

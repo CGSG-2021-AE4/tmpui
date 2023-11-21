@@ -3,6 +3,7 @@
 #include <chrono>
 #include <map>
 #include <optional>
+#include <mutex>
 
 #include "ui_def.h"
 
@@ -123,6 +124,7 @@ namespace ui
   public:
 
     render_2d &Render2d;
+    std::mutex WorkMutex; // !!! FOR TEMP SHIT ONLY
 
   protected:
     friend class entity;
@@ -153,11 +155,14 @@ namespace ui
       Root(new entity(entity_props<VOID>{ .Id = "Canvas root", .Pos = {0, 0}, .Size = Size, .LayoutType = RootLayoutType })), // Provides root isn't nullptr
       DrawManager(Render2d)
     {
+      WorkMutex.lock(); // !!! FOR TEMP SHIT ONLY
+
       // Root init
       Root->SetCanvas(this);
       Root->OnAddChild(nullptr);
       Root->AddChildren(Entities);
       Redraw();
+      WorkMutex.unlock(); // !!! FOR TEMP SHIT ONLY
     } /* End of 'canvas' function */
 
     /* Destructor function */
@@ -173,20 +178,24 @@ namespace ui
 
     VOID Resize( const isize2 &NewSize )
     {
+      WorkMutex.lock(); // !!! FOR TEMP SHIT ONLY
       Size = NewSize;
       Mask = {Pos, Size};
 
       Root->Resize<true, false>(Size);
       //Redraw();
+      WorkMutex.unlock(); // !!! FOR TEMP SHIT ONLY
     } /* End of 'Resize' function */
 
     VOID Move( const ivec2 &NewPos )
     {
+      WorkMutex.lock(); // !!! FOR TEMP SHIT ONLY
       Pos = NewPos;
       Mask = {Pos, Size};
 
       Root->Move<true, false>(Pos);
       //Redraw();
+      WorkMutex.unlock(); // !!! FOR TEMP SHIT ONLY
     } /* End of 'Move' function */
 
     /* Input events */
@@ -233,6 +242,8 @@ namespace ui
 
     VOID OnMouseMove( const ivec3 &Delta, const ivec2 &GlobalMousePos )
     {
+      WorkMutex.lock(); // !!! FOR TEMP SHIT ONLY
+
       entity *NewHoverEntity = FindHoverEntity(GlobalMousePos);
 
       // On mouse move event
@@ -255,10 +266,13 @@ namespace ui
       if (ActiveEntity != nullptr)
         ActiveEntity->OnDragEvent(Delta, GlobalMousePos - ActiveEntity->GlobalPos);
     
+      WorkMutex.unlock(); // !!! FOR TEMP SHIT ONLY
     } /* End of 'OnMouseMove' function */
 
     VOID OnMouseDown( const ivec2 &MousePos )
     {
+      WorkMutex.lock(); // !!! FOR TEMP SHIT ONLY
+
       if (HoverEntity != nullptr)
         HoverEntity->OnMouseDownEvent(MousePos - HoverEntity->GlobalPos);
 
@@ -271,10 +285,14 @@ namespace ui
       FocusEntity = ActiveEntity;
       if (FocusEntity != nullptr)
         FocusEntity->OnFocusEvent();
+
+      WorkMutex.unlock(); // !!! FOR TEMP SHIT ONLY
     } /* End of 'OnMouseDown' function */
   
     VOID OnMouseUp( const ivec2 &MousePos )
     {
+      WorkMutex.lock(); // !!! FOR TEMP SHIT ONLY
+
       if (ActiveEntity != nullptr)
       {
         ActiveEntity->OnMouseUpEvent(MousePos - ActiveEntity->GlobalPos);
@@ -283,13 +301,18 @@ namespace ui
       }
 
       ActiveEntity = nullptr;
+      WorkMutex.unlock(); // !!! FOR TEMP SHIT ONLY
     } /* End of 'OnMouseUp' function */
 
     /* On input event function */
     VOID OnInput( UINT Key )
     {
+      WorkMutex.lock(); // !!! FOR TEMP SHIT ONLY
+
       if (FocusEntity != nullptr)
         FocusEntity->OnInputEvent(Key);
+
+      WorkMutex.unlock(); // !!! FOR TEMP SHIT ONLY
     } /* End of 'OnInput' function */
 
     /* Draw stack functions */
@@ -304,7 +327,9 @@ namespace ui
     /* Draw draw stack function */
     VOID Draw( VOID )
     {
+      WorkMutex.lock(); // !!! FOR TEMP SHIT ONLY
       DrawManager.Draw();
+      WorkMutex.unlock(); // !!! FOR TEMP SHIT ONLY
     } /* End of 'Draw' function */
 
     /* Redraw whole root function */

@@ -56,20 +56,17 @@ namespace ui
       {
         // Create base divs
         ButtonsDiv = Create<controls::div>({
-          .Id = "Tabs div",
           .LayoutType = (NewProps.TabsDir == dir_type::eHorizontal) ? ::ui::layout_type::eFlexRow : ::ui::layout_type::eFlexColumn,
           .Overflow = ::ui::overflow_type::eScroll,
           .ScrollDir = (NewProps.TabsDir == dir_type::eHorizontal) ? ::ui::dir_type::eHorizontal : ::ui::dir_type::eVertical,
-          // .Flex = { .Basis = ::ui::flex_basis_type::eFixed, .Grow = 1, .Shrink = 1 },
           .BoxProps = { .MarginW = 2 },
-          .Style = { .SpaceColor = {0.35}, .BorderColor = {0.75} },
+          .Style = { .SpaceColor = {0.35} },
         });
         ContentDiv = Create<controls::div>({
-          .Id = "Content div",
           .LayoutType = ::ui::layout_type::eFlexColumn,
-          .Flex = { .Grow = 1 },
+          .Flex = { .Grow = 1, .Shrink = 1 },
           .BoxProps = { .PaddingW = 2 },
-          .Style = { .SpaceColor = {0.35}, .BorderColor = {0.75} },
+          .Style = { .SpaceColor = {0.35} },
         });
 
         // Add tabs
@@ -89,11 +86,12 @@ namespace ui
         for (auto Tab : NewTabs)
         {
           entity *ButtonE = Create<controls::button>({
-            .Id = "Tab" + Tab.first + " button",
-            //.Flex = { .Grow = 1 },
             .BoxProps = { .MarginW = 4, .BorderW = 2, .PaddingW = 2 },
             .Value = 0,
-            .Props = { .IsPress = true, .Str = Tab.first, .OnClickCallBack = [this, Tab]( controls::button *Button ){
+            .Props = {
+              .IsPress = true,
+              .Str = Tab.first,
+              .OnClickCallBack = [this, Tab]( controls::button *Button ){
                 if (TabsToButtons.find(CurTabE) != TabsToButtons.end())
                   reinterpret_cast<::ui::controls::button *>(TabsToButtons[CurTabE])->SetValue(false);
                 SetCurTabUnsafe(Tab.second);

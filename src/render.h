@@ -44,6 +44,11 @@
 #include "./ui/components/text_test.h"
 #include "./ui/components/tabs.h"
 
+// Examples
+#include "./ui/examples/chat.h"
+#include "./ui/examples/chat_server.h"
+
+
 #include <iostream>
 
 namespace cs = ::ui::controls;
@@ -174,118 +179,187 @@ public:
       Values.push_back(CreateValue(std::format("{}", i)));
 
     Canvas.GetRoot()->AddChildren({
-      ::ui::Create<cs::div>({
-        .Id = "Main bar",
-        .MinSize = {0},
-        .LayoutType = ::ui::layout_type::eFlexRow,
+      ::ui::Create<::ui::components::tabs>({
         .Flex = { .Grow = 1, .Shrink = 1 },
-        .BoxProps = StdDivBoxProps,
-        .Style = StdDivStyle
-      }, {
-        ::ui::Create<cs::div>({
-          .Id = "Box 1",
-          .Size = {300},
-          .LayoutType = ::ui::layout_type::eFlexColumn,
-          .Flex = { .Basis = ::ui::flex_basis_type::eFixed, .Grow = 1, .Shrink = 1 },
-          .BoxProps = StdDivBoxProps,
-          .Style = StdDivStyle,
-        }, {
-          ::ui::Create<cs::div>({
-            .Id = "Box 1.1",
-            .Size = {300},
-            .LayoutType = ::ui::layout_type::eFlexColumn,
-            .Flex = { .Basis = ::ui::flex_basis_type::eFixed, .Grow = 1, .Shrink = 1 },
-            .BoxProps = StdDivBoxProps,
-            .Style = StdDivStyle,
-          }, {
-            ::ui::Create<cs::text>({
-              .Id = "True text",
+        .Tabs = {
+          { "First example",
+            ::ui::Create<cs::div>({
+              .Id = "Main bar",
+              .MinSize = {0},
+              .LayoutType = ::ui::layout_type::eFlexRow,
               .Flex = { .Grow = 1, .Shrink = 1 },
               .BoxProps = StdDivBoxProps,
-              .Props = { .Str = "I pounder of something great,\nmy lungs will fill and then deflate.\nThey fill with fire, exhale desire,\nI know it's dire my time today."},
-              .Style = { .Color = ::ui::vec3(1) }
-            }),
-          }),
-          ::ui::Create<cs::div>({
-            .Id = "Box 1.1",
-            .Size = {300},
-            .MaxSize = {500},
-            .LayoutType = ::ui::layout_type::eFlexColumn,
-            .Overflow = ::ui::overflow_type::eScroll,
-            .Flex = { .Basis = ::ui::flex_basis_type::eFixed, .Grow = 1, .Shrink = 1 },
-            .BoxProps = StdDivBoxProps,
-            .Style = StdDivStyle,
-          }, Values),
-        }),
-        ::ui::Create<cs::div>({
-          .Id = "Box 2",
-          .Size = {300},
-          .MinSize = {270},
-          .MaxSize = ::ui::size_ref::eNone,
-          .LayoutType = ::ui::layout_type::eFlexColumn,
-          .Flex = { .Basis = ::ui::flex_basis_type::eFixed, .Grow = 2, .Shrink = 2 },
-          .BoxProps = StdDivBoxProps,
-          .Style = StdDivStyle,
-        }, {
-          ::ui::Create<::ui::components::tabs>({
-            .Id = "TabsBox",
-            .Flex = { .Grow = 1, .Shrink = 1 },
-            .Tabs = {
-              {"Car radio",
-                ::ui::Create<cs::text>({
-                  .Id = "True text",
-                  .Flex = { .Grow = 1, .Shrink = 1 },
-                  .BoxProps = { .MarginW = 4, .BorderW = 2, .PaddingW = 2 },
-                  .Props = { .Str = "I pounder of something great,\nmy lungs will fill and then deflate.\nThey fill with fire, exhale desire,\nI know it's dire my time today."},
-                  .Style = { .Color = ::ui::vec3(1) }
+              .Style = StdDivStyle
+            }, {
+              ::ui::Create<cs::div>({
+                .Id = "Box 1",
+                .Size = {300},
+                .LayoutType = ::ui::layout_type::eFlexColumn,
+                .Flex = { .Basis = ::ui::flex_basis_type::eFixed, .Grow = 1, .Shrink = 1 },
+                .BoxProps = StdDivBoxProps,
+                .Style = StdDivStyle,
+              }, {
+                ::ui::Create<cs::div>({
+                  .Id = "Box 1.1",
+                  .Size = {300},
+                  .LayoutType = ::ui::layout_type::eFlexColumn,
+                  .Flex = { .Basis = ::ui::flex_basis_type::eFixed, .Grow = 1, .Shrink = 1 },
+                  .BoxProps = StdDivBoxProps,
+                  .Style = StdDivStyle,
+                }, {
+                  ::ui::Create<cs::text>({
+                    .Id = "True text",
+                    .Flex = { .Grow = 1, .Shrink = 1 },
+                    .BoxProps = StdDivBoxProps,
+                    .Props = { .Str = "I pounder of something great,\nmy lungs will fill and then deflate.\nThey fill with fire, exhale desire,\nI know it's dire my time today."},
+                    .Style = { .Color = ::ui::vec3(1) }
+                  }),
+                  ::ui::Create<cs::div>({
+                    .MinSize = ::ui::size_ref::eMinContent,
+                    .LayoutType = ::ui::layout_type::eFlexRow,
+                    .BoxProps = { .MarginW = 4, .BorderW = 2, .PaddingW = 2 },
+                    .Style = { .SpaceColor = {0.35}, .BorderColor = {0.75} },
+                  }, {
+                    ::ui::Create<cs::text>({
+                      .Flex = { .Grow = 1 },
+                      .BoxProps = { .MarginW = 4, .BorderW = 2, .PaddingW = 2 },
+                      .Props = { .IsSingleLine = true, .Str = "Show console" },
+                      .Style = { .Color = ::ui::vec3(1) }
+                    }),
+                    ::ui::Create<cs::button>({
+                      .BoxProps = { .MarginW = 4, .BorderW = 2, .PaddingW = 2 },
+                      .Value = false,
+                      .Props = {
+                        .IsPress = true,
+                        .Str = "Show",
+                        .OnChangeCallBack = [&]( cs::button *Button ){
+                          switch (Button->GetValue())
+                          {
+                          case true:
+                            AllocConsole();
+                            freopen("conin$","r",stdin);
+                            freopen("conout$","w",stdout);
+                            freopen("conout$","w",stderr);
+                            break;
+                          case false:
+                            FreeConsole();
+                            break;
+                          }
+                        },
+                      },
+                    }),
+                  }),
                 }),
-              },
-              {"Small description",
+                ::ui::Create<cs::div>({
+                  .Id = "Box 1.1",
+                  .Size = {300},
+                  .MaxSize = {500},
+                  .LayoutType = ::ui::layout_type::eFlexColumn,
+                  .Overflow = ::ui::overflow_type::eScroll,
+                  .Flex = { .Basis = ::ui::flex_basis_type::eFixed, .Grow = 1, .Shrink = 1 },
+                  .BoxProps = StdDivBoxProps,
+                  .Style = StdDivStyle,
+                }, Values),
+              }),
+              ::ui::Create<cs::div>({
+                .Id = "Box 2",
+                .Size = {300},
+                .MinSize = {270},
+                .MaxSize = ::ui::size_ref::eNone,
+                .LayoutType = ::ui::layout_type::eFlexColumn,
+                .Flex = { .Basis = ::ui::flex_basis_type::eFixed, .Grow = 2, .Shrink = 2 },
+                .BoxProps = StdDivBoxProps,
+                .Style = StdDivStyle,
+              }, {
                 ::ui::Create<::ui::components::tabs>({
                   .Id = "TabsBox",
                   .Flex = { .Grow = 1, .Shrink = 1 },
-                  .TabsDir = ::ui::dir_type::eVertical,
                   .Tabs = {
-                    {"Authors",
+                    {"Tab name",
                       ::ui::Create<cs::text>({
-                        .Id = "Authors tab",
                         .Flex = { .Grow = 1, .Shrink = 1 },
                         .BoxProps = { .MarginW = 4, .BorderW = 2, .PaddingW = 2 },
-                        .Props = { .Str = "Fedor Borodulin\nElizaveta Sopina\nDiana Lvova\nAndrey Egorov\nTihon Chudakov\n"},
+                        .Props = { .Str = "These are tabs.\nYou can switch them.\nGood luck.\n"},
                         .Style = { .Color = ::ui::vec3(1) }
                       }),
                     },
-                    {"Other text",
+                    {"Car radio",
                       ::ui::Create<cs::text>({
-                        .Id = "Other text tab",
+                        .Id = "True text",
                         .Flex = { .Grow = 1, .Shrink = 1 },
                         .BoxProps = { .MarginW = 4, .BorderW = 2, .PaddingW = 2 },
-                        .Props = { .Str = "Some text"},
+                        .Props = { .Str = "I pounder of something great,\nmy lungs will fill and then deflate.\nThey fill with fire, exhale desire,\nI know it's dire my time today."},
                         .Style = { .Color = ::ui::vec3(1) }
                       }),
                     },
+                    {"Small description",
+                      ::ui::Create<::ui::components::tabs>({
+                        .Id = "TabsBox",
+                        .Flex = { .Grow = 1, .Shrink = 1 },
+                        .TabsDir = ::ui::dir_type::eVertical,
+                        .Tabs = {
+                          {"Authors",
+                            ::ui::Create<cs::text>({
+                              .Id = "Authors tab",
+                              .Flex = { .Grow = 1, .Shrink = 1 },
+                              .BoxProps = { .MarginW = 4, .BorderW = 2, .PaddingW = 2 },
+                              .Props = { .Str = "Fedor Borodulin\nElizaveta Sopina\nDiana Lvova\nAndrey Egorov\nTihon Chudakov\n"},
+                              .Style = { .Color = ::ui::vec3(1) }
+                            }),
+                          },
+                          {"Idiology",
+                            ::ui::Create<cs::text>({
+                              .Id = "BIG text",
+                              .Flex = { .Grow = 1, .Shrink = 1 },
+                              .BoxProps = { .MarginW = 4, .BorderW = 2, .PaddingW = 2 },
+                              .Props = { .Str = "The animation is a container that stores the interfaces of the main systems and the primitive context and provides an initialization and deinitialization call in accordance with the further description.\nEach system communicates with other systems and user logic through its own standard interface called interface. The interface has only public virtual methods without implementation and optional non-virtual public auxiliary methods that call virtual ones internally.\nSystems can exchange platform-specific data, but cannot expose it to user logic.\nThe animation architecture allows the use of parallel threads in systems, so the documentation should indicate any ambiguous rules for cross-thread use."},
+                              .Style = { .Color = ::ui::vec3(1) }
+                            }),
+                          },
+                          {"Other text",
+                            ::ui::Create<cs::text>({
+                              .Id = "Other text tab",
+                              .Flex = { .Grow = 1, .Shrink = 1 },
+                              .BoxProps = { .MarginW = 4, .BorderW = 2, .PaddingW = 2 },
+                              .Props = { .Str = "Some text"},
+                              .Style = { .Color = ::ui::vec3(1) }
+                            }),
+                          },
+                        },
+                      }),
+                    },
+                    {"Text test",
+                      ::ui::Create<::ui::components::text_test>({
+                        .Id = "ComponetBox",
+                        .Flex = { .Grow = 1, .Shrink = 1 },
+                      }),
+                    }
                   },
                 }),
-              },
-              {"Text test",
-                ::ui::Create<::ui::components::text_test>({
-                  .Id = "ComponetBox",
-                  .Flex = { .Grow = 1, .Shrink = 1 },
-                }),
-              }
-            },
-          }),
-          // ::ui::Create<cs::line_editor>({
-          //   .Id = "Line editor",
-          //   .MaxSize = {10000},
-          //   .Flex = { .Grow = 0 },
-          //   .BoxProps = StdDivBoxProps,
-          //   .Props = { .Str = "Some text" },
-          //   .Style = { .Color = ::ui::vec3(1) }
-          // }),
-        }),
-      }),
-    });
+                // ::ui::Create<cs::line_editor>({
+                //   .Id = "Line editor",
+                //   .MaxSize = {10000},
+                //   .Flex = { .Grow = 0 },
+                //   .BoxProps = StdDivBoxProps,
+                //   .Props = { .Str = "Some text" },
+                //   .Style = { .Color = ::ui::vec3(1) }
+                // }),
+              }),
+            }), // Main bar
+          },
+          { "Chat",
+            ::ui::Create<::ui::examples::chat>({
+              .Flex = { .Grow = 1, .Shrink = 1 },
+            })
+          },
+          { "Chat server",
+            ::ui::Create<::ui::examples::chat_server>({
+              .Flex = { .Grow = 1, .Shrink = 1 },
+            })
+          },
+        }
+      }) // Main tabs
+    }); 
 
   } /* End of 'test' function */
 

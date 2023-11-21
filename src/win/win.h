@@ -18,6 +18,10 @@
 #ifndef __win_h_
 #define __win_h_
 
+#ifndef _WINSOCKAPI_
+#define _WINSOCKAPI_
+#endif // _WINSOCKAPI_
+
 #include <windows.h>
 #include <thread>
 #include "../mth/mth.h"

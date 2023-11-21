@@ -34,6 +34,12 @@
     <Filter Include="Source Files\UI\Components">
       <UniqueIdentifier>{83a39bb3-670d-41ce-9d11-5e724c51e210}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source Files\UI\Examples">
+      <UniqueIdentifier>{f49667e5-edd8-4b98-870a-08d37eda9924}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Socket lib">
+      <UniqueIdentifier>{58830678-4699-48e8-8f5e-396d8037d3f4}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\win\win.cpp">
@@ -47,6 +53,9 @@
     </ClCompile>
     <ClCompile Include="src\ui\entity.cpp">
       <Filter>Source Files\UI</Filter>
+    </ClCompile>
+    <ClCompile Include="src\socket\sl.cpp">
+      <Filter>Source Files\Socket lib</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -130,6 +139,15 @@
     </ClInclude>
     <ClInclude Include="src\ui\components\tabs.h">
       <Filter>Source Files\UI\Components</Filter>
+    </ClInclude>
+    <ClInclude Include="src\ui\examples\chat.h">
+      <Filter>Source Files\UI\Examples</Filter>
+    </ClInclude>
+    <ClInclude Include="src\socket\sl.h">
+      <Filter>Source Files\Socket lib</Filter>
+    </ClInclude>
+    <ClInclude Include="src\ui\examples\chat_server.h">
+      <Filter>Source Files\UI\Examples</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

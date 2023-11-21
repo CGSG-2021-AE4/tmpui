@@ -10,6 +10,8 @@ namespace ui
 {
   namespace controls
   {
+    class line_editor;
+
     /* Text style structure */
     struct text_editor_style
     {
@@ -21,10 +23,8 @@ namespace ui
     {
       std::string Str {""};
       INT WidthChars;
+      std::function<VOID( line_editor *LineE )> OnEnterCallBack {[]( line_editor *LineE ){}};
     }; /* End of 'div_editor_props' struct */
-
-    class line_editor;
-
   } /* end of 'controls' namespace */
 
   template<>
@@ -105,6 +105,7 @@ namespace ui
       VOID SetStr( const std::string &NewStr )
       {
         Str = NewStr;
+        SetCursorPos(0);
         OnUpdateContent();
         Redraw();
       } /* End of 'SetStr' function */
@@ -218,9 +219,19 @@ namespace ui
         case VK_END:
           MoveCursor((INT)Str.size());
           break;
+        case VK_RETURN:
+          Props.OnEnterCallBack(this);
+          break;
         default:
-          if (isalpha(Key) && !(GetKeyState(VK_CAPITAL) & 0x0001 || GetKeyState(VK_SHIFT) & 0x8000))
+          const BOOL IsCapital = (GetKeyState(VK_CAPITAL) & 0x0001 || GetKeyState(VK_SHIFT) & 0x8000);
+          if (isalpha(Key) && !IsCapital)
             Key = tolower(Key);
+
+          // Some temp shit
+          if (Key == VK_OEM_PERIOD)
+            Key = IsCapital ? '>' : '.';
+          else if (Key == VK_OEM_COMMA)
+            Key = IsCapital ? '<' : ',';
 
           Str = Str.substr(0, CursorPos) + (CHAR)Key + Str.substr(CursorPos, (INT)Str.size() - CursorPos);
           SetCursorPos(CursorPos + 1);
