@@ -149,5 +149,11 @@
     <ClInclude Include="src\ui\examples\chat_server.h">
       <Filter>Source Files\UI\Examples</Filter>
     </ClInclude>
+    <ClInclude Include="src\ui\components\radio_button.h">
+      <Filter>Source Files\UI\Components</Filter>
+    </ClInclude>
+    <ClInclude Include="src\ui\examples\default.h">
+      <Filter>Source Files\UI\Examples</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

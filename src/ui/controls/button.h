@@ -97,7 +97,14 @@ namespace ui
         Value = NewValue;
         Redraw();
       } /* End of 'SetValue' function */
-       
+
+      /* Value setter unsafe function - used in radio button */
+      VOID SetValueUnsafe( BOOL NewValue )
+      {
+        Value = NewValue;
+      } /* End of 'SetValue' function */
+
+      /* Button string setter function */
       BOOL SetStr( const std::string &NewStr )
       {
         Props.Str = NewStr;

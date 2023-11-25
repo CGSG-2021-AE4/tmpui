@@ -31,20 +31,8 @@
 #include "./ui/frame_render.h"
 #include "./ui/canvas.h"
 
-// Controls
-
-#include "./ui/controls/div.h"
-#include "./ui/controls/button.h"
-#include "./ui/controls/slider.h"
-#include "./ui/controls/text.h"
-#include "./ui/controls/text_editor.h"
-#include "./ui/controls/range.h"
-
-// Components
-#include "./ui/components/text_test.h"
-#include "./ui/components/tabs.h"
-
 // Examples
+#include "./ui/examples/default.h"
 #include "./ui/examples/chat.h"
 #include "./ui/examples/chat_server.h"
 
@@ -68,104 +56,6 @@ public:
   ::ui::render_2d &Render2d;
   ::ui::canvas Canvas;
 
-  /* Create value function - test component */
-  ::ui::entity * CreateValue( const std::string &Name )
-  {
-    std::string Prefix = std::format("Value {} ", Name);
-
-    return
-      ::ui::Create<cs::div>({
-        .Id = Prefix + "main bar",
-        .MinSize = ::ui::size_ref::eMinContent,
-        .LayoutType = ::ui::layout_type::eFlexColumn,
-        .BoxProps = StdDivBoxProps,
-        .Style = StdDivStyle
-      }, {
-        ::ui::Create<cs::div>({
-          .Id = Prefix + "slider bar",
-          .MinSize = ::ui::size_ref::eMinContent,
-          .LayoutType = ::ui::layout_type::eFlexRow,
-          .BoxProps = StdMarginBoxProps,
-          .Style = StdDivStyle
-        }, {
-          ::ui::Create<cs::text>({
-            .Id = Prefix + " slider bar text",
-            .Flex = { .Grow = 1 },
-            .BoxProps = StdDivBoxProps,
-            .Props = { .IsSingleLine = true, .Str = "Button of value " + Name },
-            .Style = { .Color = ::ui::vec3(1) }
-          }),
-          ::ui::Create<cs::slider>({
-            .Id = "slider bar slider",
-            .Size = 30, 
-            .MinSize = ::ui::size_ref::eMinContent,
-            .Flex = { .Basis = ::ui::flex_basis_type::eMaxContent, .Grow = 1 },
-            .BoxProps = StdDivBoxProps,
-            .Style = {
-              .Track = { .Space = { .DefColor = ::ui::vec3::Rnd0() }, .Border = { .DefColor = ::ui::vec3::Rnd0() } },
-              .Thumb = { .Space = { .DefColor = ::ui::vec3::Rnd0() }, .Border = { .DefColor = ::ui::vec3::Rnd0() } }
-            }
-          }),
-        }),
-        ::ui::Create<cs::div>({
-          .Id = Prefix + "range bar",
-          .MinSize = ::ui::size_ref::eMinContent,
-          .LayoutType = ::ui::layout_type::eFlexRow,
-          .BoxProps = StdMarginBoxProps,
-          .Style = StdDivStyle
-        }, {
-          ::ui::Create<cs::text>({
-            .Id = Prefix + " range bar text",
-            .Flex = { .Grow = 1 },
-            .BoxProps = StdDivBoxProps,
-            .Props = { .IsSingleLine = true, .Str = "Button of value " + Name },
-            .Style = { .Color = ::ui::vec3(1) }
-          }),
-          ::ui::Create<cs::range>({
-            .Id = "range bar range",
-            .Size = 30, 
-            .MinSize = ::ui::size_ref::eMinContent,
-            .Flex = { .Basis = ::ui::flex_basis_type::eMaxContent, .Grow = 1 },
-            .BoxProps = StdDivBoxProps,
-            .Style = {
-              .Left = { .Space = { .DefColor = ::ui::vec3::Rnd0() }, .Border = { .DefColor = ::ui::vec3::Rnd0() } },
-              .Right = { .Space = { .DefColor = ::ui::vec3::Rnd0() }, .Border = { .DefColor = ::ui::vec3::Rnd0() } }
-            }
-          }),
-        }),
-        ::ui::Create<cs::div>({
-          .Id = Prefix + "button bar",
-          .MinSize = ::ui::size_ref::eMinContent,
-          .LayoutType = ::ui::layout_type::eFlexRow,
-          .BoxProps = StdMarginBoxProps,
-          .Style = StdDivStyle
-        }, {
-          ::ui::Create<cs::text>({
-            .Id = Prefix + " button bar text",
-            .Flex = { .Grow = 1 },
-            .BoxProps = StdDivBoxProps,
-            .Props = { .IsSingleLine = true, .Str = "Button of value " + Name },
-            .Style = { .Color = ::ui::vec3(1) }
-          }),
-          ::ui::Create<cs::button>({
-            .Id = "second button bar button",
-            //.Flex = { .Grow = 1 },
-            .BoxProps = StdDivBoxProps,
-            .Props = { .IsPress = true, .Str = "Click", .OnChangeCallBack = []( cs::button *Button ){ ::ui::Log(std::format("New value: {}", Button->GetValue() )); } },
-          }),
-        }),
-        // Create<cs::button>({
-        //   .Id = "second button bar button",
-        //   .Size = 30, 
-        //   .MinSize = 30,
-        //   .Flex = { .Basis = ::ui::flex_basis_type::eFixed },
-        //   .BoxProps = StdDivBoxProps,
-        //   .Props = { .IsPress = true, .OnChangeCallBack = []( cs::button *Button ){ ::ui::Log(std::format("New value: {}", Button->GetValue() )); } },
-        // }),
-        
-      }); // Main bar
-  } /* End of 'CreateValue' function */
-
   //std::vector<cs::slider *> Sliders;
 
   /* Contructor function */
@@ -173,179 +63,14 @@ public:
     Render2d(NewRender2d),
     Canvas(NewRender2d, 0, Size, ::ui::layout_type::eFlexRow, {})
   { 
-    std::vector<::ui::entity *> Values;
-    
-    for (UINT i = 0; i < 5; i++)
-      Values.push_back(CreateValue(std::format("{}", i)));
-
     Canvas.GetRoot()->AddChildren({
       ::ui::Create<::ui::components::tabs>({
         .Flex = { .Grow = 1, .Shrink = 1 },
         .Tabs = {
           { "First example",
-            ::ui::Create<cs::div>({
-              .Id = "Main bar",
-              .MinSize = {0},
-              .LayoutType = ::ui::layout_type::eFlexRow,
+            ::ui::Create<::ui::examples::def>({
               .Flex = { .Grow = 1, .Shrink = 1 },
-              .BoxProps = StdDivBoxProps,
-              .Style = StdDivStyle
-            }, {
-              ::ui::Create<cs::div>({
-                .Id = "Box 1",
-                .Size = {300},
-                .LayoutType = ::ui::layout_type::eFlexColumn,
-                .Flex = { .Basis = ::ui::flex_basis_type::eFixed, .Grow = 1, .Shrink = 1 },
-                .BoxProps = StdDivBoxProps,
-                .Style = StdDivStyle,
-              }, {
-                ::ui::Create<cs::div>({
-                  .Id = "Box 1.1",
-                  .Size = {300},
-                  .LayoutType = ::ui::layout_type::eFlexColumn,
-                  .Flex = { .Basis = ::ui::flex_basis_type::eFixed, .Grow = 1, .Shrink = 1 },
-                  .BoxProps = StdDivBoxProps,
-                  .Style = StdDivStyle,
-                }, {
-                  ::ui::Create<cs::text>({
-                    .Id = "True text",
-                    .Flex = { .Grow = 1, .Shrink = 1 },
-                    .BoxProps = StdDivBoxProps,
-                    .Props = { .Str = "I pounder of something great,\nmy lungs will fill and then deflate.\nThey fill with fire, exhale desire,\nI know it's dire my time today."},
-                    .Style = { .Color = ::ui::vec3(1) }
-                  }),
-                  ::ui::Create<cs::div>({
-                    .MinSize = ::ui::size_ref::eMinContent,
-                    .LayoutType = ::ui::layout_type::eFlexRow,
-                    .BoxProps = { .MarginW = 4, .BorderW = 2, .PaddingW = 2 },
-                    .Style = { .SpaceColor = {0.35}, .BorderColor = {0.75} },
-                  }, {
-                    ::ui::Create<cs::text>({
-                      .Flex = { .Grow = 1 },
-                      .BoxProps = { .MarginW = 4, .BorderW = 2, .PaddingW = 2 },
-                      .Props = { .IsSingleLine = true, .Str = "Show console" },
-                      .Style = { .Color = ::ui::vec3(1) }
-                    }),
-                    ::ui::Create<cs::button>({
-                      .BoxProps = { .MarginW = 4, .BorderW = 2, .PaddingW = 2 },
-                      .Value = false,
-                      .Props = {
-                        .IsPress = true,
-                        .Str = "Show",
-                        .OnChangeCallBack = [&]( cs::button *Button ){
-                          switch (Button->GetValue())
-                          {
-                          case true:
-                            AllocConsole();
-                            freopen("conin$","r",stdin);
-                            freopen("conout$","w",stdout);
-                            freopen("conout$","w",stderr);
-                            break;
-                          case false:
-                            FreeConsole();
-                            break;
-                          }
-                        },
-                      },
-                    }),
-                  }),
-                }),
-                ::ui::Create<cs::div>({
-                  .Id = "Box 1.1",
-                  .Size = {300},
-                  .MaxSize = {500},
-                  .LayoutType = ::ui::layout_type::eFlexColumn,
-                  .Overflow = ::ui::overflow_type::eScroll,
-                  .Flex = { .Basis = ::ui::flex_basis_type::eFixed, .Grow = 1, .Shrink = 1 },
-                  .BoxProps = StdDivBoxProps,
-                  .Style = StdDivStyle,
-                }, Values),
-              }),
-              ::ui::Create<cs::div>({
-                .Id = "Box 2",
-                .Size = {300},
-                .MinSize = {270},
-                .MaxSize = ::ui::size_ref::eNone,
-                .LayoutType = ::ui::layout_type::eFlexColumn,
-                .Flex = { .Basis = ::ui::flex_basis_type::eFixed, .Grow = 2, .Shrink = 2 },
-                .BoxProps = StdDivBoxProps,
-                .Style = StdDivStyle,
-              }, {
-                ::ui::Create<::ui::components::tabs>({
-                  .Id = "TabsBox",
-                  .Flex = { .Grow = 1, .Shrink = 1 },
-                  .Tabs = {
-                    {"Tab name",
-                      ::ui::Create<cs::text>({
-                        .Flex = { .Grow = 1, .Shrink = 1 },
-                        .BoxProps = { .MarginW = 4, .BorderW = 2, .PaddingW = 2 },
-                        .Props = { .Str = "These are tabs.\nYou can switch them.\nGood luck.\n"},
-                        .Style = { .Color = ::ui::vec3(1) }
-                      }),
-                    },
-                    {"Car radio",
-                      ::ui::Create<cs::text>({
-                        .Id = "True text",
-                        .Flex = { .Grow = 1, .Shrink = 1 },
-                        .BoxProps = { .MarginW = 4, .BorderW = 2, .PaddingW = 2 },
-                        .Props = { .Str = "I pounder of something great,\nmy lungs will fill and then deflate.\nThey fill with fire, exhale desire,\nI know it's dire my time today."},
-                        .Style = { .Color = ::ui::vec3(1) }
-                      }),
-                    },
-                    {"Small description",
-                      ::ui::Create<::ui::components::tabs>({
-                        .Id = "TabsBox",
-                        .Flex = { .Grow = 1, .Shrink = 1 },
-                        .TabsDir = ::ui::dir_type::eVertical,
-                        .Tabs = {
-                          {"Authors",
-                            ::ui::Create<cs::text>({
-                              .Id = "Authors tab",
-                              .Flex = { .Grow = 1, .Shrink = 1 },
-                              .BoxProps = { .MarginW = 4, .BorderW = 2, .PaddingW = 2 },
-                              .Props = { .Str = "Fedor Borodulin\nElizaveta Sopina\nDiana Lvova\nAndrey Egorov\nTihon Chudakov\n"},
-                              .Style = { .Color = ::ui::vec3(1) }
-                            }),
-                          },
-                          {"Idiology",
-                            ::ui::Create<cs::text>({
-                              .Id = "BIG text",
-                              .Flex = { .Grow = 1, .Shrink = 1 },
-                              .BoxProps = { .MarginW = 4, .BorderW = 2, .PaddingW = 2 },
-                              .Props = { .Str = "The animation is a container that stores the interfaces of the main systems and the primitive context and provides an initialization and deinitialization call in accordance with the further description.\nEach system communicates with other systems and user logic through its own standard interface called interface. The interface has only public virtual methods without implementation and optional non-virtual public auxiliary methods that call virtual ones internally.\nSystems can exchange platform-specific data, but cannot expose it to user logic.\nThe animation architecture allows the use of parallel threads in systems, so the documentation should indicate any ambiguous rules for cross-thread use."},
-                              .Style = { .Color = ::ui::vec3(1) }
-                            }),
-                          },
-                          {"Other text",
-                            ::ui::Create<cs::text>({
-                              .Id = "Other text tab",
-                              .Flex = { .Grow = 1, .Shrink = 1 },
-                              .BoxProps = { .MarginW = 4, .BorderW = 2, .PaddingW = 2 },
-                              .Props = { .Str = "Some text"},
-                              .Style = { .Color = ::ui::vec3(1) }
-                            }),
-                          },
-                        },
-                      }),
-                    },
-                    {"Text test",
-                      ::ui::Create<::ui::components::text_test>({
-                        .Id = "ComponetBox",
-                        .Flex = { .Grow = 1, .Shrink = 1 },
-                      }),
-                    }
-                  },
-                }),
-                // ::ui::Create<cs::line_editor>({
-                //   .Id = "Line editor",
-                //   .MaxSize = {10000},
-                //   .Flex = { .Grow = 0 },
-                //   .BoxProps = StdDivBoxProps,
-                //   .Props = { .Str = "Some text" },
-                //   .Style = { .Color = ::ui::vec3(1) }
-                // }),
-              }),
-            }), // Main bar
+            })
           },
           { "Chat",
             ::ui::Create<::ui::examples::chat>({

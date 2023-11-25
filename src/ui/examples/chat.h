@@ -45,7 +45,7 @@ namespace ui
       ::sl::sock Port;
 
     public:
-
+      
       /* Chat class construct function */
       chat( const entity_props<chat> &NewProps ) :
         controls::div({
@@ -60,8 +60,8 @@ namespace ui
       {
         AddChildren({
           Create<controls::div>({
-            .MinSize = ::ui::size_ref::eMinContent,
-            .LayoutType = ::ui::layout_type::eFlexRow,
+            .MinSize = size_ref::eMinContent,
+            .LayoutType = layout_type::eFlexRow,
             .BoxProps = { .MarginW = 4, .BorderW = 2, .PaddingW = 2 },
             .Style = { .SpaceColor = {0.35}, .BorderColor = {0.75} },
           }, {
@@ -69,17 +69,17 @@ namespace ui
               .Flex = { .Grow = 1 },
               .BoxProps = { .MarginW = 4, .BorderW = 2, .PaddingW = 2 },
               .Props = { .IsSingleLine = true, .Str = "Server IP: " },
-              .Style = { .Color = ::ui::vec3(1) }
+              .Style = { .Color = vec3(1) }
             }),
             IPInputLineE = Create<controls::line_editor>({
               .BoxProps = { .MarginW = 4, .BorderW = 2, .PaddingW = 2 },
               .Props = { .Str = "127.0.0.1", .WidthChars = 10 },
-              .Style = { .Color = ::ui::vec3(1) }
+              .Style = { .Color = vec3(1) }
             }),
           }),
           Create<controls::div>({
-            .MinSize = ::ui::size_ref::eMinContent,
-            .LayoutType = ::ui::layout_type::eFlexRow,
+            .MinSize = size_ref::eMinContent,
+            .LayoutType = layout_type::eFlexRow,
             .BoxProps = { .MarginW = 4, .BorderW = 2, .PaddingW = 2 },
             .Style = { .SpaceColor = {0.35}, .BorderColor = {0.75} },
           }, {
@@ -87,7 +87,7 @@ namespace ui
               .Flex = { .Grow = 1 },
               .BoxProps = { .MarginW = 4, .BorderW = 2, .PaddingW = 2 },
               .Props = { .IsSingleLine = true, .Str = "Connect to the server" },
-              .Style = { .Color = ::ui::vec3(1) }
+              .Style = { .Color = vec3(1) }
             }),
             Create<controls::button>({
               .BoxProps = { .MarginW = 4, .BorderW = 2, .PaddingW = 2 },
@@ -96,7 +96,7 @@ namespace ui
                   Log(std::format("Connected to the server {}:{}", IPInputLineE->GetStr(), 8080));
                   
                   Port.StartReader(Port.GetSocketHandle(),
-                    [&]( const SOCKET hReadSocket, const std::vector<BYTE> &Message ) {
+                    [&]( const SOCKET hReadSocket, const std::span<BYTE> &Message ) {
                       Canvas->WorkMutex.lock();
                       AddMessage(std::to_string(hReadSocket), std::string(Message.begin(), Message.end()));
                       Canvas->WorkMutex.unlock();
@@ -107,14 +107,14 @@ namespace ui
             }),
           }),
           MessagesColumnE = Create<controls::div>({
-            .LayoutType = ::ui::layout_type::eFlexColumn,
+            .LayoutType = layout_type::eFlexColumn,
             .Overflow = overflow_type::eScroll,
             .Flex = { .Grow = 1 },
             .BoxProps = { .MarginW = 4, .BorderW = 2, .PaddingW = 2 },
             .Style = { .SpaceColor = {0.35}, .BorderColor = {0.75} },
           }),
           Create<controls::div>({
-            .LayoutType = ::ui::layout_type::eFlexRow,
+            .LayoutType = layout_type::eFlexRow,
             .BoxProps = { .MarginW = 4, .BorderW = 2, .PaddingW = 2 },
             .Style = { .SpaceColor = {0.35}, .BorderColor = {0.75} },
           }, {
@@ -135,7 +135,7 @@ namespace ui
                   MessageInputLineE->SetStr("");
                 }
               },
-              .Style = { .Color = ::ui::vec3(1) }
+              .Style = { .Color = vec3(1) }
             }),
             Create<controls::button>({
               .BoxProps = { .MarginW = 4, .BorderW = 2, .PaddingW = 2 },
@@ -161,8 +161,8 @@ namespace ui
       /* Send message function */
       VOID Send( const std::string &MessageStr )
       {
-        Port.Send(Port.GetSocketHandle(), {MessageStr.begin(), MessageStr.end()});
-        AddMessage(UserName, MessageStr, true);
+        if (Port.Send(Port.GetSocketHandle(), std::span<const BYTE>(reinterpret_cast<const BYTE *>(MessageStr.data()), MessageStr.size())))
+          AddMessage(UserName, MessageStr, true);
       } /* End of 'Send' function */
 
       /* Log function */
@@ -172,7 +172,7 @@ namespace ui
           Create<controls::text>({
             .BoxProps = { .MarginW = 4, .BorderW = 2, .PaddingW = 2 },
             .Props = { .Str = MessageStr },
-            .Style = { .Color = ::ui::vec3(1) }
+            .Style = { .Color = vec3(1) }
           }));
       } /* End of 'Log' function */
 
@@ -180,8 +180,8 @@ namespace ui
       VOID AddMessage( const std::string &UserName, const std::string &MessageStr, BOOL IsMine = false )
       {
         MessagesColumnE->AddChild(
-          ::ui::Create<controls::div>({
-            .LayoutType = ::ui::layout_type::eFlexColumn,
+          Create<controls::div>({
+            .LayoutType = layout_type::eFlexColumn,
             .BoxProps = { .MarginW = 4, .BorderW = 2, .PaddingW = 2 },
             .Style = { .SpaceColor = {0.35}, .BorderColor = {0.75} }
           }, {
@@ -189,15 +189,15 @@ namespace ui
               .BoxProps = { .MarginW = 4, .BorderW = 2, .PaddingW = 2 },
               .Props = { .Str = UserName }, // Align to right if not me TODO
               .Style = {
-                .Color = ::ui::vec3(1, 0, 1),
-                .LayoutFlags = IsMine ? (DWORD)::ui::render_2d::hor_align::eRight : (DWORD)::ui::render_2d::hor_align::eLeft,
+                .Color = vec3(1, 0, 1),
+                .LayoutFlags = IsMine ? (DWORD)render_2d::hor_align::eRight : (DWORD)render_2d::hor_align::eLeft,
                 .IsEmptyBack = true,
               }
             }),
             Create<controls::text>({ // Main text
               .BoxProps = { .MarginW = 4, .BorderW = 2, .PaddingW = 2 },
               .Props = { .Str = MessageStr },
-              .Style = { .Color = ::ui::vec3(1), .IsEmptyBack = true }
+              .Style = { .Color = vec3(1), .IsEmptyBack = true }
             }),
           })
         );

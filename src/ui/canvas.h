@@ -60,7 +60,7 @@ namespace ui
       /* Add to tree recuresive function */
       VOID AddRec( std::stack<entity *> &PathStack, BOOL IsNew )
       {
-        if (!PathStack.empty())
+        if (!PathStack.empty() && ((E != nullptr && E->IsVisible) || E == nullptr))
         {
           if (!IsNew && Children.empty())
             return;

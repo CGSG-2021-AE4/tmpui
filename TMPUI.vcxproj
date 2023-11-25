@@ -173,6 +173,7 @@
     <ClInclude Include="src\render.h" />
     <ClInclude Include="src\socket\sl.h" />
     <ClInclude Include="src\ui\canvas.h" />
+    <ClInclude Include="src\ui\components\radio_button.h" />
     <ClInclude Include="src\ui\components\tabs.h" />
     <ClInclude Include="src\ui\components\text_test.h" />
     <ClInclude Include="src\ui\controls\button.h" />
@@ -184,6 +185,7 @@
     <ClInclude Include="src\ui\entity.h" />
     <ClInclude Include="src\ui\examples\chat.h" />
     <ClInclude Include="src\ui\examples\chat_server.h" />
+    <ClInclude Include="src\ui\examples\default.h" />
     <ClInclude Include="src\ui\frame_render.h" />
     <ClInclude Include="src\ui\props.h" />
     <ClInclude Include="src\ui\ui_def.h" />

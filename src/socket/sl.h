@@ -21,6 +21,8 @@
 #include <vector>
 #include <map>
 #include <functional>
+#include <span>
+#include <format>
 
 #include <winsock2.h>
 #include <ws2tcpip.h>
@@ -112,25 +114,21 @@ namespace sl
 
   private:
 
-    SOCKET hSocket {(SOCKET)-1};      // System socket handle
+    SOCKET hSocket {(SOCKET)-1};                 // System socket handle
+    std::map<SOCKET, std::thread> ReaderThreads; // Threads with readers
+
+    BOOL IsListenFlag {false}; // Is listening flag
 
     // Server
-    INT ActivePort {-1}; // Active port number
-
-  public: // TMP KAL
-
-    std::set<SOCKET> Connections; // Conected client? socket
-
-  private:
-
-    std::map<SOCKET, std::thread> ReaderThreads; // Threads with readers
+    INT ActivePort {-1};          // Active port number
+    std::set<SOCKET> Connections; // Conected client socket
 
     // Client
     BOOL IsConnectedFlag {0};
 
   public:
 
-    const type Type; // This port type
+    const type Type; // This socket type
 
     /* Construct function.
      * ARGUMENTS:
@@ -184,19 +182,30 @@ namespace sl
 
     /********** Server part **********/
 
+    /* Is bind function */
+    inline BOOL IsBind( VOID )
+    {
+      return ActivePort != -1;
+    } /* End of 'IsBind' function */
+
+    /* Is listen function */
+    inline BOOL IsListen( VOID )
+    {
+      return IsListenFlag;
+    } /* End of 'IsListen' function */
+
     /* Bind function.
      * ARGUMENTS:
      *   - port:
      *       const UINT NewPort;
-     * RETURNS:
-     *   (sock &) self refernce.
+     * RETURNS: None.
      */
-    sock & Bind( const UINT NewPort )
+    VOID Bind( const UINT NewPort )
     {
       if (Type != type::SERVER)
       {
         assert(0); // Bind function is only for server type socket
-        return *this;
+        return;
       }
 
       if (ActivePort != -1)
@@ -213,48 +222,59 @@ namespace sl
         LogError("Bind failed");
       else
         ActivePort = NewPort;
-
-      return *this;
     } /* End of 'Bind' function */
 
     /* Listen function.
      * ARGUMENTS: None.
      * RETURNS:
-     *   (sock &) self reference.
+     *   (BOOL) success of listen.
      */
-    sock & Listen( VOID )
+    BOOL Listen( VOID )
     {
+      IsListenFlag = false;
+
       if (Type != type::SERVER)
       {
         assert(0); // Bind function is only for server type socket
-        return *this;
+        return false;
+      }
+
+      if (!IsBind())
+      {
+        LogError("Failed to listen - no port is binded");
+        return false;
       }
 
       Log("Listen...");
       if (listen(hSocket, MAX_Q_LEN) < 0)
+      {
         LogError("Listen failed");
+        return false;
+      }
 
-      return *this;
+      IsListenFlag = true;
+
+      return true;
     } /* End of 'Listen' function */
-
-    /* Typedef call back types */
-    template<typename ...ArgTypes>
-      using AcceptCBFType = VOID (*)( const SOCKET ClientSocket, ArgTypes ...Args ) ;
-    template<typename ...ArgTypes>
-      using ReadCBFType = VOID (*)( const SOCKET hSender, const std::vector<BYTE> &Data, ArgTypes ...Args ) ;
 
     /* Accept function.
      * ARGUMENTS:
      *   - accept call back function:
-     *       VOID (*AcceptCallBack)( const SOCKET ClientSocket );
+     *       const std::function<VOID( const SOCKET ClientSocket )> &OnAcceptCallBack;
      * RETURNS:
      *   (SOCKET) connected socket handle.
      */
-    SOCKET Accept( const std::function<VOID( const SOCKET ClientSocket )> &AcceptCallBack )
+    SOCKET Accept( const std::function<VOID( const SOCKET ClientSocket )> &OnAcceptCallBack )
     {
       if (Type != type::SERVER)
       {
         assert(0); // Bind function is only for server type socket
+        return INVALID_SOCKET;
+      }
+
+      if (!IsBind())
+      {
+        LogError("Failed to accept - no port is binded");
         return INVALID_SOCKET;
       }
     
@@ -279,7 +299,7 @@ namespace sl
         inet_ntop(AF_INET, (sockaddr*)&Addr, &ClientIpStr[0], ClientIpStr.size());
         Log("LIENT ACCEPTED --> IP: " + ClientIpStr + "  PORT: " + std::to_string(ActivePort));
 
-        AcceptCallBack(NewSocket);
+        OnAcceptCallBack(NewSocket);
 
         Connections.emplace(NewSocket);
       }
@@ -292,46 +312,52 @@ namespace sl
      *   - max count of clients:
      *       const UINT MaxClientsCount;
      * RETURNS:
-     *   (sock &) self reference.
+     *   (BOOL) success of operation.
      */
-    sock & StartAcceptor( const UINT MaxClientsCount, const std::function<VOID( const SOCKET ClientSocket )> &AcceptCallBack, const std::function<VOID( const SOCKET hReadSocket, const std::vector<BYTE> &Message )> &ReadCallBack )
+    BOOL StartAcceptor( const UINT MaxClientsCount, const std::function<VOID( const SOCKET ClientSocket )> &AcceptCallBack, const std::function<VOID( const SOCKET hReadSocket, const std::span<BYTE> &Message )> &ReadCallBack )
     {
       if (Type != type::SERVER)
       {
         assert(0); // Bind function is only for client type socket
-        return *this;
+        return false;
       }
     
       if (AcceptorThread.has_value())
-        return *this;
+      {
+        LogError("Failed to start acceptor - acceptor is already started.");
+        return false;
+      }
+
+      if (!IsBind())
+      {
+        LogError("Failed to start acceptor - no port is binded");
+        return false;
+      }
     
       Log("Start acceptor...");
       AcceptorThread = std::thread(
         [=]( VOID )
         {
-          Listen();
-          while (Connections.size() <= MaxClientsCount)
-            StartReader(Accept(AcceptCallBack), ReadCallBack);
+          if (Listen())
+            while (Connections.size() <= MaxClientsCount)
+              StartReader(Accept(AcceptCallBack), ReadCallBack);
         });
       AcceptorThread.value().detach();
-    
-      return *this;
+
+      return true;
     } /* End of 'StartAcceptor' function */
 
     /* End acceptor function.
      * ARGUMENTS: None.
-     * RETURNS:
-     *   (sock &) self reference.
+     * RETURNS: None.
      */
-    sock & EndAcceptor( VOID )
+    VOID EndAcceptor( VOID )
     {
       if (AcceptorThread.has_value())
       {
         Log("Acceptor ended...");
         AcceptorThread.reset();
       }
-      
-      return *this;
     } /* End of 'EndAcceptor' function */
 
     /********** Client part **********/
@@ -343,14 +369,16 @@ namespace sl
      *   - port:
      *       UINT OutPort;
      * RETURNS:
-     *   (sock &) self reference.
+     *   (BOOL) success of operation.
      */
-    sock & Connect( const std::string &IpStr, UINT OutPort )
+    BOOL Connect( const std::string &IpStr, UINT OutPort )
     {
+      IsConnectedFlag = false;
+
       if (Type != type::CLIENT)
       {
         assert(0); // Bind function is only for client type socket
-        return *this;
+        return false;
       }
 
       sockaddr_in Addr;
@@ -363,16 +391,19 @@ namespace sl
       if (inet_pton(AF_INET, IpStr.c_str(), &Addr.sin_addr) <= 0)
       {
         LogError("Invalid ip");
-        return *this;
+        return false;
       }
 
       Log("Connect...");
       if (connect(hSocket, (sockaddr *)&Addr, sizeof(Addr)) < 0)
+      {
         LogError("Connect");
-      else
-        IsConnectedFlag = 1;
+        return false;
+      }
 
-      return *this;
+      IsConnectedFlag = true;
+
+      return true;
     } /* End of 'Connect' function */
 
     /* Is connected function.
@@ -382,13 +413,13 @@ namespace sl
      */
     BOOL IsConnected( VOID )
     {
-      return IsConnectedFlag;
+      return Type == type::SERVER || IsConnectedFlag;
     } /* End of 'IsConnected' function */
 
     /******* Common *******/
 
     private:
-      std::vector<BYTE> ReadBuf;
+      std::vector<BYTE> ReadBuf; // Buffer is local to not allocate mem every time
     public:
 
     /* Read inline function.
@@ -398,12 +429,24 @@ namespace sl
      * RETURNS:
      *   (std::vector<BYTE>) message.
      */
-    inline std::vector<BYTE> Read( const SOCKET hReadingSocket )
+    inline std::span<BYTE> Read( const SOCKET hReadingSocket )
     {
       switch (INT Result = recv(hReadingSocket, (CHAR *)ReadBuf.data(), (INT)ReadBuf.size(), 0))
       {
       case -1:
-        LogError("OOOOOOOOH SHIT - reading socket failed.");
+        LogError(std::format("OOOOOOOOH SHIT - reading socket failed - result: {}", Result));
+        switch (WSAGetLastError())
+        {
+        case WSAENOTCONN:
+        case WSAENETRESET:
+        case WSAENOTSOCK:
+        case WSAESHUTDOWN:
+        case WSAEINVAL:
+        case WSAECONNRESET:
+        case WSAECONNABORTED:
+          IsConnectedFlag = false;
+          break;
+        }
       case 0:
         break; // Nothing has been readed
       default:
@@ -419,29 +462,30 @@ namespace sl
      *   - message:
      *       const std::vector<BYTE> &Message;
      * RETURNS:
-     *   (sock &) self reference.
+     *   (BOOL) success of operation.
      */
-    inline sock & Send( const SOCKET hOutSocket, const std::vector<BYTE> &Message )
+    inline BOOL Send( const SOCKET hOutSocket, std::span<const BYTE> Message )
     {
-      switch (send(hOutSocket, (CHAR *)Message.data(), (UINT)Message.size(), 0))
+      if (send(hOutSocket, (CHAR *)Message.data(), (UINT)Message.size(), 0) == SOCKET_ERROR)
       {
-      case SOCKET_ERROR:
         LogError("OOOOOOOOOH SHIT - Sending failed.");
-        break;
+        return false;
       }
-      return *this;
+      return true;
     } /* End of 'Send' function */
 
     /* Send to every connection function.
      * ARGUMENTS:
      *   - message:
-     *       const std::vector<BYTE> &Message;
+     *       const std::span<BYTE> &Message;
      * RETURNS: None.
      */
-    VOID SendToAll( const std::vector<BYTE> &Message )
+    VOID SendToAll( std::span<const BYTE> Message )
     {
-      for ( auto &hS : Connections)
-        Send(hS, Message);
+      BOOL Result = false;
+
+      for (auto &hS : Connections)
+        Result |= Send(hS, Message);
     } /* End of 'SendToAll' function */
 
     /* Send to every connection except one function.
@@ -449,14 +493,16 @@ namespace sl
      *   - not usable socket:
      *       const SOCKET hOutSocket;
      *   - message:
-     *       const std::vector<BYTE> &Message;
+     *       const std::span<BYTE> &Message;
      * RETURNS: None.
      */
-    VOID SendToAllExcept( const SOCKET hExceptSocket, const std::vector<BYTE> &Message )
+    VOID SendToAllExcept( const SOCKET hExceptSocket, std::span<const BYTE> Message )
     {
+      BOOL Result = false;
+
       for ( auto &hS : Connections)
         if (hS != hExceptSocket)
-          Send(hS, Message);
+          Result |= Send(hS, Message);
     } /* End of 'SendToAll' function */
 
     /* Start reader function.
@@ -469,12 +515,12 @@ namespace sl
      *       ReadArgTypes ...ReadCBFArgs;
      * RETRUNS: None.
      */
-    VOID StartReader( const SOCKET hReadSocket, const std::function<VOID( const SOCKET hReadSocket, const std::vector<BYTE> &Message )> &ReadCallBack )
+    VOID StartReader( const SOCKET hReadSocket, const std::function<VOID( const SOCKET hReadSocket, std::span<BYTE> Message )> &ReadCallBack )
     {
       ReaderThreads.emplace(hReadSocket, std::thread(
         [=]( VOID )
         {
-          while (1)
+          while (IsConnected())
             ReadCallBack(hReadSocket, Read(hReadSocket));
         }));
     } /* End of 'StartReader' function */

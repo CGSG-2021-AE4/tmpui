@@ -15,6 +15,7 @@ namespace ui
     {
       vec3 Color {0};
       DWORD LayoutFlags {0};
+      BOOL IsEmptyBack {false};
       ivec2 Padding {2, 0};
     }; /* End of 'text_style' struct */
 
@@ -22,7 +23,6 @@ namespace ui
     struct text_props
     {
       BOOL IsSingleLine {false};
-      BOOL IsEmptyBack {false};
       std::string Str {""};
     }; /* End of 'div_props' struct */
 
@@ -65,7 +65,7 @@ namespace ui
         Props(NewProps.Props),
         Style(NewProps.Style)
       {
-        IsBackgroundTransparent = true;
+        IsBackgroundTransparent = Style.IsEmptyBack;
         if (Props.IsSingleLine)
           Str.Single(Props.Str);
         else
@@ -96,7 +96,7 @@ namespace ui
       /* On draw event function */
       VOID OnDraw( VOID ) override
       {
-        if (!Props.IsEmptyBack)
+        if (!Style.IsEmptyBack)
           Canvas->Render2d.PutBar(GlobalPos, Size, ToRGB(vec3(0.8)), ToRGB(vec3(0.6)), BoxProps.BorderW, SelfDrawMask);
 
         if (Props.IsSingleLine)

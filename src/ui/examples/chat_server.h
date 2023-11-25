@@ -90,7 +90,7 @@ namespace ui
                         Log("New user: " + std::to_string(ClientSocket));
                         Canvas->WorkMutex.unlock();
                       },
-                      [&]( const SOCKET hReadSocket, const std::vector<BYTE> &Message ) {
+                      [&]( const SOCKET hReadSocket, const std::span<BYTE> &Message ) {
                         if (Message.empty())
                           return;
                         Canvas->WorkMutex.lock();

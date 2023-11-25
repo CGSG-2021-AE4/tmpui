@@ -9,6 +9,9 @@
 #include "../controls/div.h"
 #include "../controls/text.h"
 #include "../controls/button.h"
+
+// Components
+#include "../components/radio_button.h"
 // #include "../controls/text_editor.h"
 
 namespace ui
@@ -33,13 +36,12 @@ namespace ui
     /* Tabs component class */
     class tabs : public controls::div
     {
-      controls::div
-        *ButtonsDiv,
-        *ContentDiv;
+      controls::div *ContentDiv;
+      components::radio_button *SwitchButtonsE;
 
       entity *CurTabE {nullptr};
 
-      std::map<entity *, entity *> TabsToButtons; // Map from tab entity to it's button entity
+      std::map<entity *, INT> TabsToIndexes; // Map from tab entity to it's option indexes
 
     public:
 
@@ -55,12 +57,9 @@ namespace ui
         })
       {
         // Create base divs
-        ButtonsDiv = Create<controls::div>({
-          .LayoutType = (NewProps.TabsDir == dir_type::eHorizontal) ? ::ui::layout_type::eFlexRow : ::ui::layout_type::eFlexColumn,
-          .Overflow = ::ui::overflow_type::eScroll,
-          .ScrollDir = (NewProps.TabsDir == dir_type::eHorizontal) ? ::ui::dir_type::eHorizontal : ::ui::dir_type::eVertical,
-          .BoxProps = { .MarginW = 2 },
-          .Style = { .SpaceColor = {0.35} },
+        SwitchButtonsE = Create<components::radio_button>({
+          .Dir = NewProps.TabsDir,
+          .BoxProps = {},
         });
         ContentDiv = Create<controls::div>({
           .LayoutType = ::ui::layout_type::eFlexColumn,
@@ -71,42 +70,34 @@ namespace ui
 
         // Add tabs
         AddTabs(NewProps.Tabs);
+        AddChildren({ SwitchButtonsE, ContentDiv });
         if (ContentDiv->Children.size() > 0)
           SetCurTab(ContentDiv->Children[0]); // Some shit - first tab
-        AddChildren({ ButtonsDiv, ContentDiv });
       } /* End of 'text_test' function */
 
       /* Add new tabs function */
       VOID AddTabs( const std::vector<std::pair<std::string, entity *>> &NewTabs )
       {
-        std::vector<entity *>
-          TabsEs {},
-          ButtonsEs {};
+        std::vector<entity *> TabsEs {};
+        std::vector<components::radio_button_option_props> ButtonsProps;
 
-        for (auto Tab : NewTabs)
+        for (INT i = 0, Offset = (INT)TabsToIndexes.size(); i < NewTabs.size(); i++)
         {
-          entity *ButtonE = Create<controls::button>({
-            .BoxProps = { .MarginW = 4, .BorderW = 2, .PaddingW = 2 },
-            .Value = 0,
-            .Props = {
-              .IsPress = true,
-              .Str = Tab.first,
-              .OnClickCallBack = [this, Tab]( controls::button *Button ){
-                if (TabsToButtons.find(CurTabE) != TabsToButtons.end())
-                  reinterpret_cast<::ui::controls::button *>(TabsToButtons[CurTabE])->SetValue(false);
-                SetCurTabUnsafe(Tab.second);
-                ContentDiv->OnUpdateContent();
-                ContentDiv->Redraw();
-              }
-            },
-          });
+          NewTabs[i].second->SetVisibility(false);
 
-          Tab.second->SetVisibility(false);
-          TabsToButtons.emplace(Tab.second, ButtonE);
-          ButtonsEs.push_back(ButtonE);
-          TabsEs.push_back(Tab.second);
+
+          ButtonsProps.push_back({
+            .Name = NewTabs[i].first,
+            .OnSelectCallBack = [=]( VOID ){
+              SetCurTabUnsafe(NewTabs[i].second);
+              ContentDiv->OnUpdateContent();
+              ContentDiv->Redraw();
+            }
+          });
+          TabsEs.push_back(NewTabs[i].second);
+          TabsToIndexes.emplace(NewTabs[i].second, Offset + i);
         }
-        ButtonsDiv->AddChildren(ButtonsEs);
+        SwitchButtonsE->AddOptions(ButtonsProps);
         ContentDiv->AddChildren(TabsEs);
       } /* End of 'AddTabs' function */
 
@@ -126,16 +117,9 @@ namespace ui
       /* Set current tab function */
       VOID SetCurTab( entity *E )
       {
-        if (CurTabE != nullptr)
-        {
-          CurTabE->SetVisibility(false);
-          if (TabsToButtons.find(CurTabE) != TabsToButtons.end())
-            reinterpret_cast<::ui::controls::button *>(TabsToButtons[CurTabE])->SetValue(false);
-        }
-        E->SetVisibility(true);
-        if (TabsToButtons.find(E) != TabsToButtons.end())
-            reinterpret_cast<::ui::controls::button *>(TabsToButtons[E])->SetValue(true);
-        CurTabE = E;
+        if (TabsToIndexes.find(E) != TabsToIndexes.end())
+          SwitchButtonsE->SetCurOption(TabsToIndexes[E]);
+        SetCurTabUnsafe(E);
         ContentDiv->OnUpdateContent();
         ContentDiv->Redraw();
       } /* End of 'SetCurTabUnsafe' function */

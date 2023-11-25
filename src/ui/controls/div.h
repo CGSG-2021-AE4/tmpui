@@ -134,7 +134,8 @@ namespace ui
       /* On draw event function */
       VOID OnDraw( VOID ) override
       {
-        Canvas->Render2d.PutBar(GlobalPos, Size, ToRGB(Style.BorderColor), ToRGB(Style.SpaceColor), BoxProps.BorderW, SelfDrawMask);
+        if (!IsBackgroundTransparent)
+          Canvas->Render2d.PutBar(GlobalPos, Size, ToRGB(Style.BorderColor), ToRGB(Style.SpaceColor), BoxProps.BorderW, SelfDrawMask);
 
         // Canvas->Render2d.PutBar(GlobalPos, GetPreferedSize(), (DWORD)RGB(0, 255, 0), SelfDrawMask);
         // Canvas->Render2d.PutBar(GlobalPos, GetMinSize(), (DWORD)RGB(255, 0, 0), SelfDrawMask);
