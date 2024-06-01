@@ -192,6 +192,7 @@
     <ClInclude Include="src\ui\frame_render.h" />
     <ClInclude Include="src\ui\props.h" />
     <ClInclude Include="src\ui\ui_def.h" />
+    <ClInclude Include="src\utilities\nn2\nn2.h" />
     <ClInclude Include="src\utilities\nn\nn.h" />
     <ClInclude Include="src\win\win.h" />
   </ItemGroup>

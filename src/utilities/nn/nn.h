@@ -7,6 +7,7 @@
 /* Neural nerwork namespace */
 namespace nn
 {
+
   /* Layer struct */
   struct layer
   {

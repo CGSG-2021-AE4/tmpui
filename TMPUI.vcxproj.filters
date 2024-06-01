@@ -46,6 +46,9 @@
     <Filter Include="Source Files\Utilities\Neural network">
       <UniqueIdentifier>{843dd65a-3c36-4896-ab0c-36ecdb0009ad}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source Files\Utilities\Neural network 2">
+      <UniqueIdentifier>{d0ea368d-195c-4dda-b690-1ef6f9c62eef}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\win\win.cpp">
@@ -172,6 +175,9 @@
     </ClInclude>
     <ClInclude Include="src\utilities\nn\nn.h">
       <Filter>Source Files\Utilities\Neural network</Filter>
+    </ClInclude>
+    <ClInclude Include="src\utilities\nn2\nn2.h">
+      <Filter>Source Files\Utilities\Neural network 2</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

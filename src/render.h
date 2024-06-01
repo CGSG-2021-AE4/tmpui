@@ -224,7 +224,7 @@ namespace tmp
       
       T2 = std::chrono::high_resolution_clock::now();
 
-      std::cout << std::format("Draw time {} microseconds.\n", std::chrono::duration_cast<std::chrono::microseconds>(T2 - T1));
+      //std::cout << std::format("Draw time {} microseconds.\n", std::chrono::duration_cast<std::chrono::microseconds>(T2 - T1));
       
       FrameCounter++;
       /*
