@@ -154,6 +154,7 @@
     <ClCompile Include="src\main.cpp" />
     <ClCompile Include="src\socket\sl.cpp" />
     <ClCompile Include="src\ui\entity.cpp" />
+    <ClCompile Include="src\utilities\nn\nn.cpp" />
     <ClCompile Include="src\win\win.cpp" />
     <ClCompile Include="src\win\win_msg.cpp" />
   </ItemGroup>
@@ -177,6 +178,7 @@
     <ClInclude Include="src\ui\components\tabs.h" />
     <ClInclude Include="src\ui\components\text_test.h" />
     <ClInclude Include="src\ui\controls\button.h" />
+    <ClInclude Include="src\ui\controls\canvas.h" />
     <ClInclude Include="src\ui\controls\div.h" />
     <ClInclude Include="src\ui\controls\range.h" />
     <ClInclude Include="src\ui\controls\slider.h" />
@@ -186,9 +188,11 @@
     <ClInclude Include="src\ui\examples\chat.h" />
     <ClInclude Include="src\ui\examples\chat_server.h" />
     <ClInclude Include="src\ui\examples\default.h" />
+    <ClInclude Include="src\ui\examples\nweb.h" />
     <ClInclude Include="src\ui\frame_render.h" />
     <ClInclude Include="src\ui\props.h" />
     <ClInclude Include="src\ui\ui_def.h" />
+    <ClInclude Include="src\utilities\nn\nn.h" />
     <ClInclude Include="src\win\win.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

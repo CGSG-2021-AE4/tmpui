@@ -44,7 +44,7 @@ namespace ui
       layout_type LayoutType = layout_type::eBlock;
       overflow_type Overflow = overflow_type::eHidden;
       flex_props Flex {};
-      box_props BoxProps {};
+      box_props BoxProps { .MarginW = 4, .BorderW = 2, .PaddingW = 2 };
 
       controls::range_style Style {};
       controls::range_props Props {};

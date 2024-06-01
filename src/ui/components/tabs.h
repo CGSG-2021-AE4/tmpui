@@ -27,6 +27,8 @@ namespace ui
       std::string Id {""};
       ivec2 Pos {0};
       flex_props Flex {};
+      box_props BoxProps { .PaddingW = 2 };
+      controls::div_style Style {};
       dir_type TabsDir {dir_type::eHorizontal};
       std::vector<std::pair<std::string, entity *>> Tabs {};
     }; /* End of 'entity_props' struct */
@@ -52,8 +54,8 @@ namespace ui
           .Pos = NewProps.Pos,
           .LayoutType = (NewProps.TabsDir == dir_type::eHorizontal) ? ::ui::layout_type::eFlexColumn : ::ui::layout_type::eFlexRow,
           .Flex = NewProps.Flex,
-          .BoxProps = { .MarginW = 4, .BorderW = 2, .PaddingW = 2 },
-          .Style = { .SpaceColor = {0.35}, .BorderColor = {0.3, 0.3, 0.75} },
+          .BoxProps = { NewProps.BoxProps },
+          .Style = { NewProps.Style },
         })
       {
         // Create base divs
@@ -64,7 +66,7 @@ namespace ui
         ContentDiv = Create<controls::div>({
           .LayoutType = ::ui::layout_type::eFlexColumn,
           .Flex = { .Grow = 1, .Shrink = 1 },
-          .BoxProps = { .PaddingW = 2 },
+          .BoxProps = { .MarginW = 4 },
           .Style = { .SpaceColor = {0.35} },
         });
 

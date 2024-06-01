@@ -43,10 +43,8 @@ namespace ui
     {
     public:
 
-      box_props StdDivBoxProps = box_props({ .MarginW = 4, .BorderW = 2, .PaddingW = 2 });
       box_props StdMarginBoxProps = box_props({ .MarginW = 2, .BorderW = 0, .PaddingW = 0 });
-      controls::div_style StdDivStyle = controls::div_style({ .SpaceColor = {0.35}, .BorderColor = {0.75} });
-
+      
       /* Create value function - test component */
       entity * CreateValue( const std::string &Name )
       {
@@ -57,20 +55,16 @@ namespace ui
             .Id = Prefix + "main bar",
             .MinSize = size_ref::eMinContent,
             .LayoutType = layout_type::eFlexColumn,
-            .BoxProps = StdDivBoxProps,
-            .Style = StdDivStyle
           }, {
             Create<controls::div>({
               .Id = Prefix + "slider bar",
               .MinSize = size_ref::eMinContent,
               .LayoutType = layout_type::eFlexRow,
               .BoxProps = StdMarginBoxProps,
-              .Style = StdDivStyle
             }, {
               Create<controls::text>({
                 .Id = Prefix + " slider bar text",
                 .Flex = { .Grow = 1 },
-                .BoxProps = StdDivBoxProps,
                 .Props = { .IsSingleLine = true, .Str = "Button of value " + Name },
                 .Style = { .Color = vec3(1) }
               }),
@@ -79,7 +73,6 @@ namespace ui
                 .Size = 30, 
                 .MinSize = size_ref::eMinContent,
                 .Flex = { .Basis = flex_basis_type::eMaxContent, .Grow = 1 },
-                .BoxProps = StdDivBoxProps,
                 .Style = {
                   .Track = { .Space = { .DefColor = vec3::Rnd0() }, .Border = { .DefColor = vec3::Rnd0() } },
                   .Thumb = { .Space = { .DefColor = vec3::Rnd0() }, .Border = { .DefColor = vec3::Rnd0() } }
@@ -91,12 +84,10 @@ namespace ui
               .MinSize = size_ref::eMinContent,
               .LayoutType = layout_type::eFlexRow,
               .BoxProps = StdMarginBoxProps,
-              .Style = StdDivStyle
             }, {
               Create<controls::text>({
                 .Id = Prefix + " range bar text",
                 .Flex = { .Grow = 1 },
-                .BoxProps = StdDivBoxProps,
                 .Props = { .IsSingleLine = true, .Str = "Button of value " + Name },
                 .Style = { .Color = vec3(1) }
               }),
@@ -105,7 +96,6 @@ namespace ui
                 .Size = 30, 
                 .MinSize = size_ref::eMinContent,
                 .Flex = { .Basis = flex_basis_type::eMaxContent, .Grow = 1 },
-                .BoxProps = StdDivBoxProps,
                 .Style = {
                   .Left = { .Space = { .DefColor = vec3::Rnd0() }, .Border = { .DefColor = vec3::Rnd0() } },
                   .Right = { .Space = { .DefColor = vec3::Rnd0() }, .Border = { .DefColor = vec3::Rnd0() } }
@@ -117,19 +107,16 @@ namespace ui
               .MinSize = size_ref::eMinContent,
               .LayoutType = layout_type::eFlexRow,
               .BoxProps = StdMarginBoxProps,
-              .Style = StdDivStyle
             }, {
               Create<controls::text>({
                 .Id = Prefix + " button bar text",
                 .Flex = { .Grow = 1 },
-                .BoxProps = StdDivBoxProps,
                 .Props = { .IsSingleLine = true, .Str = "Button of value " + Name },
                 .Style = { .Color = vec3(1) }
               }),
               Create<controls::button>({
                 .Id = "second button bar button",
                 //.Flex = { .Grow = 1 },
-                .BoxProps = StdDivBoxProps,
                 .Props = { .IsPress = true, .Str = "Click", .OnChangeCallBack = []( controls::button *Button ){ Log(std::format("New value: {}", Button->GetValue() )); } },
               }),
             }),
@@ -165,22 +152,16 @@ namespace ui
           Create<controls::div>({
               .LayoutType = layout_type::eFlexRow,
               .Flex = { .Grow = 1, .Shrink = 1 },
-              .BoxProps = StdDivBoxProps,
-              .Style = StdDivStyle
             }, {
               Create<controls::div>({
                 .Size = {300},
                 .LayoutType = layout_type::eFlexColumn,
                 .Flex = { .Basis = flex_basis_type::eFixed, .Grow = 1, .Shrink = 1 },
-                .BoxProps = StdDivBoxProps,
-                .Style = StdDivStyle,
               }, {
                 Create<controls::div>({
                   .Size = {300},
                   .LayoutType = layout_type::eFlexColumn,
                   .Flex = { .Basis = flex_basis_type::eFixed, .Grow = 1, .Shrink = 1 },
-                  .BoxProps = StdDivBoxProps,
-                  .Style = StdDivStyle,
                 }, {
                   Create<controls::div>({
                     .MinSize = size_ref::eMinContent,
@@ -225,8 +206,6 @@ namespace ui
                   .LayoutType = layout_type::eFlexColumn,
                   .Overflow = overflow_type::eScroll,
                   .Flex = { .Basis = flex_basis_type::eFixed, .Grow = 1, .Shrink = 1 },
-                  .BoxProps = StdDivBoxProps,
-                  .Style = StdDivStyle,
                 }, Values),
               }),
               Create<controls::div>({
@@ -236,8 +215,6 @@ namespace ui
                 .MaxSize = size_ref::eNone,
                 .LayoutType = layout_type::eFlexColumn,
                 .Flex = { .Basis = flex_basis_type::eFixed, .Grow = 2, .Shrink = 2 },
-                .BoxProps = StdDivBoxProps,
-                .Style = StdDivStyle,
               }, {
                 Create<components::tabs>({
                   .Id = "TabsBox",

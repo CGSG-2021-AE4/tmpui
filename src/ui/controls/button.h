@@ -31,11 +31,11 @@ namespace ui
 
     struct button_props
     {
-      BOOL IsPress {0};
+      BOOL IsPress {false};
       std::string Str;
 
-      std::function<VOID ( button *Button )> OnClickCallBack {[](button *Button ){}};
-      std::function<VOID ( button *Button )> OnChangeCallBack {[](button *Button ){}};
+      std::function<VOID ( button *Button )> OnClickCallBack {[]( button *Button ){}};
+      std::function<VOID ( button *Button )> OnChangeCallBack {[]( button *Button ){}};
     }; /* Ebd if 'button_props' struct */
 
   } /* end of 'controls' namespace */
@@ -52,9 +52,9 @@ namespace ui
       layout_type LayoutType = layout_type::eBlock;
       overflow_type Overflow = overflow_type::eHidden;
       flex_props Flex {};
-      box_props BoxProps {};
+      box_props BoxProps { .MarginW = 4, .BorderW = 2, .PaddingW = 2 };
 
-      BOOL Value {0};
+      BOOL Value {false};
 
       controls::button_style Style {};
       controls::button_props Props {};
@@ -126,12 +126,12 @@ namespace ui
         return true;
       } /* End of 'OnClick' function */
 
-      virtual BOOL OnMouseDown( const ivec2 &LocalMousePos )
+      BOOL OnMouseDown( const ivec2 &LocalMousePos ) override
       {
         return true;
       } /* End of 'OnMouseDown' function */
 
-      virtual BOOL OnMouseUp( const ivec2 &LocalMousePos )
+      BOOL OnMouseUp( const ivec2 &LocalMousePos ) override
       {
         return true;
       } /* End of 'OnMouseUp' function */

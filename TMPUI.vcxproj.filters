@@ -16,12 +16,6 @@
     <Filter Include="Source Files\Math Support">
       <UniqueIdentifier>{bd74e118-0f62-44a5-b91d-caca165d876a}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Source Files\Mindows dependent">
-      <UniqueIdentifier>{6401bcee-75c3-4e3a-be5c-0494617c55e2}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Source Files\Frame dependent">
-      <UniqueIdentifier>{6852470e-81cf-4a3d-9620-f705c24c69c5}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Source Files\Main render">
       <UniqueIdentifier>{8d37514e-7c0d-4b8b-8072-321bc581a26d}</UniqueIdentifier>
     </Filter>
@@ -40,13 +34,25 @@
     <Filter Include="Source Files\Socket lib">
       <UniqueIdentifier>{58830678-4699-48e8-8f5e-396d8037d3f4}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source Files\Mindows">
+      <UniqueIdentifier>{6401bcee-75c3-4e3a-be5c-0494617c55e2}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Frame">
+      <UniqueIdentifier>{6852470e-81cf-4a3d-9620-f705c24c69c5}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Utilities">
+      <UniqueIdentifier>{ca34d310-711a-4e1a-9e6d-0b8b787725a1}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Utilities\Neural network">
+      <UniqueIdentifier>{843dd65a-3c36-4896-ab0c-36ecdb0009ad}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\win\win.cpp">
-      <Filter>Source Files\Mindows dependent</Filter>
+      <Filter>Source Files\Mindows</Filter>
     </ClCompile>
     <ClCompile Include="src\win\win_msg.cpp">
-      <Filter>Source Files\Mindows dependent</Filter>
+      <Filter>Source Files\Mindows</Filter>
     </ClCompile>
     <ClCompile Include="src\main.cpp">
       <Filter>Source Files</Filter>
@@ -56,6 +62,9 @@
     </ClCompile>
     <ClCompile Include="src\socket\sl.cpp">
       <Filter>Source Files\Socket lib</Filter>
+    </ClCompile>
+    <ClCompile Include="src\utilities\nn\nn.cpp">
+      <Filter>Source Files\Utilities\Neural network</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -78,13 +87,13 @@
       <Filter>Source Files</Filter>
     </ClInclude>
     <ClInclude Include="src\win\win.h">
-      <Filter>Source Files\Mindows dependent</Filter>
+      <Filter>Source Files\Mindows</Filter>
     </ClInclude>
     <ClInclude Include="src\mth\mth_cam.h">
       <Filter>Source Files\Math Support</Filter>
     </ClInclude>
     <ClInclude Include="src\frame\frame.h">
-      <Filter>Source Files\Frame dependent</Filter>
+      <Filter>Source Files\Frame</Filter>
     </ClInclude>
     <ClInclude Include="src\mth\mth_ray.h">
       <Filter>Source Files\Math Support</Filter>
@@ -154,6 +163,15 @@
     </ClInclude>
     <ClInclude Include="src\ui\examples\default.h">
       <Filter>Source Files\UI\Examples</Filter>
+    </ClInclude>
+    <ClInclude Include="src\ui\examples\nweb.h">
+      <Filter>Source Files\UI\Examples</Filter>
+    </ClInclude>
+    <ClInclude Include="src\ui\controls\canvas.h">
+      <Filter>Source Files\UI\Controls</Filter>
+    </ClInclude>
+    <ClInclude Include="src\utilities\nn\nn.h">
+      <Filter>Source Files\Utilities\Neural network</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

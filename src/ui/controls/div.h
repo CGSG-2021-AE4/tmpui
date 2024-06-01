@@ -11,8 +11,8 @@ namespace ui
     struct div_style
     {
       vec3
-        SpaceColor,
-        BorderColor;
+        SpaceColor {0.35},
+        BorderColor {0.75};
     }; /* End of 'div_style' struct */
 
     class div;
@@ -31,7 +31,7 @@ namespace ui
       overflow_type Overflow = overflow_type::eHidden;
       dir_type ScrollDir {dir_type::eVertical};
       flex_props Flex {};
-      box_props BoxProps {};
+      box_props BoxProps { .MarginW = 4, .BorderW = 2, .PaddingW = 2 };
 
       controls::div_style Style {};
     };

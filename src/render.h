@@ -35,7 +35,7 @@
 #include "./ui/examples/default.h"
 #include "./ui/examples/chat.h"
 #include "./ui/examples/chat_server.h"
-
+#include "./ui/examples/nweb.h"
 
 #include <iostream>
 
@@ -48,11 +48,8 @@ public:
   
   // ::ui::box_style StdDivStyle { .Space = { .DefColor = 0.35 }, .Border = { .DefColor = 0.75 } };
 
-  ::ui::box_props StdDivBoxProps = ::ui::box_props({ .MarginW = 4, .BorderW = 2, .PaddingW = 2 });
   ::ui::box_props StdMarginBoxProps = ::ui::box_props({ .MarginW = 2, .BorderW = 0, .PaddingW = 0 });
-  cs::div_style StdDivStyle = cs::div_style({ .SpaceColor = {0.35}, .BorderColor = {0.75} });
-
-
+  
   ::ui::render_2d &Render2d;
   ::ui::canvas Canvas;
 
@@ -66,7 +63,13 @@ public:
     Canvas.GetRoot()->AddChildren({
       ::ui::Create<::ui::components::tabs>({
         .Flex = { .Grow = 1, .Shrink = 1 },
+        .Style = { .SpaceColor = {0.2} },
         .Tabs = {
+          { "NWEB",
+            ::ui::Create<::ui::examples::nweb>({
+              .Flex = { .Grow = 1, .Shrink = 1 },
+            })
+          },
           { "First example",
             ::ui::Create<::ui::examples::def>({
               .Flex = { .Grow = 1, .Shrink = 1 },
